@@ -56,8 +56,8 @@ export const CohortFilter: React.FC<CohortFilterProps> = ({
               onClick={() => onSelect(cohort.id)}
             >
               <div className="font-medium">{cohort.name}</div>
-              <div className="text-sm text-muted-foreground">{cohort.description}</div>
-              <div className="text-xs mt-1">{cohort.users.toLocaleString()} users</div>
+              <div className="text-sm text-muted-foreground">Conversion: {cohort.conversionRate.toFixed(1)}%</div>
+              <div className="text-xs mt-1">Friction Score: {cohort.frictionScore}</div>
             </div>
           ))}
         </div>

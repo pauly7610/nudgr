@@ -5,9 +5,10 @@ import { ArrowRight, AlertCircle } from 'lucide-react';
 
 interface JourneyFrictionMapProps {
   flow: Flow | null;
+  cohortId?: string | null;
 }
 
-export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow }) => {
+export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, cohortId }) => {
   if (!flow) {
     return (
       <div className="rounded-lg border bg-card h-96 flex items-center justify-center">

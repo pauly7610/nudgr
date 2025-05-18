@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -80,7 +79,6 @@ export const JourneyCreator: React.FC<JourneyCreatorProps> = ({ onClose, onCreat
     
     const flowId = createFlow({
       flow: name,
-      description: description || `Journey flow for ${name}`,
       steps: stepsWithDropOff
     });
     

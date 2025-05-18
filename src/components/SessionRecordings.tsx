@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Flow } from '../data/mockData';
 import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Play, Calendar, User, Eye, Filter, AlertCircle } from 'lucide-react';
+import { Play, Calendar, User, Eye, Filter, AlertCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 
 interface JourneySessionProps {
