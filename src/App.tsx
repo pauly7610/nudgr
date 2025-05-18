@@ -6,6 +6,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
+import JourneyMap from "./pages/JourneyMap";
+import Metrics from "./pages/Metrics";
+import UserCohorts from "./pages/UserCohorts";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,6 +23,10 @@ const App = () => (
         <Layout>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/journey-map" element={<JourneyMap />} />
+            <Route path="/metrics" element={<Metrics />} />
+            <Route path="/user-cohorts" element={<UserCohorts />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

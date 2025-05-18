@@ -2,7 +2,15 @@
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-export const DashboardHeader: React.FC = () => {
+interface DashboardHeaderProps {
+  title?: string;
+  description?: string;
+}
+
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
+  title = "Marketing Friction Dashboard",
+  description = "Monitor user friction and drop-offs in real-time"
+}) => {
   const { toast } = useToast();
   
   // Show demo notification
@@ -21,8 +29,8 @@ export const DashboardHeader: React.FC = () => {
     <div className="border-b border-border">
       <div className="container py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Marketing Friction Dashboard</h1>
-          <p className="text-muted-foreground">Monitor user friction and drop-offs in real-time</p>
+          <h1 className="text-2xl font-bold">{title}</h1>
+          <p className="text-muted-foreground">{description}</p>
         </div>
         
         <div className="flex items-center gap-3">
