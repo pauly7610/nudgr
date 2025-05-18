@@ -1,3 +1,4 @@
+
 # Product Requirements Document: UX Friction Analyzer MVP
 
 ## TL;DR
@@ -242,6 +243,36 @@ For our company, this represents an opportunity to establish leadership in the e
       - Show side-by-side comparisons of authenticated vs. non-authenticated journeys
       - Identify friction points unique to each user type
       - Calculate conversion rate differences between segments
+
+11. **Smart Action Nudges**
+    - **User Story**: As a Marketing Campaign Manager, I want suggestions on how to fix friction points, so I can take action quickly without guessing.
+    - **Description**: Automatically surfaces context-based recommendations based on friction patterns detected in journey data.
+    - **Acceptance Criteria**:
+      - Detect key friction types (form abandonment, drop-off, content fatigue)
+      - Display recommended actions with context
+      - Link to relevant Marketing Playbook entries
+      - Allow users to assign suggestion as a task or dismiss
+
+12. **Smart Test Planner**
+    - **User Story**: As a CRO or growth team member, I want the system to suggest high-impact A/B tests based on real data, so I can improve conversion without wasting cycles on low-value changes.
+    - **Description**: Test suggestion engine with tiered functionality levels.
+    - **Acceptance Criteria**:
+      - Detect component performance delta between pages
+      - Generate at least 3 test suggestions per friction point
+      - Editable confidence interval and traffic allocation
+      - Link to launch tools or export test briefs
+    
+    **Tier 1: Rule-Based**
+    - Identifies underperforming elements across pages
+    - Suggests design, layout, or microcopy tests
+    - Allows configuration of test duration and confidence level
+    - Integrates with A/B test platforms (Optimizely, Google Optimize)
+
+    **Tier 2: ML-Based (Enterprise)**
+    - Predicts which changes will drive impact based on prior experiments
+    - Estimates lift and test duration dynamically
+    - Benchmarks components vs. industry norms
+    - Ranks test variants by ROI potential
 
 ### Information Architecture / Navigation
 
