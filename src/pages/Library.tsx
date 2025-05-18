@@ -4,7 +4,9 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BestPracticeLibrary } from '@/components/library/BestPracticeLibrary';
 import { MarketingFrictionPlaybooks } from '@/components/marketing/MarketingFrictionPlaybooks';
-import { BookOpen, BookText } from 'lucide-react';
+import { TechnicalErrorCorrelation } from '@/components/TechnicalErrorCorrelation';
+import { FrictionAudienceExport } from '@/components/marketing/FrictionAudienceExport';
+import { BookOpen, BookText, AlertCircle, Users } from 'lucide-react';
 
 const Library = () => {
   const [activeTab, setActiveTab] = useState<string>("best-practices");
@@ -23,7 +25,7 @@ const Library = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid grid-cols-2 w-[400px]">
+          <TabsList className="grid grid-cols-4 w-[600px]">
             <TabsTrigger value="best-practices" className="flex items-center gap-1">
               <BookOpen className="h-4 w-4" />
               <span>Best Practices</span>
@@ -31,6 +33,14 @@ const Library = () => {
             <TabsTrigger value="marketing-playbooks" className="flex items-center gap-1">
               <BookText className="h-4 w-4" />
               <span>Marketing Playbooks</span>
+            </TabsTrigger>
+            <TabsTrigger value="tech-errors" className="flex items-center gap-1">
+              <AlertCircle className="h-4 w-4" />
+              <span>Tech Error Correlation</span>
+            </TabsTrigger>
+            <TabsTrigger value="audience-export" className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>Audience Export</span>
             </TabsTrigger>
           </TabsList>
           
@@ -40,6 +50,14 @@ const Library = () => {
           
           <TabsContent value="marketing-playbooks">
             <MarketingFrictionPlaybooks />
+          </TabsContent>
+          
+          <TabsContent value="tech-errors">
+            <TechnicalErrorCorrelation />
+          </TabsContent>
+          
+          <TabsContent value="audience-export">
+            <FrictionAudienceExport />
           </TabsContent>
         </Tabs>
       </div>
