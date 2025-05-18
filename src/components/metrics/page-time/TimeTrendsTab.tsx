@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer
+  Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 
 interface TimeTrendData {
