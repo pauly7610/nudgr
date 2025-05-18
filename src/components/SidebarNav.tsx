@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { BarChart2, Activity, Map, Settings, Users, Home } from 'lucide-react';
+import { BarChart2, Activity, Map, Settings, Users, Home, Library } from 'lucide-react';
 
 export const SidebarNav: React.FC = () => {
   const location = useLocation();
@@ -59,6 +59,14 @@ export const SidebarNav: React.FC = () => {
                   <Link to="/user-cohorts" className="flex items-center">
                     <Users className="mr-3 h-4 w-4" />
                     <span>User Cohorts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className={location.pathname === '/library' ? 'bg-sidebar-accent' : ''}>
+                  <Link to="/library" className="flex items-center">
+                    <Library className="mr-3 h-4 w-4" />
+                    <span>Library</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
