@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Flow } from '../data/mockData';
-import { ChartIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from './ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -45,7 +45,7 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
     <div className="rounded-lg border bg-card overflow-hidden mt-6">
       <div className="bg-muted/50 px-4 py-3 flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <h3 className="font-semibold flex items-center gap-2">
-          <ChartIcon className="h-5 w-5 text-blue-500" />
+          <BarChart2 className="h-5 w-5 text-blue-500" />
           Historical Trends
         </h3>
         <Button variant="ghost" size="sm">

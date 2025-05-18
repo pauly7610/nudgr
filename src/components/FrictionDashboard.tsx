@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardHeader } from './DashboardHeader';
 import { FrictionAlertBanner } from './FrictionAlertBanner';
@@ -71,7 +70,10 @@ export const FrictionDashboard: React.FC = () => {
         />
       )}
       
-      <DashboardHeader />
+      <DashboardHeader 
+        title="Friction Dashboard" 
+        description="Monitor and analyze user friction points"
+      />
       
       <div className="container py-8 space-y-8">
         {/* Key Metrics */}
