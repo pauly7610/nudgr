@@ -9,12 +9,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketingFunnelDiagnostics } from '@/components/MarketingFunnelDiagnostics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ElementFrictionAnalytics } from '@/components/ElementFrictionAnalytics';
+import { FrictionImpactScore } from '@/components/FrictionImpactScore';
+import { TechnicalErrorCorrelation } from '@/components/TechnicalErrorCorrelation';
+import { AccessibilityFrictionIdentifier } from '@/components/AccessibilityFrictionIdentifier';
 
 const UserCohorts = () => {
   const { userCohorts, flows } = useFrictionData();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
   const [showElementAnalytics, setShowElementAnalytics] = useState<boolean>(false);
+  const [showTechErrors, setShowTechErrors] = useState<boolean>(false);
+  const [showAccessibility, setShowAccessibility] = useState<boolean>(false);
   
   // Filter cohorts based on active tab
   const filteredCohorts = activeTab === "all" 
@@ -75,6 +80,8 @@ const UserCohorts = () => {
               onClick={() => {
                 setSelectedCohort(cohort.id);
                 setShowElementAnalytics(false);
+                setShowTechErrors(false);
+                setShowAccessibility(false);
               }}
             />
           ))}
@@ -91,7 +98,7 @@ const UserCohorts = () => {
           </div>
         </div>
         
-        {activeCohort && !showElementAnalytics && (
+        {activeCohort && !showElementAnalytics && !showTechErrors && !showAccessibility && (
           <div className="mt-10">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Cohort Analysis: {activeCohort.name}</h2>
@@ -103,15 +110,37 @@ const UserCohorts = () => {
                 >
                   Close
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={() => setShowElementAnalytics(true)}
-                >
-                  <MousePointer2 className="h-4 w-4" />
-                  <span>Element Analysis</span>
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => setShowElementAnalytics(true)}
+                  >
+                    <MousePointer2 className="h-4 w-4" />
+                    <span>Element Analysis</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => setShowTechErrors(true)}
+                  >
+                    <Activity className="h-4 w-4" />
+                    <span>Technical Errors</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => setShowAccessibility(true)}
+                  >
+                    <Activity className="h-4 w-4" />
+                    <span>Accessibility</span>
+                  </Button>
+                </div>
               </div>
             </div>
             
@@ -130,31 +159,7 @@ const UserCohorts = () => {
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Friction Metrics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-4">
-                    <li className="flex justify-between items-center pb-2 border-b">
-                      <span className="text-muted-foreground">Avg. Session Duration</span>
-                      <span className="font-medium">4m 32s</span>
-                    </li>
-                    <li className="flex justify-between items-center pb-2 border-b">
-                      <span className="text-muted-foreground">Rage Clicks</span>
-                      <span className="font-medium">42</span>
-                    </li>
-                    <li className="flex justify-between items-center pb-2 border-b">
-                      <span className="text-muted-foreground">Form Abandonment</span>
-                      <span className="font-medium">23%</span>
-                    </li>
-                    <li className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Error Encounters</span>
-                      <span className="font-medium">8</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+              <FrictionImpactScore flowId={flow?.id} />
             </div>
             
             <div className="mt-6">
@@ -179,6 +184,44 @@ const UserCohorts = () => {
             </div>
             
             <ElementFrictionAnalytics cohort={activeCohort} />
+          </div>
+        )}
+        
+        {activeCohort && showTechErrors && (
+          <div className="mt-10">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Technical Errors: {activeCohort.name}</h2>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowTechErrors(false)}
+                >
+                  Back to Cohort
+                </Button>
+              </div>
+            </div>
+            
+            <TechnicalErrorCorrelation />
+          </div>
+        )}
+        
+        {activeCohort && showAccessibility && (
+          <div className="mt-10">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Accessibility Analysis: {activeCohort.name}</h2>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowAccessibility(false)}
+                >
+                  Back to Cohort
+                </Button>
+              </div>
+            </div>
+            
+            <AccessibilityFrictionIdentifier />
           </div>
         )}
         

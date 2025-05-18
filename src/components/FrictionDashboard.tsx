@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardHeader } from './DashboardHeader';
 import { FrictionAlertBanner } from './FrictionAlertBanner';
@@ -6,9 +7,11 @@ import { TopFrictionFunnels } from './TopFrictionFunnels';
 import { AlertsFeed } from './AlertsFeed';
 import { UserCohortCard } from './UserCohortCard';
 import { JourneyFrictionMap } from './JourneyFrictionMap';
+import { FrictionImpactScore } from './FrictionImpactScore';
 import { useFrictionData } from '../hooks/useFrictionData';
 import { BarChart2, Zap, Users } from 'lucide-react';
 import { Alert } from '../data/mockData';
+import { JourneyAnalysisPanel } from './JourneyAnalysisPanel';
 
 export const FrictionDashboard: React.FC = () => {
   const {
@@ -113,15 +116,19 @@ export const FrictionDashboard: React.FC = () => {
             />
             
             <JourneyFrictionMap flow={activeFlow} />
+            
+            {activeFlow && <JourneyAnalysisPanel flow={activeFlow} />}
           </div>
           
           <div className="space-y-6">
+            <FrictionImpactScore showTopElements={true} />
+          
             <AlertsFeed alerts={alerts} onAlertClick={handleAlertView} />
             
             <div>
               <h3 className="text-lg font-semibold mb-3">User Cohorts</h3>
               <div className="grid gap-4">
-                {userCohorts.map(cohort => (
+                {userCohorts.slice(0, 3).map(cohort => (
                   <UserCohortCard key={cohort.id} cohort={cohort} />
                 ))}
               </div>

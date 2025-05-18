@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Alert, Flow, UserCohort, flowData, initialAlerts, userCohorts as initialUserCohorts, generateRandomAlert } from '../data/mockData';
 
@@ -12,6 +11,8 @@ export interface FrictionDataState {
   setActiveAlert: (alert: Alert | null) => void;
   createFlow: (flowData: Omit<Flow, 'id'>) => string;
   getMarketingContext: (flowId: string) => any | null;
+  getFrictionImpactScore: (flowId: string) => number;
+  getTopFrictionElements: () => Array<{elementName: string; score: number; flowId: string}>;
 }
 
 export const useFrictionData = (): FrictionDataState => {
@@ -85,6 +86,68 @@ export const useFrictionData = (): FrictionDataState => {
     };
   };
 
+  // Calculate friction impact score for a flow
+  const getFrictionImpactScore = (flowId: string): number => {
+    const flow = flows.find(f => f.id === flowId);
+    if (!flow) return 0;
+    
+    // Calculate impact score based on:
+    // 1. Drop-off rates
+    // 2. Number of friction types
+    // 3. User volume
+    
+    // Get first and last step
+    const firstStep = flow.steps[0];
+    const lastStep = flow.steps[flow.steps.length - 1];
+    
+    // Calculate overall drop-off rate
+    const dropOffRate = (firstStep.users - lastStep.users) / firstStep.users;
+    
+    // Count total friction issues
+    const frictionIssues = flow.steps.reduce((count, step) => {
+      return count + (step.friction?.length || 0);
+    }, 0);
+    
+    // Calculate normalized user volume factor (0-1 scale)
+    const maxUsers = Math.max(...flows.map(f => f.steps[0].users));
+    const userVolumeFactor = firstStep.users / maxUsers;
+    
+    // Calculate impact score (0-100 scale)
+    // weightings: 50% drop-off rate, 30% friction issues, 20% user volume
+    const impactScore = 
+      (dropOffRate * 50) + 
+      (Math.min(frictionIssues / 10, 1) * 30) + 
+      (userVolumeFactor * 20);
+    
+    return Math.round(impactScore);
+  };
+  
+  // Get top friction elements across all flows
+  const getTopFrictionElements = () => {
+    const elements: Array<{elementName: string; score: number; flowId: string}> = [];
+    
+    flows.forEach(flow => {
+      flow.steps.forEach(step => {
+        if (step.friction && step.friction.length > 0) {
+          const stepImpact = step.dropOff || 0;
+          const userVolume = step.users;
+          
+          // Create an impact score for this specific element
+          const elementScore = Math.round((stepImpact / userVolume * 100) * (step.friction.length * 0.2));
+          
+          elements.push({
+            elementName: `${flow.flow} - ${step.label}`,
+            score: elementScore,
+            flowId: flow.id
+          });
+        }
+      });
+    });
+    
+    // Sort by impact score (highest first)
+    return elements.sort((a, b) => b.score - a.score);
+  };
+
   return {
     flows,
     alerts,
@@ -94,6 +157,8 @@ export const useFrictionData = (): FrictionDataState => {
     activeAlert,
     setActiveAlert,
     createFlow,
-    getMarketingContext
+    getMarketingContext,
+    getFrictionImpactScore,
+    getTopFrictionElements
   };
 };
