@@ -10,9 +10,9 @@ interface UserCohortCardProps {
 export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort }) => {
   // Determine progress color based on friction score
   const getFrictionClass = (score: number) => {
-    if (score < 30) return 'progress-low';
-    if (score < 60) return 'progress-medium';
-    return 'progress-high';
+    if (score < 30) return 'bg-green-500';
+    if (score < 60) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
   
   return (
@@ -39,8 +39,7 @@ export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort }) => {
           </div>
           <Progress 
             value={cohort.frictionScore} 
-            className="h-1.5" 
-            indicatorClassName={getFrictionClass(cohort.frictionScore)} 
+            className={`h-1.5 ${getFrictionClass(cohort.frictionScore)}`}
           />
         </div>
       </div>
