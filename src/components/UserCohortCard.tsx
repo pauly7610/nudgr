@@ -2,14 +2,22 @@
 import React from 'react';
 import { UserCohort } from '../data/mockData';
 import { Progress } from '@/components/ui/progress';
-import { Tag, BarChart2, ArrowRight } from 'lucide-react';
+import { Tag, BarChart2, ArrowRight, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface UserCohortCardProps {
   cohort: UserCohort;
   onClick?: () => void;
+  onViewAnalytics?: (cohortId: string) => void;
+  onViewElementAnalytics?: (cohortId: string) => void;
 }
 
-export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort, onClick }) => {
+export const UserCohortCard: React.FC<UserCohortCardProps> = ({ 
+  cohort, 
+  onClick, 
+  onViewAnalytics,
+  onViewElementAnalytics 
+}) => {
   // Determine progress color based on friction score
   const getFrictionClass = (score: number) => {
     if (score < 30) return 'bg-green-500';
@@ -24,6 +32,20 @@ export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort, onClick 
                              cohort.name.includes("Campaign") ||
                              cohort.name.includes("Paid") ||
                              cohort.name.includes("Organic");
+  
+  const handleViewAnalytics = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onViewAnalytics) {
+      onViewAnalytics(cohort.id);
+    }
+  };
+  
+  const handleViewElementAnalytics = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onViewElementAnalytics) {
+      onViewElementAnalytics(cohort.id);
+    }
+  };
   
   return (
     <div 
@@ -86,10 +108,15 @@ export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort, onClick 
             <div className="mt-2 border-t border-dotted pt-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Element Friction Analysis</span>
-                <button className="text-blue-500 flex items-center gap-0.5">
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="h-auto p-0 text-blue-500 flex items-center gap-0.5"
+                  onClick={handleViewElementAnalytics}
+                >
                   <span>View Details</span>
-                  <ArrowRight className="h-3 w-3" />
-                </button>
+                  <Eye className="h-3 w-3" />
+                </Button>
               </div>
               
               {cohort.name.includes("Email") && (
@@ -117,10 +144,15 @@ export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort, onClick 
         )}
         
         <div className="flex justify-end">
-          <button className="text-xs text-primary flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-primary flex items-center gap-1 p-1 h-auto"
+            onClick={handleViewAnalytics}
+          >
             <BarChart2 className="h-3 w-3" />
             <span>View Analytics</span>
-          </button>
+          </Button>
         </div>
       </div>
     </div>

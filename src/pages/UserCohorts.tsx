@@ -13,8 +13,10 @@ import { CohortComparison } from '@/components/comparison/CohortComparison';
 import { MarketingExport } from '@/components/marketing/MarketingExport';
 import { ElementInteractionAnalysis } from '@/components/element/ElementInteractionAnalysis';
 import { Filter, UserPlus, Tag, MousePointer2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const UserCohorts = () => {
+  const { toast } = useToast();
   const { userCohorts, flows } = useFrictionData();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [selectedCohort, setSelectedCohort] = useState<string | null>(null);
@@ -33,6 +35,23 @@ const UserCohorts = () => {
     setShowElementAnalytics(false);
     setShowTechErrors(false);
     setShowAccessibility(false);
+    
+    toast({
+      title: "Cohort Selected",
+      description: `Analyzing cohort data for deeper insights`,
+    });
+  };
+  
+  const handleViewElementAnalytics = (cohortId: string) => {
+    setSelectedCohort(cohortId);
+    setShowElementAnalytics(true);
+    setShowTechErrors(false);
+    setShowAccessibility(false);
+    
+    toast({
+      title: "Element Analysis",
+      description: "Displaying element friction analytics for this cohort",
+    });
   };
 
   const handleCloseAnalysis = () => {
@@ -75,7 +94,8 @@ const UserCohorts = () => {
         <UserCohortsList 
           cohorts={userCohorts} 
           activeTab={activeTab} 
-          onSelectCohort={handleSelectCohort} 
+          onSelectCohort={handleSelectCohort}
+          onViewElementAnalytics={handleViewElementAnalytics}
         />
         
         {/* Show the appropriate view based on state */}

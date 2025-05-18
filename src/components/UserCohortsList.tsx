@@ -8,12 +8,14 @@ interface UserCohortsListProps {
   cohorts: UserCohort[];
   activeTab: string;
   onSelectCohort: (cohortId: string) => void;
+  onViewElementAnalytics: (cohortId: string) => void;
 }
 
 export const UserCohortsList: React.FC<UserCohortsListProps> = ({ 
   cohorts, 
   activeTab, 
-  onSelectCohort 
+  onSelectCohort,
+  onViewElementAnalytics
 }) => {
   // Filter cohorts based on active tab
   const filteredCohorts = activeTab === "all" 
@@ -34,6 +36,8 @@ export const UserCohortsList: React.FC<UserCohortsListProps> = ({
           key={cohort.id} 
           cohort={cohort} 
           onClick={() => onSelectCohort(cohort.id)}
+          onViewAnalytics={onSelectCohort}
+          onViewElementAnalytics={onViewElementAnalytics}
         />
       ))}
       
