@@ -1,5 +1,9 @@
 # Product Requirements Document: UX Friction Analyzer MVP
 
+## TL;DR
+
+The UX Friction Analyzer is a web-based analytics platform for marketing and CRO teams that surfaces UX friction in digital journeys, enabling teams to act quickly to improve conversion rates and optimize spend. Unlike general analytics or heatmap tools, it provides friction scoring, stale content detection, and direct marketing-funnel integration in a collaborative workspace.
+
 ## I. Introduction & Purpose
 
 ### Document Purpose
@@ -95,7 +99,7 @@ Furthermore, marketing teams struggle to identify stale or underperforming conte
 
 ### Market Opportunity / Business Case
 
-UX Friction Analyzer addresses a critical gap between marketing analytics and UX optimization tools. While marketing teams focus on driving traffic and UX teams focus on design improvements, the connection between the two remains largely manual and inefficient.
+Teams are wasting millions on campaigns that lead to broken or confusing digital experiences. Our product ends that cycle. By being the first platform that *treats UX as a measurable marketing metric*, we give teams visibility they've never had before — and the ability to act on it in real-time. No more guessing. No more stale content dragging down performance. This isn't just a product; it's the beginning of a new category.
 
 This product creates value by:
 - Reducing wasted marketing spend on campaigns driving traffic to problematic user experiences
@@ -144,8 +148,9 @@ For our company, this represents an opportunity to establish leadership in the e
 
 ## III. Product Details
 
-### Core Features & Functionality
+### Feature Prioritization
 
+#### Core MVP
 1. **Journey Friction Mapping**
    - **User Story**: As a Marketing Campaign Manager, I want to visualize user flows with drop-off rates, so I can identify where users abandon their journeys.
    - **Description**: Interactive flow visualization showing steps in the user journey with friction indicators and drop-off rates between steps.
@@ -164,25 +169,7 @@ For our company, this represents an opportunity to establish leadership in the e
      - Provide details about the nature of the friction
      - Enable direct navigation to affected journey step
 
-3. **User Cohort Analysis**
-   - **User Story**: As a Head of Digital Marketing, I want to compare friction patterns across different user segments, so I can tailor experiences to specific audiences.
-   - **Description**: Comparison tools showing how different user segments experience friction differently.
-   - **Acceptance Criteria**:
-     - Allow segmentation by user type, source, device type, etc.
-     - Display side-by-side comparisons of cohort experiences
-     - Show statistical significance of differences
-     - Enable filtering and drilling down into specific cohort data
-
-4. **Marketing Funnel Diagnostics**
-   - **User Story**: As a Marketing Campaign Manager, I want to diagnose issues in my campaign funnels, so I can optimize my marketing spend.
-   - **Description**: Specialized analysis tools for marketing funnels showing correlation between campaign sources and friction points.
-   - **Acceptance Criteria**:
-     - Import campaign data from major platforms (Google Ads, Facebook, etc.)
-     - Show funnel performance by campaign source
-     - Identify highest-impact friction points in marketing funnels
-     - Calculate potential ROI of resolving specific friction issues
-
-5. **Session Recordings**
+3. **Session Recordings**
    - **User Story**: As a CRO Specialist, I want to watch actual user sessions experiencing high friction, so I can understand exactly what's happening.
    - **Description**: Playback of anonymized user sessions focused on friction events.
    - **Acceptance Criteria**:
@@ -191,7 +178,7 @@ For our company, this represents an opportunity to establish leadership in the e
      - Ensure privacy compliance with data masking
      - Enable sharing and annotation of specific moments in recordings
 
-6. **Collaboration Tools**
+4. **Collaboration Tools**
    - **User Story**: As a Head of Digital Marketing, I want my team to collaborate on friction analysis, so we can solve problems faster.
    - **Description**: Annotation, commenting, and task assignment capabilities throughout the platform.
    - **Acceptance Criteria**:
@@ -199,6 +186,26 @@ For our company, this represents an opportunity to establish leadership in the e
      - Enable commenting and discussion threads
      - Provide task creation and assignment
      - Include notification system for comments and tasks
+
+5. **Marketing Funnel Diagnostics**
+   - **User Story**: As a Marketing Campaign Manager, I want to diagnose issues in my campaign funnels, so I can optimize my marketing spend.
+   - **Description**: Specialized analysis tools for marketing funnels showing correlation between campaign sources and friction points.
+   - **Acceptance Criteria**:
+     - Import campaign data from major platforms (Google Ads, Facebook, etc.)
+     - Show funnel performance by campaign source
+     - Identify highest-impact friction points in marketing funnels
+     - Calculate potential ROI of resolving specific friction issues
+
+#### MVP-Next
+
+6. **User Cohort Analysis**
+   - **User Story**: As a Head of Digital Marketing, I want to compare friction patterns across different user segments, so I can tailor experiences to specific audiences.
+   - **Description**: Comparison tools showing how different user segments experience friction differently.
+   - **Acceptance Criteria**:
+     - Allow segmentation by user type, source, device type, etc.
+     - Display side-by-side comparisons of cohort experiences
+     - Show statistical significance of differences
+     - Enable filtering and drilling down into specific cohort data
 
 7. **Marketing Playbooks**
    - **User Story**: As a Marketing Campaign Manager, I want access to best practices for solving common friction issues, so I don't have to reinvent solutions.
@@ -265,7 +272,30 @@ For our company, this represents an opportunity to establish leadership in the e
 - **Performance Focus**: Optimize for quick loading even with large datasets.
 - **Accessibility**: WCAG 2.1 AA compliance for all interfaces.
 
-## IV. Go-to-Market & Success
+## IV. Milestones & Sequencing
+
+**MVP-0: Foundation**
+- Setup core tracking script
+- Basic UI + dashboard scaffold
+
+**MVP-1: Core Functionality**
+- Journey Friction Mapping
+- Real-time Alerts
+- Session Recording
+
+**MVP-2: Collaboration Layer**
+- Shared views, comments, tasks
+- User Cohort Analysis
+
+**MVP-3: Marketing Integrations**
+- Campaign import (Google/Facebook)
+- Marketing Funnel Diagnostics
+
+**MVP-4: Stale Content + Auth Analytics**
+- Content decay metrics
+- Auth vs Guest behavior analytics
+
+## V. Go-to-Market & Success
 
 ### Release Criteria / Definition of Done
 
