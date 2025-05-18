@@ -2,6 +2,7 @@
 import React from 'react';
 import { UserCohort } from '../data/mockData';
 import { Progress } from '@/components/ui/progress';
+import { Tag } from 'lucide-react';
 
 interface UserCohortCardProps {
   cohort: UserCohort;
@@ -14,6 +15,9 @@ export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort }) => {
     if (score < 60) return 'bg-yellow-500';
     return 'bg-red-500';
   };
+  
+  // Mock marketing data - in a real app this would come from the actual cohort data
+  const hasMarketingContext = cohort.name.includes("Google") || cohort.name.includes("Social") || cohort.name.includes("Email");
   
   return (
     <div className="rounded-lg border bg-card p-4">
@@ -42,6 +46,35 @@ export const UserCohortCard: React.FC<UserCohortCardProps> = ({ cohort }) => {
             className={`h-1.5 ${getFrictionClass(cohort.frictionScore)}`}
           />
         </div>
+        
+        {hasMarketingContext && (
+          <div className="mt-3 pt-3 border-t border-dashed">
+            <div className="flex items-center gap-1 mb-2">
+              <Tag className="h-3.5 w-3.5 text-blue-500" />
+              <span className="text-xs font-medium text-blue-500">Marketing Context</span>
+            </div>
+            <div className="space-y-1">
+              {cohort.name.includes("Google") && (
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Source:</span> Google Ads
+                </div>
+              )}
+              {cohort.name.includes("Social") && (
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Campaign:</span> Q2 Social Retargeting
+                </div>
+              )}
+              {cohort.name.includes("Email") && (
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Email Campaign:</span> Monthly Newsletter
+                </div>
+              )}
+              <div className="text-xs">
+                <span className="text-muted-foreground">Market Segment:</span> High Intent
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

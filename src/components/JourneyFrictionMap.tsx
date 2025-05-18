@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Flow, FrictionType } from '../data/mockData';
-import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle, Tag } from 'lucide-react';
 
 interface JourneyFrictionMapProps {
   flow: Flow | null;
@@ -9,6 +9,8 @@ interface JourneyFrictionMapProps {
 }
 
 export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, cohortId }) => {
+  const [showMarketingData, setShowMarketingData] = useState(false);
+
   if (!flow) {
     return (
       <div className="rounded-lg border bg-card h-96 flex items-center justify-center">
@@ -35,6 +37,16 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         return type;
     }
   };
+
+  // Mock marketing data - in a real app this would come from the backend
+  const mockMarketingData = {
+    campaignName: "Summer Sale 2023",
+    source: "Google Ads",
+    medium: "CPC",
+    adGroup: "Product X - High Intent",
+    adCreative: "50% Off Limited Time",
+    landingPage: "/summer-promo"
+  };
   
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -43,7 +55,46 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
           <h3 className="font-semibold">{flow.flow} - Journey Friction Map</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Showing full funnel from entry to completion</p>
         </div>
+        <div className="flex items-center">
+          <button 
+            className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-md ${
+              showMarketingData ? 'bg-primary/10 text-primary' : 'hover:bg-muted/80'
+            }`}
+            onClick={() => setShowMarketingData(!showMarketingData)}
+          >
+            <Tag className="h-3.5 w-3.5" />
+            <span>Marketing Attribution</span>
+          </button>
+        </div>
       </div>
+      
+      {showMarketingData && (
+        <div className="bg-blue-50 border-b border-blue-100 px-4 py-2">
+          <h4 className="text-xs font-medium text-blue-700 mb-1">Marketing Attribution</h4>
+          <div className="grid grid-cols-3 gap-4 text-xs">
+            <div>
+              <span className="text-muted-foreground">Campaign:</span>{" "}
+              <span className="font-medium">{mockMarketingData.campaignName}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Source/Medium:</span>{" "}
+              <span className="font-medium">{mockMarketingData.source} / {mockMarketingData.medium}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Ad Group:</span>{" "}
+              <span className="font-medium">{mockMarketingData.adGroup}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Creative:</span>{" "}
+              <span className="font-medium">{mockMarketingData.adCreative}</span>
+            </div>
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Landing Page:</span>{" "}
+              <span className="font-medium">{mockMarketingData.landingPage}</span>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="p-6 overflow-x-auto">
         <div className="flex min-w-max">

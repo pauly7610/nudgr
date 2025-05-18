@@ -11,6 +11,7 @@ import { JourneyCollab } from '@/components/JourneyCollab';
 import { JourneyCreator } from '@/components/JourneyCreator';
 import { CohortFilter } from '@/components/CohortFilter';
 import { SessionRecordings } from '@/components/SessionRecordings';
+import { MarketingFunnelDiagnostics } from '@/components/MarketingFunnelDiagnostics';
 import { Button } from '@/components/ui/button';
 import { Download, Share2, Plus, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -87,6 +88,7 @@ const JourneyMap = () => {
             <TabsList className="mb-4">
               <TabsTrigger value="journey">Journey Map</TabsTrigger>
               <TabsTrigger value="sessions">Session Recordings</TabsTrigger>
+              <TabsTrigger value="analytics">Marketing Analytics</TabsTrigger>
               <TabsTrigger value="annotations">Annotations</TabsTrigger>
               <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
             </TabsList>
@@ -97,7 +99,10 @@ const JourneyMap = () => {
                 cohortId={activeCohortId} 
               />
               
-              <JourneyAnalysisPanel flow={activeFlow} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <MarketingFunnelDiagnostics flow={activeFlow} />
+                <JourneyAnalysisPanel flow={activeFlow} />
+              </div>
               
               <JourneyComparisonPanel flows={flows} activeFlowId={activeFlowId} />
               
@@ -106,6 +111,12 @@ const JourneyMap = () => {
             
             <TabsContent value="sessions">
               <SessionRecordings flow={activeFlow} />
+            </TabsContent>
+            
+            <TabsContent value="analytics">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <MarketingFunnelDiagnostics flow={activeFlow} />
+              </div>
             </TabsContent>
             
             <TabsContent value="annotations">
