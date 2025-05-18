@@ -16,6 +16,9 @@ This project represents the MVP (Minimum Viable Product) version of the UX Frict
 - **Session Recordings**: Watch actual user sessions experiencing high friction
 - **Collaboration Tools**: Team annotation and discussion features
 - **Marketing Playbooks**: Best practices library for solving common friction issues
+- **Stale Content Analysis**: Identify underperforming content and features
+- **Marketing Performance Metrics**: Track CTR, impressions, views, and conversion rates
+- **User Authentication Analytics**: Compare behavior between authenticated and non-authenticated users
 
 ## Technology Stack
 
@@ -64,6 +67,7 @@ npm run build
 - `/src/data` - Mock data for demonstration purposes
 - `/src/hooks` - Custom React hooks
 - `/src/pages` - Main application pages/routes
+- `/src/components/metrics` - Specialized components for metrics and analytics
 
 ## Deployment
 
