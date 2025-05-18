@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Flow, FrictionType } from '../data/mockData';
-import { ArrowRight, AlertCircle, Tag, MousePointerClick, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, AlertCircle, Tag, MousePointerClick, Eye, ChevronDown, ChevronUp, MousePointer } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface JourneyFrictionMapProps {
@@ -10,11 +10,15 @@ interface JourneyFrictionMapProps {
 }
 
 interface DetailedAction {
-  type: 'click' | 'view' | 'scroll' | 'form_input';
+  type: 'click' | 'view' | 'scroll' | 'form_input' | 'hover';
   element: string;
   description: string;
   timestamp: string;
   duration?: number; // in seconds
+  hoverData?: {
+    coordinates: string;
+    dwellTime: number;
+  };
 }
 
 interface DetailedStep {
@@ -36,6 +40,17 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         url: '/home',
         actions: [
           { type: 'view', element: 'hero_banner', description: 'Viewed hero banner', timestamp: '00:00' },
+          { 
+            type: 'hover', 
+            element: 'navigation_menu', 
+            description: 'Hovered over main navigation menu', 
+            timestamp: '00:08',
+            duration: 4,
+            hoverData: {
+              coordinates: 'nav:rewards',
+              dwellTime: 3.2
+            }
+          },
           { type: 'click', element: 'rewards_link', description: 'Clicked "Chase Rewards" link in main navigation', timestamp: '00:12' }
         ],
         timeSpent: 45
@@ -45,8 +60,29 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         url: '/rewards',
         actions: [
           { type: 'view', element: 'rewards_summary', description: 'Viewed rewards points summary', timestamp: '00:46' },
-          { type: 'view', element: 'travel_ad_banner', description: 'Saw promotional banner for travel rewards', timestamp: '01:03' },
-          { type: 'click', element: 'travel_promo_cta', description: 'Clicked "Explore Travel Offers" CTA button', timestamp: '01:15' }
+          { 
+            type: 'view', 
+            element: 'travel_ad_banner', 
+            description: 'Saw promotional banner for travel rewards', 
+            timestamp: '01:03' 
+          },
+          { 
+            type: 'hover', 
+            element: 'travel_promo_cta', 
+            description: 'Hovered over "Explore Travel Offers" CTA', 
+            timestamp: '01:10',
+            duration: 5,
+            hoverData: {
+              coordinates: 'banner:cta-button',
+              dwellTime: 4.8
+            }
+          },
+          { 
+            type: 'click', 
+            element: 'travel_promo_cta', 
+            description: 'Clicked "Explore Travel Offers" CTA button', 
+            timestamp: '01:15' 
+          }
         ],
         timeSpent: 80
       },
@@ -54,10 +90,42 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         page: 'Travel Rewards',
         url: '/rewards/travel',
         actions: [
-          { type: 'view', element: 'flight_deals', description: 'Viewed flight deals section', timestamp: '01:36' },
-          { type: 'scroll', element: 'page_content', description: 'Scrolled down to hotel offers', timestamp: '01:52' },
-          { type: 'view', element: 'premium_hotels', description: 'Spent 25s viewing premium hotel offers', timestamp: '02:08', duration: 25 },
-          { type: 'click', element: 'hotel_details_button', description: 'Clicked on "Hawaii Resort" details', timestamp: '02:33' }
+          { 
+            type: 'view', 
+            element: 'flight_deals', 
+            description: 'Viewed flight deals section', 
+            timestamp: '01:36' 
+          },
+          { 
+            type: 'scroll', 
+            element: 'page_content', 
+            description: 'Scrolled down to hotel offers', 
+            timestamp: '01:52' 
+          },
+          { 
+            type: 'hover', 
+            element: 'premium_hotel_images', 
+            description: 'Hovered over premium hotel images', 
+            timestamp: '02:05',
+            duration: 8,
+            hoverData: {
+              coordinates: 'hotels:carousel:hawaii',
+              dwellTime: 7.5
+            }
+          },
+          { 
+            type: 'view', 
+            element: 'premium_hotels', 
+            description: 'Spent 25s viewing premium hotel offers', 
+            timestamp: '02:08', 
+            duration: 25 
+          },
+          { 
+            type: 'click', 
+            element: 'hotel_details_button', 
+            description: 'Clicked on "Hawaii Resort" details', 
+            timestamp: '02:33' 
+          }
         ],
         timeSpent: 135
       },
@@ -65,10 +133,41 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         page: 'Hotel Details',
         url: '/rewards/travel/hotels/hawaii-resort',
         actions: [
-          { type: 'view', element: 'hotel_gallery', description: 'Viewed hotel photo gallery', timestamp: '02:40' },
-          { type: 'view', element: 'points_required', description: 'Viewed points required section', timestamp: '03:05' },
-          { type: 'form_input', element: 'date_selector', description: 'Selected dates for potential booking', timestamp: '03:22' },
-          { type: 'click', element: 'availability_button', description: 'Clicked "Check Availability" button', timestamp: '03:38' }
+          { 
+            type: 'view', 
+            element: 'hotel_gallery', 
+            description: 'Viewed hotel photo gallery', 
+            timestamp: '02:40' 
+          },
+          { 
+            type: 'hover', 
+            element: 'room_options', 
+            description: 'Hovered over different room types', 
+            timestamp: '02:55',
+            duration: 10,
+            hoverData: {
+              coordinates: 'rooms:premium-suite',
+              dwellTime: 8.2
+            }
+          },
+          { 
+            type: 'view', 
+            element: 'points_required', 
+            description: 'Viewed points required section', 
+            timestamp: '03:05' 
+          },
+          { 
+            type: 'form_input', 
+            element: 'date_selector', 
+            description: 'Selected dates for potential booking', 
+            timestamp: '03:22' 
+          },
+          { 
+            type: 'click', 
+            element: 'availability_button', 
+            description: 'Clicked "Check Availability" button', 
+            timestamp: '03:38' 
+          }
         ],
         timeSpent: 115
       },
@@ -76,9 +175,35 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         page: 'Booking Form',
         url: '/rewards/travel/hotels/hawaii-resort/book',
         actions: [
-          { type: 'form_input', element: 'guest_details', description: 'Started filling guest information form', timestamp: '03:55' },
-          { type: 'view', element: 'points_summary', description: 'Viewed points summary for booking', timestamp: '04:12' },
-          { type: 'scroll', element: 'page_content', description: 'Scrolled to terms and conditions', timestamp: '04:35' }
+          { 
+            type: 'form_input', 
+            element: 'guest_details', 
+            description: 'Started filling guest information form', 
+            timestamp: '03:55' 
+          },
+          { 
+            type: 'hover', 
+            element: 'redemption_options', 
+            description: 'Compared different redemption options', 
+            timestamp: '04:05',
+            duration: 7,
+            hoverData: {
+              coordinates: 'form:redemption-table',
+              dwellTime: 6.8
+            }
+          },
+          { 
+            type: 'view', 
+            element: 'points_summary', 
+            description: 'Viewed points summary for booking', 
+            timestamp: '04:12' 
+          },
+          { 
+            type: 'scroll', 
+            element: 'page_content', 
+            description: 'Scrolled to terms and conditions', 
+            timestamp: '04:35' 
+          }
         ],
         timeSpent: 95
       }
@@ -154,6 +279,8 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         return <ChevronDown className="h-3 w-3" />;
       case 'form_input':
         return <ChevronUp className="h-3 w-3" />;
+      case 'hover':
+        return <MousePointer className="h-3 w-3" />;
       default:
         return null;
     }
@@ -301,12 +428,23 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
                                 <div className="mt-1">
                                   {renderActionIcon(action.type)}
                                 </div>
-                                <div>
+                                <div className="w-full">
                                   <div className="font-medium">{action.description}</div>
                                   <div className="text-muted-foreground flex justify-between text-2xs">
                                     <span>{action.element}</span>
                                     <span>{action.timestamp}{action.duration ? ` (${action.duration}s)` : ''}</span>
                                   </div>
+                                  {action.type === 'hover' && action.hoverData && (
+                                    <div className="mt-1 bg-blue-50 border border-blue-100 rounded p-1 text-2xs">
+                                      <div className="flex justify-between mb-1">
+                                        <span className="text-blue-700">Hover Analytics:</span>
+                                        <span className="font-medium">{action.hoverData.dwellTime}s dwell time</span>
+                                      </div>
+                                      <div className="text-muted-foreground truncate">
+                                        Element: {action.hoverData.coordinates}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             ))}
