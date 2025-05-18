@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Archive, Clock, EyeOff } from 'lucide-react';
+import { EyeOff, Archive, Clock, Filter } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface StaleContentItem {
   name: string;
@@ -25,12 +26,12 @@ export const StaleContentAnalysis: React.FC<StaleContentAnalysisProps> = ({ clas
 
   // Mock data for stale content
   const staleContent: StaleContentItem[] = [
-    { name: 'How to Use Journey Maps', type: 'article', lastInteraction: 45, viewsLast30Days: 12, previousViews: 86, change: -85.1 },
-    { name: 'Marketing Playbook: B2B SaaS', type: 'article', lastInteraction: 32, viewsLast30Days: 8, previousViews: 24, change: -66.7 },
-    { name: 'Advanced Segmentation', type: 'feature', lastInteraction: 78, viewsLast30Days: 5, previousViews: 54, change: -90.7 },
-    { name: 'Customer Journey Templates', type: 'article', lastInteraction: 18, viewsLast30Days: 26, previousViews: 45, change: -42.2 },
     { name: 'Technical Error Correlation', type: 'feature', lastInteraction: 67, viewsLast30Days: 3, previousViews: 29, change: -89.7 },
+    { name: 'Advanced Segmentation', type: 'feature', lastInteraction: 78, viewsLast30Days: 5, previousViews: 54, change: -90.7 },
     { name: 'Legacy Landing Page', type: 'page', lastInteraction: 94, viewsLast30Days: 7, previousViews: 215, change: -96.7 },
+    { name: 'Marketing Playbook: B2B SaaS', type: 'article', lastInteraction: 32, viewsLast30Days: 8, previousViews: 24, change: -66.7 },
+    { name: 'How to Use Journey Maps', type: 'article', lastInteraction: 45, viewsLast30Days: 12, previousViews: 86, change: -85.1 },
+    { name: 'Customer Journey Templates', type: 'article', lastInteraction: 18, viewsLast30Days: 26, previousViews: 45, change: -42.2 },
     { name: 'Analytics Exports', type: 'feature', lastInteraction: 27, viewsLast30Days: 16, previousViews: 31, change: -48.4 }
   ];
 
@@ -41,8 +42,16 @@ export const StaleContentAnalysis: React.FC<StaleContentAnalysisProps> = ({ clas
       if (sortBy === 'leastViewed') return a.viewsLast30Days - b.viewsLast30Days;
       if (sortBy === 'mostStale') return b.lastInteraction - a.lastInteraction;
       return a.change - b.change; // largestDrop
-    })
-    .slice(0, 5); // Just show top 5
+    });
+
+  const getTypeIcon = (type: string) => {
+    switch(type) {
+      case 'article': return <Clock className="h-5 w-5 text-blue-500" />;
+      case 'feature': return <Archive className="h-5 w-5 text-purple-500" />;
+      case 'page': return <Clock className="h-5 w-5 text-green-500" />;
+      default: return null;
+    }
+  };
 
   return (
     <Card className={className}>
@@ -78,55 +87,60 @@ export const StaleContentAnalysis: React.FC<StaleContentAnalysisProps> = ({ clas
       </CardHeader>
       
       <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={filteredContent}
-              layout="vertical"
-              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-              <XAxis type="number" orientation="top" />
-              <YAxis type="category" dataKey="name" width={150} />
-              <Tooltip
-                formatter={(value, name) => [value, name === 'viewsLast30Days' ? 'Views (Last 30 Days)' : name === 'lastInteraction' ? 'Days Since Last Interaction' : 'Previous Period Views']}
-                labelFormatter={(label) => label}
-              />
-              <Bar dataKey="viewsLast30Days" name="Views (Last 30 Days)" fill="#8884d8" barSize={20} />
-              <Bar dataKey="lastInteraction" name="Days Since Last Interaction" fill="#eb8134" barSize={20} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div className="mt-6 space-y-2">
-          <div className="flex justify-between items-center text-sm font-medium text-muted-foreground border-b pb-2">
-            <div className="flex-1">Content</div>
-            <div className="w-32 text-right">Last Used</div>
-            <div className="w-24 text-right">Views</div>
-            <div className="w-24 text-right">Change</div>
-            <div className="w-8"></div>
+        <div className="space-y-6">
+          <div className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={filteredContent.slice(0, 5)}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                <XAxis type="number" orientation="top" />
+                <YAxis type="category" dataKey="name" width={150} />
+                <Tooltip
+                  formatter={(value, name) => [value, name === 'viewsLast30Days' ? 'Views (Last 30 Days)' : name === 'lastInteraction' ? 'Days Since Last Interaction' : 'Previous Period Views']}
+                  labelFormatter={(label) => label}
+                />
+                <Bar dataKey="viewsLast30Days" name="Views (Last 30 Days)" fill="#8884d8" barSize={20} />
+                <Bar dataKey="lastInteraction" name="Days Since Last Interaction" fill="#eb8134" barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
           
-          {filteredContent.map((item) => (
-            <div key={item.name} className="flex justify-between items-center text-sm py-2 hover:bg-muted/40 rounded-md px-2">
-              <div className="flex-1 flex items-center gap-2">
-                {item.type === 'article' && <Clock className="h-4 w-4 text-blue-500" />}
-                {item.type === 'feature' && <Archive className="h-4 w-4 text-purple-500" />}
-                {item.type === 'page' && <Clock className="h-4 w-4 text-green-500" />}
-                <span>{item.name}</span>
-              </div>
-              <div className="w-32 text-right">{item.lastInteraction} days ago</div>
-              <div className="w-24 text-right">{item.viewsLast30Days}</div>
-              <div className={`w-24 text-right ${item.change < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                {item.change}%
-              </div>
-              <div className="w-8 flex justify-end">
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <Archive className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          ))}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[400px]">Content</TableHead>
+                <TableHead className="w-[150px] text-right">Last Used</TableHead>
+                <TableHead className="w-[100px] text-right">Views</TableHead>
+                <TableHead className="w-[100px] text-right">Change</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredContent.map((item) => (
+                <TableRow key={item.name}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {getTypeIcon(item.type)}
+                      <span>{item.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">{item.lastInteraction} days ago</TableCell>
+                  <TableCell className="text-right">{item.viewsLast30Days}</TableCell>
+                  <TableCell className={`text-right font-medium ${item.change < 0 ? 'text-red-500' : 'text-green-500'}`}>
+                    {item.change}%
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
