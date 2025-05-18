@@ -10,6 +10,7 @@ export interface FrictionDataState {
   setActiveFlowId: (id: string | null) => void;
   activeAlert: Alert | null;
   setActiveAlert: (alert: Alert | null) => void;
+  createFlow: (flowData: Omit<Flow, 'id'>) => string;
 }
 
 export const useFrictionData = (): FrictionDataState => {
@@ -27,6 +28,18 @@ export const useFrictionData = (): FrictionDataState => {
     
     return () => clearInterval(interval);
   }, []);
+  
+  // Function to create a new flow
+  const createFlow = (flowData: Omit<Flow, 'id'>) => {
+    const newId = `flow-${Date.now()}`;
+    const newFlow: Flow = {
+      id: newId,
+      ...flowData
+    };
+    
+    setFlows(prevFlows => [...prevFlows, newFlow]);
+    return newId;
+  };
 
   return {
     flows,
@@ -35,6 +48,7 @@ export const useFrictionData = (): FrictionDataState => {
     activeFlowId,
     setActiveFlowId,
     activeAlert,
-    setActiveAlert
+    setActiveAlert,
+    createFlow
   };
 };
