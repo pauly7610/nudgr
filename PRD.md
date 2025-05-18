@@ -1,4 +1,3 @@
-
 # Product Requirements Document: UX Friction Analyzer MVP
 
 ## I. Introduction & Purpose
@@ -35,7 +34,12 @@ To be the leading platform for proactively identifying and resolving UX friction
 ### Problem Statement
 Marketing teams invest significantly in driving traffic to websites and applications, but lack visibility into where and why potential customers struggle. Current analytics tools provide general metrics but fail to identify specific points of friction that lead to abandoned journeys. Without this insight, teams waste resources optimizing the wrong elements or implementing changes that don't address real user pain points.
 
-Furthermore, marketing teams struggle to identify stale content or features that users are no longer engaging with, leading to wasted resources maintaining unused assets.
+Furthermore, marketing teams struggle to identify stale or underperforming content that users are no longer engaging with, leading to wasted resources maintaining unused assets. Specific examples include:
+
+- **Outdated promotional articles** for customer rewards programs (e.g., similar to Chase Dining) that are no longer relevant and confuse users seeking current offers.
+- **Low-engagement educational videos** about financial products that haven't been updated in over a year and show declining view counts (e.g., a -90% change in viewership).
+- **Legacy landing pages** for past marketing campaigns that still receive traffic but offer outdated information, leading to high bounce rates and poor conversion.
+- **Underutilized features** that consume development resources but show minimal user interaction, creating unnecessary complexity in the user experience.
 
 ### Target Users / Personas
 
@@ -48,14 +52,7 @@ Furthermore, marketing teams struggle to identify stale content or features that
   - Can't determine why visitors from campaigns don't convert
   - Limited visibility into user behavior after landing page
   - No way to identify specific elements causing friction
-- **Current Tools & Workflows**:
-  - Uses Google Analytics for high-level metrics
-  - Manual analysis of drop-off points
-  - Relies on occasional user testing sessions
-- **How this product helps**:
-  - Shows exact points where campaign traffic encounters friction
-  - Provides direct correlation between marketing source and conversion obstacles
-  - Enables rapid identification and resolution of issues
+  - Struggles to identify which content pieces are still performing well versus those that should be archived (e.g., blog posts from 2022 promoting expired offers that still rank in search results)
 
 #### Persona 2: David the CRO Specialist
 - **Goals & Motivations**:
@@ -66,14 +63,7 @@ Furthermore, marketing teams struggle to identify stale content or features that
   - Difficult to prioritize which elements to optimize first
   - Limited visibility into why users abandon forms or checkout flows
   - Can't easily distinguish between authenticated vs. non-authenticated user behavior
-- **Current Tools & Workflows**:
-  - A/B testing platforms
-  - Heatmap tools
-  - Custom analytics dashboards
-- **How this product helps**:
-  - Scores and ranks friction points by impact
-  - Provides detailed insights on form abandonment patterns
-  - Segments friction data by user type and cohort
+  - Cannot identify which educational resources are actually helping users (e.g., product tutorial videos showing 85% drop-off rates within the first 30 seconds)
 
 #### Persona 3: Sarah the Head of Digital Marketing
 - **Goals & Motivations**:
@@ -84,14 +74,7 @@ Furthermore, marketing teams struggle to identify stale content or features that
   - Difficult to connect marketing activities to user experience quality
   - No clear visibility into stale or underperforming content
   - Lacks tools to help team collaborate on UX improvements
-- **Current Tools & Workflows**:
-  - Marketing attribution platforms
-  - Web analytics dashboards
-  - Customer journey mapping workshops
-- **How this product helps**:
-  - Provides executive-level view of friction impact on marketing performance
-  - Identifies underutilized content and features
-  - Enables team collaboration and knowledge sharing
+  - Cannot easily identify resource-intensive content that's no longer delivering value (e.g., interactive calculators that cost $50K to develop but now have usage rates below 0.1% of site traffic)
 
 ### User Scenarios / Use Cases
 
