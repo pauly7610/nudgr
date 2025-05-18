@@ -9,11 +9,12 @@ import Settings from './pages/Settings';
 import UserCohorts from './pages/UserCohorts';
 import NotFound from './pages/NotFound';
 import './App.css';
+import { Outlet } from 'react-router-dom';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route path="/" element={<Layout><Outlet /></Layout>}>
         <Route index element={<Index />} />
         <Route path="journey-map" element={<JourneyMap />} />
         <Route path="metrics" element={<Metrics />} />
