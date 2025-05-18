@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Flow } from '../data/mockData';
 import { FrictionScopeFilter } from './journey/FrictionScopeFilter';
@@ -7,7 +6,7 @@ import { JourneyHeader } from './journey/JourneyHeader';
 import { NoDataMessage } from './journey/NoDataMessage';
 import { JourneyVisualization } from './journey/JourneyVisualization';
 import { useJourneyFiltering } from '../hooks/useJourneyFiltering';
-import { getMockDetailedJourney } from './journey/MockJourneyData';
+import { getMockDetailedJourney, getMockMarketingData } from './journey/MockJourneyData';
 
 interface JourneyFrictionMapProps {
   flow: Flow | null;
