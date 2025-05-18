@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Flow } from '../data/mockData';
-import { ArrowRight, Tag } from 'lucide-react';
+import { ArrowRight, Tag, Filter } from 'lucide-react';
 import { JourneyStep } from './journey/JourneyStep';
 import { MarketingAttributionPanel } from './journey/MarketingAttributionPanel';
+import { FrictionScopeFilter, ScopeFilter } from './journey/FrictionScopeFilter';
 
 interface JourneyFrictionMapProps {
   flow: Flow | null;
@@ -13,6 +13,8 @@ interface JourneyFrictionMapProps {
 export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, cohortId }) => {
   const [showMarketingData, setShowMarketingData] = useState(false);
   const [expandedStepIndex, setExpandedStepIndex] = useState<number | null>(null);
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>({});
+  const [showScopeFilter, setShowScopeFilter] = useState(false);
   
   // Mock detailed journey data - in a real app this would come from backend
   const mockDetailedJourney: Record<string, any[]> = {
@@ -236,6 +238,33 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
     adCreative: "50% Off Limited Time",
     landingPage: "/summer-promo"
   };
+
+  // Apply filters to journey steps
+  const filteredSteps = flow.steps.filter(step => {
+    // Mock implementation of filtering logic
+    const matchesVertical = !scopeFilter.pageVertical?.length || 
+      scopeFilter.pageVertical.some(v => step.label.toLowerCase().includes(v.toLowerCase()));
+    
+    const matchesSection = !scopeFilter.pageSection?.length || 
+      scopeFilter.pageSection.some(s => {
+        // This would use actual data in a real implementation
+        if (s === 'Form' && step.label.includes('Form')) return true;
+        if (s === 'Pricing Table' && step.label.includes('Detail')) return true;
+        if (s === 'CTA' && step.label.includes('Booking')) return true;
+        return false;
+      });
+    
+    const matchesPurpose = !scopeFilter.pagePurpose?.length ||
+      scopeFilter.pagePurpose.some(p => {
+        if (p === 'Conversion' && step.label.includes('Booking')) return true;
+        if (p === 'Lead Gen' && step.label.includes('Home')) return true;
+        return false;
+      });
+    
+    return matchesVertical && matchesSection && matchesPurpose;
+  });
+  
+  const hasFiltersApplied = Object.values(scopeFilter).some(arr => arr && arr.length > 0);
   
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -245,6 +274,15 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
           <p className="text-xs text-muted-foreground mt-0.5">Showing full funnel from entry to completion</p>
         </div>
         <div className="flex items-center gap-2">
+          <button 
+            className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-md ${
+              showScopeFilter ? 'bg-primary/10 text-primary' : 'hover:bg-muted/80'
+            }`}
+            onClick={() => setShowScopeFilter(!showScopeFilter)}
+          >
+            <Filter className="h-3.5 w-3.5" />
+            <span>Scoping Filters</span>
+          </button>
           <button 
             className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-md ${
               showMarketingData ? 'bg-primary/10 text-primary' : 'hover:bg-muted/80'
@@ -259,11 +297,32 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
       
       {showMarketingData && <MarketingAttributionPanel marketingData={mockMarketingData} />}
       
+      {showScopeFilter && (
+        <div className="px-6 pt-4">
+          <FrictionScopeFilter 
+            filter={scopeFilter}
+            onFilterChange={setScopeFilter}
+            onReset={() => setScopeFilter({})}
+          />
+        </div>
+      )}
+      
+      {hasFiltersApplied && filteredSteps.length === 0 && (
+        <div className="p-6 text-center">
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg p-4">
+            <h4 className="font-medium">No Data Available</h4>
+            <p className="text-sm mt-1">Your current filters don't match any steps in this journey. Try adjusting your filters.</p>
+          </div>
+        </div>
+      )}
+      
       <div className="p-6 overflow-x-auto">
         <div className="flex min-w-max">
-          {flow.steps.map((step, index) => {
-            const isLastStep = index === flow.steps.length - 1;
-            const previousUsers = index > 0 ? flow.steps[index - 1].users : step.users;
+          {(hasFiltersApplied ? filteredSteps : flow.steps).map((step, index) => {
+            const isLastStep = index === (hasFiltersApplied ? filteredSteps.length - 1 : flow.steps.length - 1);
+            const previousUsers = index > 0 
+              ? (hasFiltersApplied ? filteredSteps[index - 1].users : flow.steps[index - 1].users) 
+              : step.users;
             const detailedStep = detailedJourney[index] || null;
             const isExpanded = expandedStepIndex === index;
             
