@@ -1,4 +1,3 @@
-
 export type FrictionType = 'rage_clicks' | 'form_abandonment' | 'navigation_loops' | 'excessive_scrolling';
 
 export interface Step {
@@ -29,6 +28,26 @@ export interface UserCohort {
   conversionRate: number;
   frictionScore: number;
   change: number;
+}
+
+// Add these new type definitions for the detailed journey
+export interface DetailedAction {
+  type: 'click' | 'view' | 'scroll' | 'form_input' | 'hover';
+  element: string;
+  description: string;
+  timestamp: string;
+  duration?: number; // in seconds
+  hoverData?: {
+    coordinates: string;
+    dwellTime: number;
+  };
+}
+
+export interface DetailedStep {
+  page: string;
+  url: string;
+  actions: DetailedAction[];
+  timeSpent: number; // in seconds
 }
 
 // Mock flow data

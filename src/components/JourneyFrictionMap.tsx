@@ -1,31 +1,13 @@
 
 import React, { useState } from 'react';
-import { Flow, FrictionType } from '../data/mockData';
-import { ArrowRight, AlertCircle, Tag, MousePointerClick, Eye, ChevronDown, ChevronUp, MousePointer } from 'lucide-react';
-import { Button } from './ui/button';
+import { Flow } from '../data/mockData';
+import { ArrowRight, Tag } from 'lucide-react';
+import { JourneyStep } from './journey/JourneyStep';
+import { MarketingAttributionPanel } from './journey/MarketingAttributionPanel';
 
 interface JourneyFrictionMapProps {
   flow: Flow | null;
   cohortId?: string | null;
-}
-
-interface DetailedAction {
-  type: 'click' | 'view' | 'scroll' | 'form_input' | 'hover';
-  element: string;
-  description: string;
-  timestamp: string;
-  duration?: number; // in seconds
-  hoverData?: {
-    coordinates: string;
-    dwellTime: number;
-  };
-}
-
-interface DetailedStep {
-  page: string;
-  url: string;
-  actions: DetailedAction[];
-  timeSpent: number; // in seconds
 }
 
 export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, cohortId }) => {
@@ -33,7 +15,7 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
   const [expandedStepIndex, setExpandedStepIndex] = useState<number | null>(null);
   
   // Mock detailed journey data - in a real app this would come from backend
-  const mockDetailedJourney: Record<string, DetailedStep[]> = {
+  const mockDetailedJourney: Record<string, any[]> = {
     'flow-1': [
       {
         page: 'Home Page',
@@ -242,49 +224,8 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
     );
   }
 
-  // Helper to format friction types for display
-  const formatFrictionType = (type: FrictionType): string => {
-    switch(type) {
-      case 'rage_clicks':
-        return 'Rage Clicks';
-      case 'form_abandonment':
-        return 'Form Abandonment';
-      case 'navigation_loops':
-        return 'Navigation Loops';
-      case 'excessive_scrolling':
-        return 'Excessive Scrolling';
-      default:
-        return type;
-    }
-  };
-
   // Get detailed journey for current flow
   const detailedJourney = mockDetailedJourney[flow.id] || [];
-  
-  // Format time in minutes and seconds
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Render action icon based on type
-  const renderActionIcon = (type: DetailedAction['type']) => {
-    switch (type) {
-      case 'click':
-        return <MousePointerClick className="h-3 w-3" />;
-      case 'view':
-        return <Eye className="h-3 w-3" />;
-      case 'scroll':
-        return <ChevronDown className="h-3 w-3" />;
-      case 'form_input':
-        return <ChevronUp className="h-3 w-3" />;
-      case 'hover':
-        return <MousePointer className="h-3 w-3" />;
-      default:
-        return null;
-    }
-  };
 
   // Mock marketing data - in a real app this would come from the backend
   const mockMarketingData = {
@@ -316,154 +257,27 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
         </div>
       </div>
       
-      {showMarketingData && (
-        <div className="bg-blue-50 border-b border-blue-100 px-4 py-2">
-          <h4 className="text-xs font-medium text-blue-700 mb-1">Marketing Attribution</h4>
-          <div className="grid grid-cols-3 gap-4 text-xs">
-            <div>
-              <span className="text-muted-foreground">Campaign:</span>{" "}
-              <span className="font-medium">{mockMarketingData.campaignName}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Source/Medium:</span>{" "}
-              <span className="font-medium">{mockMarketingData.source} / {mockMarketingData.medium}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Ad Group:</span>{" "}
-              <span className="font-medium">{mockMarketingData.adGroup}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Creative:</span>{" "}
-              <span className="font-medium">{mockMarketingData.adCreative}</span>
-            </div>
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Landing Page:</span>{" "}
-              <span className="font-medium">{mockMarketingData.landingPage}</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {showMarketingData && <MarketingAttributionPanel marketingData={mockMarketingData} />}
       
       <div className="p-6 overflow-x-auto">
         <div className="flex min-w-max">
           {flow.steps.map((step, index) => {
             const isLastStep = index === flow.steps.length - 1;
             const previousUsers = index > 0 ? flow.steps[index - 1].users : step.users;
-            const dropOffRate = step.dropOff ? Math.round((step.dropOff / previousUsers) * 100) : 0;
-            const hasFriction = step.friction && step.friction.length > 0;
-            const isExpanded = expandedStepIndex === index;
             const detailedStep = detailedJourney[index] || null;
+            const isExpanded = expandedStepIndex === index;
             
             return (
               <React.Fragment key={`step-${index}`}>
-                <div className="flex flex-col items-center">
-                  <div 
-                    className={`w-64 p-4 border rounded-lg ${
-                      hasFriction ? 'border-amber-300 bg-amber-50' : 'border-gray-200'
-                    }`}
-                  >
-                    <div className="text-center mb-2">
-                      <div className="font-medium">{step.label}</div>
-                      <div className="text-sm text-muted-foreground">Step {index + 1}</div>
-                      {detailedStep && (
-                        <div className="text-xs text-blue-600 mt-1">
-                          {detailedStep.page} 
-                          <span className="text-muted-foreground ml-1">({formatTime(detailedStep.timeSpent)})</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="bg-muted/40 p-2 rounded text-center">
-                        <div className="font-medium">{step.users.toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">Users</div>
-                      </div>
-                      
-                      <div className={`p-2 rounded text-center ${
-                        dropOffRate > 30 ? 'bg-red-100 text-red-700' :
-                        dropOffRate > 15 ? 'bg-amber-100 text-amber-700' :
-                        'bg-muted/40'
-                      }`}>
-                        <div className="font-medium">{dropOffRate}%</div>
-                        <div className="text-xs text-muted-foreground">Drop-off</div>
-                      </div>
-                    </div>
-                    
-                    {hasFriction && (
-                      <div className="mt-3 pt-3 border-t">
-                        <div className="flex items-center gap-1 mb-1">
-                          <AlertCircle size={14} className="text-amber-500" />
-                          <span className="text-xs font-medium">Friction Detected</span>
-                        </div>
-                        <div className="space-y-1">
-                          {step.friction?.map((issue, i) => (
-                            <div key={i} className="text-xs px-2 py-1 bg-amber-100 rounded-sm">
-                              {formatFrictionType(issue)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {detailedStep && (
-                      <div className="mt-3 pt-2 border-t">
-                        <Button 
-                          variant="ghost"
-                          size="sm"
-                          className="w-full text-xs justify-center"
-                          onClick={() => setExpandedStepIndex(isExpanded ? null : index)}
-                        >
-                          {isExpanded ? 'Hide Details' : 'View Details'}
-                          {isExpanded ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
-                        </Button>
-                        
-                        {isExpanded && (
-                          <div className="mt-2 space-y-2 text-xs bg-slate-50 p-2 rounded-md">
-                            <div className="font-medium text-blue-700 border-b pb-1 mb-1">
-                              User Actions on {detailedStep.page}
-                            </div>
-                            
-                            {detailedStep.actions.map((action, i) => (
-                              <div key={i} className="flex items-start gap-2 pb-2 border-b last:border-0 last:pb-0">
-                                <div className="mt-1">
-                                  {renderActionIcon(action.type)}
-                                </div>
-                                <div className="w-full">
-                                  <div className="font-medium">{action.description}</div>
-                                  <div className="text-muted-foreground flex justify-between text-2xs">
-                                    <span>{action.element}</span>
-                                    <span>{action.timestamp}{action.duration ? ` (${action.duration}s)` : ''}</span>
-                                  </div>
-                                  {action.type === 'hover' && action.hoverData && (
-                                    <div className="mt-1 bg-blue-50 border border-blue-100 rounded p-1 text-2xs">
-                                      <div className="flex justify-between mb-1">
-                                        <span className="text-blue-700">Hover Analytics:</span>
-                                        <span className="font-medium">{action.hoverData.dwellTime}s dwell time</span>
-                                      </div>
-                                      <div className="text-muted-foreground truncate">
-                                        Element: {action.hoverData.coordinates}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                            
-                            <div className="text-right text-2xs text-muted-foreground italic">
-                              URL: {detailedStep.url}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {step.dropOff && (
-                    <div className="mt-2 text-center">
-                      <div className="text-xs font-medium text-red-500">-{step.dropOff.toLocaleString()} users</div>
-                    </div>
-                  )}
-                </div>
+                <JourneyStep 
+                  step={step}
+                  index={index}
+                  isLastStep={isLastStep}
+                  previousUsers={previousUsers}
+                  detailedStep={detailedStep}
+                  isExpanded={isExpanded}
+                  toggleExpanded={() => setExpandedStepIndex(isExpanded ? null : index)}
+                />
                 
                 {!isLastStep && (
                   <div className="flex items-center mx-4">
