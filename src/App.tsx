@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import JourneyMap from "./pages/JourneyMap";
 import Metrics from "./pages/Metrics";
 import UserCohorts from "./pages/UserCohorts";
+import Library from "./pages/Library";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/journey-map" element={<JourneyMap />} />
             <Route path="/metrics" element={<Metrics />} />
             <Route path="/user-cohorts" element={<UserCohorts />} />
+            <Route path="/library" element={<Library />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
