@@ -1,15 +1,110 @@
 
 import React, { useState } from 'react';
 import { Flow, FrictionType } from '../data/mockData';
-import { ArrowRight, AlertCircle, Tag } from 'lucide-react';
+import { ArrowRight, AlertCircle, Tag, MousePointerClick, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface JourneyFrictionMapProps {
   flow: Flow | null;
   cohortId?: string | null;
 }
 
+interface DetailedAction {
+  type: 'click' | 'view' | 'scroll' | 'form_input';
+  element: string;
+  description: string;
+  timestamp: string;
+  duration?: number; // in seconds
+}
+
+interface DetailedStep {
+  page: string;
+  url: string;
+  actions: DetailedAction[];
+  timeSpent: number; // in seconds
+}
+
 export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, cohortId }) => {
   const [showMarketingData, setShowMarketingData] = useState(false);
+  const [expandedStepIndex, setExpandedStepIndex] = useState<number | null>(null);
+  
+  // Mock detailed journey data - in a real app this would come from backend
+  const mockDetailedJourney: Record<string, DetailedStep[]> = {
+    'flow-1': [
+      {
+        page: 'Home Page',
+        url: '/home',
+        actions: [
+          { type: 'view', element: 'hero_banner', description: 'Viewed hero banner', timestamp: '00:00' },
+          { type: 'click', element: 'rewards_link', description: 'Clicked "Chase Rewards" link in main navigation', timestamp: '00:12' }
+        ],
+        timeSpent: 45
+      },
+      {
+        page: 'Rewards Dashboard',
+        url: '/rewards',
+        actions: [
+          { type: 'view', element: 'rewards_summary', description: 'Viewed rewards points summary', timestamp: '00:46' },
+          { type: 'view', element: 'travel_ad_banner', description: 'Saw promotional banner for travel rewards', timestamp: '01:03' },
+          { type: 'click', element: 'travel_promo_cta', description: 'Clicked "Explore Travel Offers" CTA button', timestamp: '01:15' }
+        ],
+        timeSpent: 80
+      },
+      {
+        page: 'Travel Rewards',
+        url: '/rewards/travel',
+        actions: [
+          { type: 'view', element: 'flight_deals', description: 'Viewed flight deals section', timestamp: '01:36' },
+          { type: 'scroll', element: 'page_content', description: 'Scrolled down to hotel offers', timestamp: '01:52' },
+          { type: 'view', element: 'premium_hotels', description: 'Spent 25s viewing premium hotel offers', timestamp: '02:08', duration: 25 },
+          { type: 'click', element: 'hotel_details_button', description: 'Clicked on "Hawaii Resort" details', timestamp: '02:33' }
+        ],
+        timeSpent: 135
+      },
+      {
+        page: 'Hotel Details',
+        url: '/rewards/travel/hotels/hawaii-resort',
+        actions: [
+          { type: 'view', element: 'hotel_gallery', description: 'Viewed hotel photo gallery', timestamp: '02:40' },
+          { type: 'view', element: 'points_required', description: 'Viewed points required section', timestamp: '03:05' },
+          { type: 'form_input', element: 'date_selector', description: 'Selected dates for potential booking', timestamp: '03:22' },
+          { type: 'click', element: 'availability_button', description: 'Clicked "Check Availability" button', timestamp: '03:38' }
+        ],
+        timeSpent: 115
+      },
+      {
+        page: 'Booking Form',
+        url: '/rewards/travel/hotels/hawaii-resort/book',
+        actions: [
+          { type: 'form_input', element: 'guest_details', description: 'Started filling guest information form', timestamp: '03:55' },
+          { type: 'view', element: 'points_summary', description: 'Viewed points summary for booking', timestamp: '04:12' },
+          { type: 'scroll', element: 'page_content', description: 'Scrolled to terms and conditions', timestamp: '04:35' }
+        ],
+        timeSpent: 95
+      }
+    ],
+    'flow-2': [
+      {
+        page: 'Landing Page',
+        url: '/special-offer',
+        actions: [
+          { type: 'view', element: 'promo_banner', description: 'Viewed promotional banner', timestamp: '00:00' },
+          { type: 'click', element: 'learn_more_button', description: 'Clicked "Learn More" button', timestamp: '00:18' }
+        ],
+        timeSpent: 35
+      },
+      {
+        page: 'Product Page',
+        url: '/products/premium-card',
+        actions: [
+          { type: 'view', element: 'feature_list', description: 'Viewed card features and benefits', timestamp: '00:36' },
+          { type: 'scroll', element: 'page_content', description: 'Scrolled through entire benefits section', timestamp: '00:55' },
+          { type: 'click', element: 'apply_now_button', description: 'Clicked "Apply Now" button', timestamp: '01:22' }
+        ],
+        timeSpent: 105
+      }
+    ]
+  };
 
   if (!flow) {
     return (
@@ -38,6 +133,32 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
     }
   };
 
+  // Get detailed journey for current flow
+  const detailedJourney = mockDetailedJourney[flow.id] || [];
+  
+  // Format time in minutes and seconds
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Render action icon based on type
+  const renderActionIcon = (type: DetailedAction['type']) => {
+    switch (type) {
+      case 'click':
+        return <MousePointerClick className="h-3 w-3" />;
+      case 'view':
+        return <Eye className="h-3 w-3" />;
+      case 'scroll':
+        return <ChevronDown className="h-3 w-3" />;
+      case 'form_input':
+        return <ChevronUp className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
   // Mock marketing data - in a real app this would come from the backend
   const mockMarketingData = {
     campaignName: "Summer Sale 2023",
@@ -55,7 +176,7 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
           <h3 className="font-semibold">{flow.flow} - Journey Friction Map</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Showing full funnel from entry to completion</p>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <button 
             className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-md ${
               showMarketingData ? 'bg-primary/10 text-primary' : 'hover:bg-muted/80'
@@ -103,18 +224,26 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
             const previousUsers = index > 0 ? flow.steps[index - 1].users : step.users;
             const dropOffRate = step.dropOff ? Math.round((step.dropOff / previousUsers) * 100) : 0;
             const hasFriction = step.friction && step.friction.length > 0;
+            const isExpanded = expandedStepIndex === index;
+            const detailedStep = detailedJourney[index] || null;
             
             return (
               <React.Fragment key={`step-${index}`}>
                 <div className="flex flex-col items-center">
                   <div 
-                    className={`w-48 p-4 border rounded-lg ${
+                    className={`w-64 p-4 border rounded-lg ${
                       hasFriction ? 'border-amber-300 bg-amber-50' : 'border-gray-200'
                     }`}
                   >
                     <div className="text-center mb-2">
                       <div className="font-medium">{step.label}</div>
                       <div className="text-sm text-muted-foreground">Step {index + 1}</div>
+                      {detailedStep && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          {detailedStep.page} 
+                          <span className="text-muted-foreground ml-1">({formatTime(detailedStep.timeSpent)})</span>
+                        </div>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-2 gap-2 text-sm">
@@ -146,6 +275,47 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({ flow, co
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+                    
+                    {detailedStep && (
+                      <div className="mt-3 pt-2 border-t">
+                        <Button 
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs justify-center"
+                          onClick={() => setExpandedStepIndex(isExpanded ? null : index)}
+                        >
+                          {isExpanded ? 'Hide Details' : 'View Details'}
+                          {isExpanded ? <ChevronUp className="h-3 w-3 ml-1" /> : <ChevronDown className="h-3 w-3 ml-1" />}
+                        </Button>
+                        
+                        {isExpanded && (
+                          <div className="mt-2 space-y-2 text-xs bg-slate-50 p-2 rounded-md">
+                            <div className="font-medium text-blue-700 border-b pb-1 mb-1">
+                              User Actions on {detailedStep.page}
+                            </div>
+                            
+                            {detailedStep.actions.map((action, i) => (
+                              <div key={i} className="flex items-start gap-2 pb-2 border-b last:border-0 last:pb-0">
+                                <div className="mt-1">
+                                  {renderActionIcon(action.type)}
+                                </div>
+                                <div>
+                                  <div className="font-medium">{action.description}</div>
+                                  <div className="text-muted-foreground flex justify-between text-2xs">
+                                    <span>{action.element}</span>
+                                    <span>{action.timestamp}{action.duration ? ` (${action.duration}s)` : ''}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            <div className="text-right text-2xs text-muted-foreground italic">
+                              URL: {detailedStep.url}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
