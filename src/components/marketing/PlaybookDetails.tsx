@@ -8,15 +8,16 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, ResponsiveContainer 
 } from 'recharts';
-import { CheckCircle2, AlertCircle, BookText } from 'lucide-react';
+import { CheckCircle2, AlertCircle, BookText, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MarketingPlaybook } from './types/marketingPlaybookTypes';
 
 interface PlaybookDetailsProps {
   playbook: MarketingPlaybook | null;
+  onBack?: () => void;
 }
 
-export const PlaybookDetails: React.FC<PlaybookDetailsProps> = ({ playbook }) => {
+export const PlaybookDetails: React.FC<PlaybookDetailsProps> = ({ playbook, onBack }) => {
   const { toast } = useToast();
   
   if (!playbook) return null;
@@ -45,7 +46,13 @@ export const PlaybookDetails: React.FC<PlaybookDetailsProps> = ({ playbook }) =>
 
   return (
     <>
-      <SheetHeader>
+      <SheetHeader className="flex items-center">
+        {onBack && (
+          <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Button>
+        )}
         <SheetTitle>{playbook.title}</SheetTitle>
       </SheetHeader>
       

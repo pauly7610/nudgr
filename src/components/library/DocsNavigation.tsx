@@ -2,20 +2,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 interface DocsNavigationProps {
-  activePage: string;
+  activeSection: string;
+  onSelectSection: (section: string) => void;
 }
 
 export const DocsNavigation: React.FC<DocsNavigationProps> = ({
-  activePage
+  activeSection,
+  onSelectSection
 }) => {
   const links = [
-    { title: 'Best Practices', href: '/library' },
-    { title: 'Cohort Comparison', href: '/library/cohort-comparison' },
-    { title: 'Journey Mapping', href: '/library/journey-mapping' },
-    { title: 'Technical Guides', href: '/library/technical' }
+    { title: 'Best Practices', href: '/library', value: 'playbooks' },
+    { title: 'Cohort Comparison', href: '/library/cohort-comparison', value: 'cohort-comparison' },
+    { title: 'Journey Mapping', href: '/library/journey-mapping', value: 'journey-mapping' },
+    { title: 'Technical Guides', href: '/library/technical', value: 'technical' }
   ];
   
   return (
@@ -23,9 +24,10 @@ export const DocsNavigation: React.FC<DocsNavigationProps> = ({
       {links.map((link) => (
         <Button
           key={link.href}
-          variant={link.href.includes(activePage) ? "default" : "outline"}
+          variant={link.value === activeSection ? "default" : "outline"}
           size="sm"
           asChild
+          onClick={() => onSelectSection(link.value)}
         >
           <Link to={link.href}>{link.title}</Link>
         </Button>

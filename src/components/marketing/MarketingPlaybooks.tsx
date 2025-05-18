@@ -10,6 +10,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { PlaybookCard } from './PlaybookCard';
 import { PlaybookDetails } from './PlaybookDetails';
 import { CustomPlaybookRequest } from './CustomPlaybookRequest';
+import { MarketingPlaybook, marketingPlaybooks } from './types/marketingPlaybookTypes';
 
 interface PlaybookType {
   id: string;
@@ -22,6 +23,38 @@ interface PlaybookType {
   difficulty: 'easy' | 'medium' | 'hard';
   estimatedLift: string;
 }
+
+// Adapter to convert PlaybookType to MarketingPlaybook
+const convertToMarketingPlaybook = (playbook: PlaybookType): MarketingPlaybook => {
+  return {
+    id: playbook.id,
+    title: playbook.title,
+    description: playbook.description,
+    category: playbook.category === 'form' ? 'signup' : 
+              playbook.category === 'navigation' ? 'landing_page' :
+              playbook.category === 'content' ? 'product' : 'checkout',
+    frictionType: playbook.frictionType[0],
+    conversionLift: parseInt(playbook.estimatedLift.split('-')[1]) || 15,
+    implementationTime: playbook.difficulty === 'easy' ? 'quick' : 
+                       playbook.difficulty === 'medium' ? 'medium' : 'complex',
+    steps: [
+      {
+        title: 'Analyze friction points',
+        description: 'Identify the root cause of friction',
+        status: 'success'
+      },
+      {
+        title: 'Implement solution',
+        description: 'Apply best practices to resolve the issue',
+        status: 'warning'
+      },
+      {
+        title: 'Monitor results',
+        description: 'Track key metrics to verify improvement'
+      }
+    ]
+  };
+};
 
 export const MarketingPlaybooks = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -203,9 +236,8 @@ export const MarketingPlaybooks = () => {
                   {filteredPlaybooks.map((playbook) => (
                     <PlaybookCard 
                       key={playbook.id}
-                      playbook={playbook}
-                      icon={getCategoryIcon(playbook.category)}
-                      onClick={() => handleSelectPlaybook(playbook.id)}
+                      playbook={convertToMarketingPlaybook(playbook)}
+                      onViewPlaybook={() => handleSelectPlaybook(playbook.id)}
                     />
                   ))}
                   
@@ -235,7 +267,7 @@ export const MarketingPlaybooks = () => {
         ) : showRequestForm ? (
           <CustomPlaybookRequest onBack={handleBack} />
         ) : activePlaybook ? (
-          <PlaybookDetails playbook={activePlaybook} onBack={handleBack} />
+          <PlaybookDetails playbook={convertToMarketingPlaybook(activePlaybook)} />
         ) : null}
       </CardContent>
     </Card>
