@@ -7,7 +7,6 @@ import { JourneyAnalysisPanel } from '@/components/JourneyAnalysisPanel';
 import { JourneyComparisonPanel } from '@/components/JourneyComparisonPanel';
 import { JourneyHistoricalTrends } from '@/components/JourneyHistoricalTrends';
 import { JourneyAnnotations } from '@/components/JourneyAnnotations';
-import { JourneyCollab } from '@/components/JourneyCollab';
 import { JourneyCreator } from '@/components/JourneyCreator';
 import { CohortFilter } from '@/components/CohortFilter';
 import { SessionRecordings } from '@/components/SessionRecordings';
@@ -90,7 +89,6 @@ const JourneyMap = () => {
               <TabsTrigger value="sessions">Session Recordings</TabsTrigger>
               <TabsTrigger value="analytics">Marketing Analytics</TabsTrigger>
               <TabsTrigger value="annotations">Annotations</TabsTrigger>
-              <TabsTrigger value="collaboration">Collaboration</TabsTrigger>
             </TabsList>
             
             <TabsContent value="journey" className="space-y-6">
@@ -121,10 +119,6 @@ const JourneyMap = () => {
             
             <TabsContent value="annotations">
               <JourneyAnnotations flow={activeFlow} />
-            </TabsContent>
-            
-            <TabsContent value="collaboration">
-              <JourneyCollab flow={activeFlow} />
             </TabsContent>
           </Tabs>
         </div>
