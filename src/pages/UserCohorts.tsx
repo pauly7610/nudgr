@@ -1,17 +1,18 @@
 
 import React, { useState } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
-import { UserCohortCard } from '@/components/UserCohortCard';
 import { useFrictionData } from '@/hooks/useFrictionData';
-import { UsersIcon, UserPlus, Tag, Filter, BarChart2, MousePointer2, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MarketingFunnelDiagnostics } from '@/components/MarketingFunnelDiagnostics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ElementFrictionAnalytics } from '@/components/ElementFrictionAnalytics';
-import { FrictionImpactScore } from '@/components/FrictionImpactScore';
-import { TechnicalErrorCorrelation } from '@/components/TechnicalErrorCorrelation';
-import { AccessibilityFrictionIdentifier } from '@/components/AccessibilityFrictionIdentifier';
+import { UserCohortsList } from '@/components/UserCohortsList';
+import { CohortAnalysisView } from '@/components/cohort-analysis/CohortAnalysisView';
+import { ElementAnalysisView } from '@/components/cohort-analysis/ElementAnalysisView';
+import { TechErrorsView } from '@/components/cohort-analysis/TechErrorsView';
+import { AccessibilityView } from '@/components/cohort-analysis/AccessibilityView';
+import { CohortComparison } from '@/components/comparison/CohortComparison';
+import { MarketingExport } from '@/components/marketing/MarketingExport';
+import { ElementInteractionAnalysis } from '@/components/element/ElementInteractionAnalysis';
+import { Filter, UserPlus, Tag, MousePointer2 } from 'lucide-react';
 
 const UserCohorts = () => {
   const { userCohorts, flows } = useFrictionData();
@@ -21,23 +22,22 @@ const UserCohorts = () => {
   const [showTechErrors, setShowTechErrors] = useState<boolean>(false);
   const [showAccessibility, setShowAccessibility] = useState<boolean>(false);
   
-  // Filter cohorts based on active tab
-  const filteredCohorts = activeTab === "all" 
-    ? userCohorts
-    : userCohorts.filter(cohort => {
-        if (activeTab === "marketing") {
-          return cohort.name.includes("Google") || 
-                 cohort.name.includes("Social") || 
-                 cohort.name.includes("Email");
-        }
-        return true;
-      });
-  
   // Find selected cohort object
   const activeCohort = userCohorts.find(c => c.id === selectedCohort);
   
   // Find related flow (in a real app this would be from actual data)
   const flow = selectedCohort ? flows[0] : null;
+  
+  const handleSelectCohort = (cohortId: string) => {
+    setSelectedCohort(cohortId);
+    setShowElementAnalytics(false);
+    setShowTechErrors(false);
+    setShowAccessibility(false);
+  };
+
+  const handleCloseAnalysis = () => {
+    setSelectedCohort(null);
+  };
   
   return (
     <>
@@ -72,240 +72,57 @@ const UserCohorts = () => {
           </TabsList>
         </Tabs>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCohorts.map(cohort => (
-            <UserCohortCard 
-              key={cohort.id} 
-              cohort={cohort} 
-              onClick={() => {
-                setSelectedCohort(cohort.id);
-                setShowElementAnalytics(false);
-                setShowTechErrors(false);
-                setShowAccessibility(false);
-              }}
-            />
-          ))}
-          
-          {/* Empty cohort card for adding new one */}
-          <div className="rounded-lg border border-dashed bg-card p-6 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 hover:text-primary/70 cursor-pointer transition-colors">
-            <UsersIcon className="h-12 w-12 mb-3 opacity-50" />
-            <p className="text-center">Create a new user cohort to track and analyze</p>
-            {activeTab === "marketing" && (
-              <p className="text-xs text-center mt-2">
-                Create cohorts based on campaigns, sources, or marketing touchpoints
-              </p>
-            )}
-          </div>
-        </div>
+        <UserCohortsList 
+          cohorts={userCohorts} 
+          activeTab={activeTab} 
+          onSelectCohort={handleSelectCohort} 
+        />
         
+        {/* Show the appropriate view based on state */}
         {activeCohort && !showElementAnalytics && !showTechErrors && !showAccessibility && (
-          <div className="mt-10">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Cohort Analysis: {activeCohort.name}</h2>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setSelectedCohort(null)}
-                >
-                  Close
-                </Button>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={() => setShowElementAnalytics(true)}
-                  >
-                    <MousePointer2 className="h-4 w-4" />
-                    <span>Element Analysis</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={() => setShowTechErrors(true)}
-                  >
-                    <Activity className="h-4 w-4" />
-                    <span>Technical Errors</span>
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={() => setShowAccessibility(true)}
-                  >
-                    <Activity className="h-4 w-4" />
-                    <span>Accessibility</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Journey Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] flex items-center justify-center bg-muted/30 rounded-md">
-                    <div className="text-center">
-                      <BarChart2 className="h-10 w-10 mx-auto mb-3 text-muted-foreground/70" />
-                      <p className="text-muted-foreground">Select metrics to visualize cohort performance</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <FrictionImpactScore flowId={flow?.id} />
-            </div>
-            
-            <div className="mt-6">
-              <MarketingFunnelDiagnostics flow={flow} />
-            </div>
-          </div>
+          <CohortAnalysisView
+            cohort={activeCohort}
+            flow={flow}
+            onShowElementAnalytics={() => setShowElementAnalytics(true)}
+            onShowTechErrors={() => setShowTechErrors(true)}
+            onShowAccessibility={() => setShowAccessibility(true)}
+            onClose={handleCloseAnalysis}
+          />
         )}
         
         {activeCohort && showElementAnalytics && (
-          <div className="mt-10">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Element Friction: {activeCohort.name}</h2>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowElementAnalytics(false)}
-                >
-                  Back to Cohort
-                </Button>
-              </div>
-            </div>
-            
-            <ElementFrictionAnalytics cohort={activeCohort} />
-          </div>
+          <ElementAnalysisView
+            cohort={activeCohort}
+            onBack={() => setShowElementAnalytics(false)}
+          />
         )}
         
         {activeCohort && showTechErrors && (
-          <div className="mt-10">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Technical Errors: {activeCohort.name}</h2>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowTechErrors(false)}
-                >
-                  Back to Cohort
-                </Button>
-              </div>
-            </div>
-            
-            <TechnicalErrorCorrelation />
-          </div>
+          <TechErrorsView
+            cohort={activeCohort}
+            onBack={() => setShowTechErrors(false)}
+          />
         )}
         
         {activeCohort && showAccessibility && (
-          <div className="mt-10">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Accessibility Analysis: {activeCohort.name}</h2>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowAccessibility(false)}
-                >
-                  Back to Cohort
-                </Button>
-              </div>
-            </div>
-            
-            <AccessibilityFrictionIdentifier />
-          </div>
+          <AccessibilityView
+            cohort={activeCohort}
+            onBack={() => setShowAccessibility(false)}
+          />
         )}
         
+        {/* Show comparison view when no cohort is selected */}
         {!activeCohort && !selectedCohort && (
-          <div className="mt-12">
-            <h2 className="text-xl font-semibold mb-4">Cohort Comparison</h2>
-            <div className="rounded-lg border bg-card overflow-hidden">
-              <div className="p-6 text-center text-muted-foreground">
-                <p>Select two or more cohorts above to compare their metrics</p>
-              </div>
-            </div>
-          </div>
+          <CohortComparison />
         )}
         
+        {/* Marketing export and element analysis based on active tab */}
         {activeTab === "marketing" && !selectedCohort && (
-          <div className="mt-12 bg-blue-50 rounded-lg border border-blue-100 p-6">
-            <h2 className="text-lg font-semibold mb-3 text-blue-800">Marketing Audience Export</h2>
-            <p className="text-sm text-blue-700 mb-4">
-              Export cohorts to your marketing platforms for targeted campaigns and personalized experiences.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="border bg-white rounded-lg p-4 hover:border-blue-300 cursor-pointer transition-colors">
-                <h3 className="font-medium">Email Marketing</h3>
-                <p className="text-xs text-muted-foreground mt-1">Export to your email platform for targeted campaigns</p>
-              </div>
-              <div className="border bg-white rounded-lg p-4 hover:border-blue-300 cursor-pointer transition-colors">
-                <h3 className="font-medium">Ad Platforms</h3>
-                <p className="text-xs text-muted-foreground mt-1">Create custom audiences for retargeting campaigns</p>
-              </div>
-              <div className="border bg-white rounded-lg p-4 hover:border-blue-300 cursor-pointer transition-colors">
-                <h3 className="font-medium">CRM Systems</h3>
-                <p className="text-xs text-muted-foreground mt-1">Sync cohort data with your customer database</p>
-              </div>
-            </div>
-          </div>
+          <MarketingExport />
         )}
         
         {activeTab === "element" && !selectedCohort && (
-          <div className="mt-12">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
-                  Element-Level Interaction Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Select a cohort above to view detailed element-level friction analytics, including click maps, 
-                  hover patterns, and interaction times for specific UI components.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">Click Maps</h3>
-                    <div className="h-20 bg-muted/30 rounded-md flex items-center justify-center mb-2">
-                      <MousePointer2 className="h-6 w-6 text-muted-foreground/50" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Identify confusing buttons or ineffective CTAs
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">Hover Analysis</h3>
-                    <div className="h-20 bg-muted/30 rounded-md flex items-center justify-center mb-2">
-                      <MousePointer2 className="h-6 w-6 text-muted-foreground/50" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      See where users hesitate or get confused
-                    </p>
-                  </div>
-                  <div className="border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">Form Field Analysis</h3>
-                    <div className="h-20 bg-muted/30 rounded-md flex items-center justify-center mb-2">
-                      <MousePointer2 className="h-6 w-6 text-muted-foreground/50" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Find problematic fields causing abandonment
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ElementInteractionAnalysis />
         )}
       </div>
     </>
