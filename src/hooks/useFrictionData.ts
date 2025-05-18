@@ -22,12 +22,12 @@ export const useFrictionData = (): FrictionDataState => {
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<Alert | null>(null);
 
-  // Simulate real-time alert generation
+  // Simulate real-time alert generation - slowed down
   useEffect(() => {
     const interval = setInterval(() => {
       const newAlert = generateRandomAlert();
       setAlerts(prev => [newAlert, ...prev.slice(0, 49)]); // Keep max 50 alerts
-    }, 15000 + Math.random() * 30000); // Random interval between 15-45 seconds
+    }, 60000 + Math.random() * 60000); // Random interval between 60-120 seconds (increased from 15-45 seconds)
     
     return () => clearInterval(interval);
   }, []);
