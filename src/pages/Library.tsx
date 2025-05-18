@@ -1,42 +1,67 @@
 
 import React, { useState } from 'react';
-import { DashboardHeader } from '@/components/DashboardHeader';
-import { BestPracticeLibrary } from '@/components/library/BestPracticeLibrary';
-import { DocsNavigation } from '@/components/library/DocsNavigation';
-import { CohortComparisonDocs } from '@/components/library/CohortComparisonDocs';
 import { useLocation } from 'react-router-dom';
+import { DashboardHeader } from '@/components/DashboardHeader';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BestPracticeLibrary } from '@/components/library/BestPracticeLibrary';
+import { CohortComparisonDocs } from '@/components/library/CohortComparisonDocs';
+import { DocsNavigation } from '@/components/library/DocsNavigation';
+import { MarketingPlaybooks } from '@/components/marketing/MarketingPlaybooks';
 
 const Library = () => {
   const location = useLocation();
-  const currentPath = location.pathname.split('/')[2] || '';
+  const pathname = location.pathname;
   
-  // Render the appropriate documentation based on the current path
-  const renderDocContent = () => {
-    switch (currentPath) {
-      case 'cohort-comparison':
-        return <CohortComparisonDocs />;
-      case 'journey-mapping':
-        // This would be another doc component that could be added later
-        return <div className="p-6 text-center text-muted-foreground">Journey mapping documentation coming soon</div>;
-      case 'technical':
-        // This would be another doc component that could be added later
-        return <div className="p-6 text-center text-muted-foreground">Technical guides coming soon</div>;
-      default:
-        return <BestPracticeLibrary />;
-    }
+  // Set default tab based on URL
+  const getDefaultTab = () => {
+    if (pathname.includes('cohort-comparison')) return 'cohort-comparison';
+    if (pathname.includes('journey-mapping')) return 'journey-mapping';
+    if (pathname.includes('technical')) return 'technical';
+    return 'playbooks';
   };
   
+  const [activeTab, setActiveTab] = useState(getDefaultTab());
+
   return (
     <>
       <DashboardHeader 
-        title="Documentation Library" 
-        description="Best practices, guidance, and examples for optimizing user journeys"
+        title="Resource Library" 
+        description="Best practices, playbooks, and documentation"
       />
       
       <div className="container py-8">
-        <DocsNavigation activePage={currentPath} />
-        
-        {renderDocContent()}
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-64 flex-shrink-0">
+            <DocsNavigation activeSection={activeTab} onSelectSection={setActiveTab} />
+          </div>
+          
+          <div className="flex-1">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="mb-6 w-full justify-start">
+                <TabsTrigger value="playbooks">Marketing Playbooks</TabsTrigger>
+                <TabsTrigger value="cohort-comparison">Cohort Analysis</TabsTrigger>
+                <TabsTrigger value="journey-mapping">Journey Mapping</TabsTrigger>
+                <TabsTrigger value="technical">Technical Docs</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="playbooks" className="mt-0">
+                <MarketingPlaybooks />
+              </TabsContent>
+              
+              <TabsContent value="cohort-comparison" className="mt-0">
+                <CohortComparisonDocs />
+              </TabsContent>
+              
+              <TabsContent value="journey-mapping" className="mt-0">
+                <BestPracticeLibrary category="journey-mapping" />
+              </TabsContent>
+              
+              <TabsContent value="technical" className="mt-0">
+                <BestPracticeLibrary category="technical" />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
     </>
   );

@@ -11,6 +11,8 @@ import { JourneyCreator } from '@/components/JourneyCreator';
 import { CohortFilter } from '@/components/CohortFilter';
 import { SessionRecordings } from '@/components/SessionRecordings';
 import { MarketingFunnelDiagnostics } from '@/components/MarketingFunnelDiagnostics';
+import { SmartTestPlanner } from '@/components/testing/SmartTestPlanner';
+import { SmartActionNudges } from '@/components/SmartActionNudges';
 import { Button } from '@/components/ui/button';
 import { Download, Share2, Plus, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -87,6 +89,7 @@ const JourneyMap = () => {
             <TabsList className="mb-4">
               <TabsTrigger value="journey">Journey Map</TabsTrigger>
               <TabsTrigger value="sessions">Session Recordings</TabsTrigger>
+              <TabsTrigger value="testing">Test Planning</TabsTrigger>
               <TabsTrigger value="analytics">Marketing Analytics</TabsTrigger>
               <TabsTrigger value="annotations">Annotations</TabsTrigger>
             </TabsList>
@@ -102,6 +105,10 @@ const JourneyMap = () => {
                 <JourneyAnalysisPanel flow={activeFlow} />
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SmartActionNudges flowId={activeFlow?.id} />
+              </div>
+              
               <JourneyComparisonPanel flows={flows} activeFlowId={activeFlowId} />
               
               <JourneyHistoricalTrends flow={activeFlow} />
@@ -109,6 +116,12 @@ const JourneyMap = () => {
             
             <TabsContent value="sessions">
               <SessionRecordings flow={activeFlow} />
+            </TabsContent>
+            
+            <TabsContent value="testing">
+              <div className="mb-6">
+                <SmartTestPlanner flowId={activeFlow?.id} />
+              </div>
             </TabsContent>
             
             <TabsContent value="analytics">
