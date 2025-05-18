@@ -187,7 +187,7 @@ export const CohortComparison: React.FC = () => {
                       <div className="p-3">
                         <div className="flex items-center gap-2">
                           <span>{cohort.frictionScore}/100</span>
-                          <Badge variant={cohort.frictionScore < 30 ? "success" : cohort.frictionScore < 60 ? "warning" : "destructive"}>
+                          <Badge variant={cohort.frictionScore < 30 ? "secondary" : cohort.frictionScore < 60 ? "outline" : "destructive"}>
                             {cohort.frictionScore < 30 ? "Low" : cohort.frictionScore < 60 ? "Medium" : "High"}
                           </Badge>
                         </div>
@@ -293,3 +293,4 @@ export const CohortComparison: React.FC = () => {
     </div>
   );
 };
+
