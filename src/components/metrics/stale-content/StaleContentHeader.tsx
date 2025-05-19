@@ -3,14 +3,15 @@ import React from 'react';
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { EyeOff } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CurveBehavior } from './types';
 
 interface StaleContentHeaderProps {
   contentType: 'all' | 'article' | 'feature' | 'page';
   setContentType: (value: 'all' | 'article' | 'feature' | 'page') => void;
-  selectedCurveFilter: string;
-  setSelectedCurveFilter: (value: string) => void;
-  sortBy: string;
-  setSortBy: (value: string) => void;
+  selectedCurveFilter: CurveBehavior | 'all';
+  setSelectedCurveFilter: (value: CurveBehavior | 'all') => void;
+  sortBy: 'behavior' | 'leastViewed' | 'mostStale' | 'largestDrop';
+  setSortBy: (value: 'behavior' | 'leastViewed' | 'mostStale' | 'largestDrop') => void;
 }
 
 export const StaleContentHeader: React.FC<StaleContentHeaderProps> = ({
@@ -28,7 +29,7 @@ export const StaleContentHeader: React.FC<StaleContentHeaderProps> = ({
         Stale Content Analysis
       </CardTitle>
       <div className="flex items-center gap-2">
-        <Select value={contentType} onValueChange={(value) => setContentType(value as any)}>
+        <Select value={contentType} onValueChange={(value: 'all' | 'article' | 'feature' | 'page') => setContentType(value)}>
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Content Type" />
           </SelectTrigger>
@@ -40,7 +41,10 @@ export const StaleContentHeader: React.FC<StaleContentHeaderProps> = ({
           </SelectContent>
         </Select>
         
-        <Select value={selectedCurveFilter} onValueChange={(value) => setSelectedCurveFilter(value as any)}>
+        <Select 
+          value={selectedCurveFilter} 
+          onValueChange={(value: CurveBehavior | 'all') => setSelectedCurveFilter(value)}
+        >
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Behavior" />
           </SelectTrigger>
@@ -53,7 +57,10 @@ export const StaleContentHeader: React.FC<StaleContentHeaderProps> = ({
           </SelectContent>
         </Select>
         
-        <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+        <Select 
+          value={sortBy} 
+          onValueChange={(value: 'behavior' | 'leastViewed' | 'mostStale' | 'largestDrop') => setSortBy(value)}
+        >
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Sort By" />
           </SelectTrigger>
