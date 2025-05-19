@@ -1,18 +1,20 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { MarketingFunnelDiagnostics } from '@/components/MarketingFunnelDiagnostics';
 import { FrictionImpactScore } from '@/components/FrictionImpactScore';
-import { MousePointer2, Activity } from 'lucide-react';
+import { MousePointer2, Activity, HelpCircle, ArrowLeft } from 'lucide-react';
 import { UserCohort, Flow } from '@/data/mockData';
+import { ColorLegend } from '@/components/ui/ColorLegend';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend
 } from 'recharts';
@@ -63,55 +65,116 @@ export const CohortAnalysisView: React.FC<CohortAnalysisViewProps> = ({
   ];
 
   return (
-    <div className="mt-10">
+    <div className="mt-6">
+      {/* Breadcrumb navigation */}
+      <div className="flex items-center text-sm text-muted-foreground mb-4">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="p-0 h-auto flex items-center hover:text-primary hover:bg-transparent"
+          onClick={onClose}
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back to all cohorts
+        </Button>
+        <span className="mx-2">/</span>
+        <span className="font-medium text-foreground">{cohort.name}</span>
+      </div>
+
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Cohort Analysis: {cohort.name}</h2>
+        <div>
+          <h2 className="text-xl font-semibold">Cohort Analysis: {cohort.name}</h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            Analyze user behavior patterns and friction points for this cohort
+          </p>
+        </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onClose}
-          >
-            Close
-          </Button>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={onShowElementAnalytics}
-            >
-              <MousePointer2 className="h-4 w-4" />
-              <span>Element Analysis</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={onShowTechErrors}
-            >
-              <Activity className="h-4 w-4" />
-              <span>Technical Errors</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-1"
-              onClick={onShowAccessibility}
-            >
-              <Activity className="h-4 w-4" />
-              <span>Accessibility</span>
-            </Button>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={onShowElementAnalytics}
+                >
+                  <MousePointer2 className="h-4 w-4" />
+                  <span>Element Analysis</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">View specific UI elements causing friction</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={onShowTechErrors}
+                >
+                  <Activity className="h-4 w-4" />
+                  <span>Technical Errors</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Analyze JavaScript errors and API failures</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={onShowAccessibility}
+                >
+                  <Activity className="h-4 w-4" />
+                  <span>Accessibility</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">View accessibility issues affecting this cohort</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
+      
+      {/* Help card for new users */}
+      <Card className="mb-6 bg-blue-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <HelpCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+            <div>
+              <h3 className="font-medium text-blue-800 mb-1">Understanding Cohort Analysis</h3>
+              <p className="text-sm text-blue-700">
+                This view shows friction metrics for the <strong>{cohort.name}</strong> cohort. 
+                Use the buttons above to dig deeper into specific issues. The Journey Performance chart 
+                below shows three key friction indicators across different pages.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Color Legend */}
+      <ColorLegend className="mb-6" />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Journey Performance</CardTitle>
+            <CardDescription>
+              Friction indicators across journey stages for {cohort.name}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -123,13 +186,19 @@ export const CohortAnalysisView: React.FC<CohortAnalysisViewProps> = ({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip formatter={(value, name) => [`${value} instances`, name]} />
                   <Legend />
                   <Bar dataKey="rageClicks" name="Rage Clicks" fill="#8884d8" />
                   <Bar dataKey="formAbandonment" name="Form Abandonment" fill="#82ca9d" />
                   <Bar dataKey="navigationLoops" name="Navigation Loops" fill="#ffc658" />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+            <div className="mt-4 text-sm text-muted-foreground">
+              <p>
+                <strong>What this means:</strong> This chart shows friction indicators across different stages 
+                of the user journey. Higher bars indicate more significant issues affecting conversion.
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -138,6 +207,14 @@ export const CohortAnalysisView: React.FC<CohortAnalysisViewProps> = ({
       </div>
       
       <div className="mt-6">
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Marketing Funnel Diagnostics</CardTitle>
+            <CardDescription>
+              Analysis of drop-offs through the conversion funnel
+            </CardDescription>
+          </CardHeader>
+        </Card>
         <MarketingFunnelDiagnostics flow={flow} />
       </div>
     </div>

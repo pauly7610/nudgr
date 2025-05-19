@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, MousePointer2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Activity, MousePointer2, HelpCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const ElementInteractionAnalysis: React.FC = () => {
   return (
@@ -12,8 +13,24 @@ export const ElementInteractionAnalysis: React.FC = () => {
             <Activity className="h-5 w-5 text-primary" />
             Element-Level Interaction Analysis
           </CardTitle>
+          <CardDescription>
+            Analyze how users interact with specific UI components on your site
+          </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="bg-blue-50 border border-blue-100 rounded-md p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <HelpCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-blue-800 mb-1">How to use Element Analysis</h3>
+                <p className="text-sm text-blue-700">
+                  Select a cohort from above to see detailed interaction data for specific UI elements.
+                  This analysis helps identify which components are causing friction in your user experience.
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <p className="text-sm text-muted-foreground mb-6">
             Select a cohort above to view detailed element-level friction analytics, including click maps, 
             hover patterns, and interaction times for specific UI components.
@@ -28,6 +45,9 @@ export const ElementInteractionAnalysis: React.FC = () => {
               <p className="text-xs text-muted-foreground">
                 Identify confusing buttons or ineffective CTAs
               </p>
+              <Button variant="link" size="sm" className="text-xs mt-2">
+                Learn more
+              </Button>
             </div>
             <div className="border rounded-lg p-4">
               <h3 className="font-medium mb-2">Hover Analysis</h3>
@@ -37,6 +57,9 @@ export const ElementInteractionAnalysis: React.FC = () => {
               <p className="text-xs text-muted-foreground">
                 See where users hesitate or get confused
               </p>
+              <Button variant="link" size="sm" className="text-xs mt-2">
+                Learn more
+              </Button>
             </div>
             <div className="border rounded-lg p-4">
               <h3 className="font-medium mb-2">Form Field Analysis</h3>
@@ -46,6 +69,9 @@ export const ElementInteractionAnalysis: React.FC = () => {
               <p className="text-xs text-muted-foreground">
                 Find problematic fields causing abandonment
               </p>
+              <Button variant="link" size="sm" className="text-xs mt-2">
+                Learn more
+              </Button>
             </div>
           </div>
         </CardContent>
