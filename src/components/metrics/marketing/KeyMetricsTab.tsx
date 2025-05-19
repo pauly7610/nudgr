@@ -14,14 +14,33 @@ interface KeyMetricsTabProps {
 }
 
 export const KeyMetricsTab: React.FC<KeyMetricsTabProps> = ({ chartData }) => {
+  // Format numbers with commas
+  const formatNumber = (value: number) => {
+    return value.toLocaleString();
+  };
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="date" angle={-45} textAnchor="end" height={50} />
-        <YAxis yAxisId="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Tooltip />
+        <YAxis 
+          yAxisId="left"
+          tickFormatter={formatNumber} 
+        />
+        <YAxis 
+          yAxisId="right" 
+          orientation="right"
+          tickFormatter={formatNumber} 
+        />
+        <Tooltip 
+          formatter={(value, name) => {
+            if (typeof value === 'number') {
+              return [formatNumber(value), name];
+            }
+            return [value, name];
+          }}
+        />
         <Legend 
           verticalAlign="top"
           wrapperStyle={{ paddingBottom: '10px' }}

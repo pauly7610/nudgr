@@ -104,8 +104,7 @@ export const TopFrictionFunnels: React.FC<TopFrictionFunnelsProps> = ({
               <Tooltip content={<CustomTooltip />} />
               <Legend 
                 payload={[
-                  { value: 'Drop-off Rate', type: 'rect', color: '#7209b7' },
-                  { value: 'Click to view journey details', type: 'rect', color: '#7209b7' }
+                  { value: 'Drop-off Rate', type: 'rect', color: '#7209b7' }
                 ]}
               />
               <Bar 

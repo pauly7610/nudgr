@@ -42,7 +42,7 @@ export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeDa
         <div className="flex items-center text-xs">
           <div className="flex items-center mr-3">
             <div className="w-3 h-3 rounded-full bg-[#8884d8] mr-1.5"></div>
-            <span>Time Spent</span>
+            <span>Average Time Spent</span>
           </div>
           <div className="flex items-center">
             <div className="w-3 h-3 rounded-full bg-[#82ca9d] mr-1.5"></div>
@@ -79,14 +79,14 @@ export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeDa
           />
           <Legend
             payload={[
-              { value: 'Time Spent', type: 'square', color: '#8884d8' },
+              { value: 'Average Time Spent', type: 'square', color: '#8884d8' },
               { value: 'Bounce Rate', type: 'square', color: '#82ca9d' }
             ]}
           />
           <Bar 
             yAxisId="left" 
             dataKey="avgTime" 
-            name="Time Spent" 
+            name="Average Time Spent" 
             fill="#8884d8" 
           >
             <LabelList dataKey="avgTime" content={renderCustomizedLabel} />
