@@ -28,8 +28,8 @@ export const EngagementFlowTab: React.FC = () => {
   
   return (
     <div className="border rounded-md p-4">
-      <div className="mb-4 flex justify-between items-center">
-        <div>
+      <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center">
+        <div className="mb-2 md:mb-0">
           <h4 className="text-sm font-medium mb-1">Page Flow Engagement</h4>
           <p className="text-xs text-muted-foreground">How visitors move through pages and where they spend the most time</p>
         </div>
@@ -39,7 +39,7 @@ export const EngagementFlowTab: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {pageEngagements.map((item, i) => (
           <div key={i} className="border rounded-lg p-2.5">
             <div className="text-sm font-medium mb-1">{item.page}</div>
@@ -63,9 +63,9 @@ export const EngagementFlowTab: React.FC = () => {
         ))}
       </div>
 
-      <div className="mt-4 flex justify-between items-center">
-        <div className="text-xs flex items-center">
-          <div className="flex items-center mr-3">
+      <div className="mt-8 flex flex-col md:flex-row md:justify-between md:items-center">
+        <div className="text-xs flex flex-col md:flex-row mb-2 md:mb-0">
+          <div className="flex items-center mr-0 mb-2 md:mr-3 md:mb-0">
             <div className="w-3 h-3 rounded-full bg-green-500 mr-1.5"></div>
             <span>High engagement (≥80%)</span>
           </div>

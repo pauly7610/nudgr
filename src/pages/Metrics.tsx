@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketingMetrics } from '@/components/metrics/MarketingMetrics';
 import { StaleContentAnalysis } from '@/components/metrics/StaleContentAnalysis';
+import { PageTimeAnalytics } from '@/components/metrics/PageTimeAnalytics';
 
 const Metrics = () => {
   const { flows } = useFrictionData();
@@ -38,7 +39,9 @@ const Metrics = () => {
   
   return (
     <>
-      <DashboardHeader title="Metrics" description="Key performance indicators and trends" />
+      <div className="text-center">
+        <DashboardHeader title="Metrics" description="Key performance indicators and trends" />
+      </div>
       
       <div className="container py-8 space-y-8">
         <Tabs defaultValue="overview" className="w-full">
@@ -46,6 +49,7 @@ const Metrics = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="marketing">Marketing</TabsTrigger>
             <TabsTrigger value="content">Content Analytics</TabsTrigger>
+            <TabsTrigger value="pageTime">Page Time</TabsTrigger>
           </TabsList>
           
           <TabsContent value="overview">
@@ -121,6 +125,10 @@ const Metrics = () => {
           
           <TabsContent value="content">
             <StaleContentAnalysis className="mb-8" />
+          </TabsContent>
+          
+          <TabsContent value="pageTime">
+            <PageTimeAnalytics />
           </TabsContent>
         </Tabs>
       </div>

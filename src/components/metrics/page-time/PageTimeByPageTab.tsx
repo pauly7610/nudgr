@@ -22,11 +22,11 @@ export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeDa
     return (
       <text 
         x={x + width / 2} 
-        y={y - 10} 
+        y={y - 5} 
         fill="#666"
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={12}
+        fontSize={10}
       >
         {formatTime(value)}
       </text>
@@ -51,24 +51,32 @@ export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeDa
         </div>
       </div>
       
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={350}>
         <BarChart
           data={pageTimeData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 25 }}
-          barSize={30}
+          margin={{ top: 30, right: 40, left: 30, bottom: 40 }}
+          barSize={24}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="page" angle={-45} textAnchor="end" height={60} />
+          <XAxis 
+            dataKey="page" 
+            angle={-30} 
+            textAnchor="end" 
+            height={70} 
+            tick={{ fontSize: 10 }}
+          />
           <YAxis 
             yAxisId="left" 
-            label={{ value: 'Time (seconds)', angle: -90, position: 'insideLeft' }}
+            label={{ value: 'Time (seconds)', angle: -90, position: 'insideLeft', style: { fontSize: 10 } }}
             tickFormatter={(value) => `${value}s`}
+            tick={{ fontSize: 10 }}
           />
           <YAxis 
             yAxisId="right" 
             orientation="right" 
-            label={{ value: 'Bounce Rate (%)', angle: 90, position: 'insideRight' }}
+            label={{ value: 'Bounce Rate (%)', angle: 90, position: 'insideRight', style: { fontSize: 10 } }}
             tickFormatter={(value) => `${value}%`}
+            tick={{ fontSize: 10 }}
           />
           <Tooltip 
             formatter={(value, name) => {
@@ -76,12 +84,14 @@ export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeDa
               return [`${value}%`, 'Bounce Rate'];
             }}
             labelFormatter={(label) => `Page: ${label}`}
+            contentStyle={{ fontSize: 11 }}
           />
           <Legend
             payload={[
               { value: 'Average Time Spent', type: 'square', color: '#8884d8' },
               { value: 'Bounce Rate', type: 'square', color: '#82ca9d' }
             ]}
+            wrapperStyle={{ fontSize: 11 }}
           />
           <Bar 
             yAxisId="left" 
@@ -99,7 +109,7 @@ export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeDa
             label={{
               position: 'top',
               formatter: (value: number) => `${value}%`,
-              fontSize: 12
+              fontSize: 10
             }}
           />
         </BarChart>
