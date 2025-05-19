@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Flow } from '../data/mockData';
-import { BarChart2, ChevronDown, ChevronUp } from 'lucide-react';
+import { BarChart2, Calendar, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { Button } from './ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -28,11 +28,19 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
       // Add some random variation to the metrics
       const randomVariation = () => 1 + (Math.random() * 0.4 - 0.2); // ±20% variation
       
+      // Add average time metrics
+      const avgTimeInSeconds = Math.floor(180 + Math.random() * 120);
+      const minutes = Math.floor(avgTimeInSeconds / 60);
+      const seconds = avgTimeInSeconds % 60;
+      const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
       data.push({
         date: dateStr,
         conversionRate: Math.min(100, Math.max(1, conversionRate * 100 * randomVariation())).toFixed(1),
         dropOffRate: Math.min(100, Math.max(1, (1 - conversionRate) * 100 * randomVariation())).toFixed(1),
         frictionPoints: Math.floor(flow.steps.reduce((acc, step) => acc + (step.friction?.length || 0), 0) * randomVariation()),
+        avgTime: avgTimeInSeconds,
+        timeFormatted
       });
     }
     
@@ -57,7 +65,15 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
         <div className="p-6">
           <div className="space-y-6">
             <div>
-              <h4 className="font-medium mb-3">Conversion Rate Over Time</h4>
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-medium flex items-center">
+                  Conversion Rate Over Time
+                </h4>
+                <div className="text-xs flex items-center">
+                  <Calendar className="h-3.5 w-3.5 mr-1" />
+                  <span>Last 7 days</span>
+                </div>
+              </div>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -67,7 +83,14 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis unit="%" />
-                    <Tooltip />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === 'conversionRate') return [`${value}%`, 'Conversion Rate'];
+                        if (name === 'dropOffRate') return [`${value}%`, 'Drop-off Rate'];
+                        return [value, name];
+                      }}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
                     <Legend />
                     <Line type="monotone" dataKey="conversionRate" stroke="#8884d8" name="Conversion Rate (%)" />
                     <Line type="monotone" dataKey="dropOffRate" stroke="#ff7300" name="Drop-off Rate (%)" />
@@ -77,7 +100,22 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
             </div>
             
             <div>
-              <h4 className="font-medium mb-3">Friction Points Over Time</h4>
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-medium flex items-center">
+                  Friction Points & Time Analysis
+                </h4>
+                <div className="text-xs flex items-center">
+                  <Clock className="h-3.5 w-3.5 mr-1" />
+                  <span>Average completion: {
+                    (() => {
+                      const avgTime = historicalData.reduce((sum, item) => sum + item.avgTime, 0) / historicalData.length;
+                      const minutes = Math.floor(avgTime / 60);
+                      const seconds = Math.floor(avgTime % 60);
+                      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    })()
+                  }</span>
+                </div>
+              </div>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -86,16 +124,32 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
+                    <YAxis yAxisId="left" />
+                    <YAxis yAxisId="right" orientation="right" />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === 'frictionPoints') return [value, 'Friction Points'];
+                        if (name === 'avgTime') {
+                          const minutes = Math.floor(value as number / 60);
+                          const seconds = Math.floor(value as number % 60);
+                          return [`${minutes}:${seconds.toString().padStart(2, '0')}`, 'Average Time'];
+                        }
+                        return [value, name];
+                      }}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
                     <Legend />
-                    <Line type="monotone" dataKey="frictionPoints" stroke="#82ca9d" name="Friction Points" />
+                    <Line yAxisId="left" type="monotone" dataKey="frictionPoints" stroke="#82ca9d" name="Friction Points" />
+                    <Line yAxisId="right" type="monotone" dataKey="avgTime" stroke="#8884d8" name="Avg. Completion Time" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
             
-            <div className="flex justify-end">
+            <div className="flex justify-between">
+              <div className="text-xs text-muted-foreground">
+                * Time values shown in minutes:seconds format
+              </div>
               <Button>
                 Export Data
               </Button>
