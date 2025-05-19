@@ -29,12 +29,12 @@ export const StaleContentAnalysis: React.FC<StaleContentAnalysisProps> = ({ clas
 
   // Mock data for stale content with added lifetimeViews
   const staleContent: StaleContentItem[] = [
-    { name: 'Technical Error Correlation', type: 'feature', lastInteraction: 67, viewsLast30Days: 3, previousViews: 29, change: -89.7, lifetimeViews: 1,250 },
-    { name: 'Advanced Segmentation', type: 'feature', lastInteraction: 78, viewsLast30Days: 5, previousViews: 54, change: -90.7, lifetimeViews: 2,800 },
-    { name: 'Legacy Landing Page', type: 'page', lastInteraction: 94, viewsLast30Days: 7, previousViews: 215, change: -96.7, lifetimeViews: 12,500 },
+    { name: 'Technical Error Correlation', type: 'feature', lastInteraction: 67, viewsLast30Days: 3, previousViews: 29, change: -89.7, lifetimeViews: 1250 },
+    { name: 'Advanced Segmentation', type: 'feature', lastInteraction: 78, viewsLast30Days: 5, previousViews: 54, change: -90.7, lifetimeViews: 2800 },
+    { name: 'Legacy Landing Page', type: 'page', lastInteraction: 94, viewsLast30Days: 7, previousViews: 215, change: -96.7, lifetimeViews: 12500 },
     { name: 'Marketing Playbook: B2B SaaS', type: 'article', lastInteraction: 32, viewsLast30Days: 8, previousViews: 24, change: -66.7, lifetimeViews: 890 },
-    { name: 'How to Use Journey Maps', type: 'article', lastInteraction: 45, viewsLast30Days: 12, previousViews: 86, change: -85.1, lifetimeViews: 3,200 },
-    { name: 'Customer Journey Templates', type: 'article', lastInteraction: 18, viewsLast30Days: 26, previousViews: 45, change: -42.2, lifetimeViews: 1,450 },
+    { name: 'How to Use Journey Maps', type: 'article', lastInteraction: 45, viewsLast30Days: 12, previousViews: 86, change: -85.1, lifetimeViews: 3200 },
+    { name: 'Customer Journey Templates', type: 'article', lastInteraction: 18, viewsLast30Days: 26, previousViews: 45, change: -42.2, lifetimeViews: 1450 },
     { name: 'Analytics Exports', type: 'feature', lastInteraction: 27, viewsLast30Days: 16, previousViews: 31, change: -48.4, lifetimeViews: 950 }
   ];
 
