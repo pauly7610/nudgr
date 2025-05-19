@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { JourneyFrictionMap } from '@/components/JourneyFrictionMap';
@@ -106,121 +107,121 @@ const JourneyMap = () => {
             </div>
           </div>
           
-          {/* Display overview of flows when no active flow */}
-          {!activeFlow && (
-            <div className="bg-card border rounded-lg p-6 mb-6">
+          {/* Display journey overview when no active flow is selected */}
+          {!activeFlow ? (
+            <div className="bg-card border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Journey Friction Overview</h2>
               <TopFrictionFunnels 
                 flows={flows} 
                 onFlowClick={setActiveFlowId}
                 activeFlowId={null}
               />
-              <div className="text-center text-muted-foreground mt-6">
+              <div className="text-center text-muted-foreground mt-6 mb-2">
                 <p>Select a journey above or click on any journey bar to view detailed friction analysis</p>
               </div>
             </div>
+          ) : (
+            <Tabs defaultValue="journey" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="journey">Journey Map</TabsTrigger>
+                <TabsTrigger value="sessions">Session Recordings</TabsTrigger>
+                <TabsTrigger value="testing">Test Planning</TabsTrigger>
+                <TabsTrigger value="analytics">Marketing Analytics</TabsTrigger>
+                <TabsTrigger value="annotations">Annotations</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="journey" className="space-y-6">
+                {!compareScope ? (
+                  <>
+                    <JourneyFrictionMap 
+                      flow={activeFlow}
+                      cohortId={activeCohortId}
+                      expanded={journeyExpanded}
+                      onToggleExpand={() => setJourneyExpanded(!journeyExpanded)}
+                    />
+                    
+                    {activeFlow && journeyExpanded && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <MarketingFunnelDiagnostics flow={activeFlow} />
+                          <JourneyAnalysisPanel flow={activeFlow} />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <SmartActionNudges flowId={activeFlow?.id} />
+                        </div>
+                        
+                        <JourneyComparisonPanel flows={flows} activeFlowId={activeFlowId} />
+                        
+                        <JourneyHistoricalTrends flow={activeFlow} />
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Comparison view */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-lg font-medium mb-4">Scope A</h3>
+                        <JourneyFrictionMap 
+                          flow={activeFlow} 
+                          cohortId={activeCohortId} 
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium mb-4">Scope B</h3>
+                        <JourneyFrictionMap 
+                          flow={activeFlow} 
+                          cohortId={activeCohortId} 
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="bg-muted/20 p-4 rounded-lg">
+                      <h3 className="font-medium mb-3">Comparison Insights</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-card p-4 rounded border">
+                          <div className="text-sm text-muted-foreground mb-1">Drop-off Difference</div>
+                          <div className="text-xl font-medium">-12.4%</div>
+                          <div className="text-xs text-green-600 mt-1">Scope B performs better</div>
+                        </div>
+                        <div className="bg-card p-4 rounded border">
+                          <div className="text-sm text-muted-foreground mb-1">Friction Points</div>
+                          <div className="text-xl font-medium">3 vs 1</div>
+                          <div className="text-xs text-amber-600 mt-1">Scope A has more friction</div>
+                        </div>
+                        <div className="bg-card p-4 rounded border">
+                          <div className="text-sm text-muted-foreground mb-1">Conversion Rate</div>
+                          <div className="text-xl font-medium">+8.7%</div>
+                          <div className="text-xs text-green-600 mt-1">Scope B has higher conversion</div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="sessions">
+                <SessionRecordings flow={activeFlow} />
+              </TabsContent>
+              
+              <TabsContent value="testing">
+                <div className="mb-6">
+                  <SmartTestPlanner flowId={activeFlow?.id} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="analytics">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <MarketingFunnelDiagnostics flow={activeFlow} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="annotations">
+                <JourneyAnnotations flow={activeFlow} />
+              </TabsContent>
+            </Tabs>
           )}
-          
-          <Tabs defaultValue="journey" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="journey">Journey Map</TabsTrigger>
-              <TabsTrigger value="sessions">Session Recordings</TabsTrigger>
-              <TabsTrigger value="testing">Test Planning</TabsTrigger>
-              <TabsTrigger value="analytics">Marketing Analytics</TabsTrigger>
-              <TabsTrigger value="annotations">Annotations</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="journey" className="space-y-6">
-              {!compareScope ? (
-                <>
-                  <JourneyFrictionMap 
-                    flow={activeFlow}
-                    cohortId={activeCohortId}
-                    expanded={journeyExpanded}
-                    onToggleExpand={() => setJourneyExpanded(!journeyExpanded)}
-                  />
-                  
-                  {activeFlow && journeyExpanded && (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MarketingFunnelDiagnostics flow={activeFlow} />
-                        <JourneyAnalysisPanel flow={activeFlow} />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <SmartActionNudges flowId={activeFlow?.id} />
-                      </div>
-                      
-                      <JourneyComparisonPanel flows={flows} activeFlowId={activeFlowId} />
-                      
-                      <JourneyHistoricalTrends flow={activeFlow} />
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Comparison view */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-lg font-medium mb-4">Scope A</h3>
-                      <JourneyFrictionMap 
-                        flow={activeFlow} 
-                        cohortId={activeCohortId} 
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium mb-4">Scope B</h3>
-                      <JourneyFrictionMap 
-                        flow={activeFlow} 
-                        cohortId={activeCohortId} 
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="bg-muted/20 p-4 rounded-lg">
-                    <h3 className="font-medium mb-3">Comparison Insights</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-card p-4 rounded border">
-                        <div className="text-sm text-muted-foreground mb-1">Drop-off Difference</div>
-                        <div className="text-xl font-medium">-12.4%</div>
-                        <div className="text-xs text-green-600 mt-1">Scope B performs better</div>
-                      </div>
-                      <div className="bg-card p-4 rounded border">
-                        <div className="text-sm text-muted-foreground mb-1">Friction Points</div>
-                        <div className="text-xl font-medium">3 vs 1</div>
-                        <div className="text-xs text-amber-600 mt-1">Scope A has more friction</div>
-                      </div>
-                      <div className="bg-card p-4 rounded border">
-                        <div className="text-sm text-muted-foreground mb-1">Conversion Rate</div>
-                        <div className="text-xl font-medium">+8.7%</div>
-                        <div className="text-xs text-green-600 mt-1">Scope B has higher conversion</div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="sessions">
-              <SessionRecordings flow={activeFlow} />
-            </TabsContent>
-            
-            <TabsContent value="testing">
-              <div className="mb-6">
-                <SmartTestPlanner flowId={activeFlow?.id} />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="analytics">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <MarketingFunnelDiagnostics flow={activeFlow} />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="annotations">
-              <JourneyAnnotations flow={activeFlow} />
-            </TabsContent>
-          </Tabs>
         </div>
       </div>
       

@@ -37,13 +37,7 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({
   } = useJourneyFiltering(flow);
 
   if (!flow) {
-    return (
-      <div className="rounded-lg border bg-card text-center p-6 flex flex-col items-center justify-center h-auto min-h-[200px]">
-        <Map className="h-12 w-12 text-muted-foreground mb-3" />
-        <h3 className="text-lg font-medium mb-2">Select a Journey to View</h3>
-        <p className="text-muted-foreground max-w-md">Click on any flow in the dashboard to view its journey friction map</p>
-      </div>
-    );
+    return null; // Return null to prevent empty space when no journey is selected
   }
 
   // Get detailed journey for current flow
