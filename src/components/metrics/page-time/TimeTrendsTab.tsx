@@ -3,15 +3,23 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface TimeTrendsTabProps {
-  timeData: {
+  timeData?: {
     date: string;
-    pageTime: number;
-    scrollDepth: number;
+    avgTimeOnSite: number;
+    pagesPerSession: number;
+  }[];
+  timeTrendData?: {
+    date: string;
+    avgTimeOnSite: number;
+    pagesPerSession: number;
   }[];
   formatTime: (seconds: number) => string;
 }
 
-export const TimeTrendsTab: React.FC<TimeTrendsTabProps> = ({ timeData, formatTime }) => {
+export const TimeTrendsTab: React.FC<TimeTrendsTabProps> = ({ timeData, timeTrendData, formatTime }) => {
+  // Use either timeData or timeTrendData, preferring timeData if provided
+  const dataToUse = timeData || timeTrendData || [];
+  
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -22,7 +30,7 @@ export const TimeTrendsTab: React.FC<TimeTrendsTabProps> = ({ timeData, formatTi
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
-          data={timeData}
+          data={dataToUse}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -35,25 +43,24 @@ export const TimeTrendsTab: React.FC<TimeTrendsTabProps> = ({ timeData, formatTi
           <YAxis 
             yAxisId="right" 
             orientation="right" 
-            label={{ value: 'Scroll Depth (%)', angle: 90, position: 'insideRight' }}
-            tickFormatter={(value) => `${value}%`}
+            label={{ value: 'Pages per Session', angle: 90, position: 'insideRight' }}
           />
           <Tooltip 
             formatter={(value: any, name: any) => {
-              if (name === 'pageTime') return [formatTime(value), 'Page Time'];
-              return [`${value}%`, 'Scroll Depth'];
+              if (name === 'avgTimeOnSite') return [formatTime(value), 'Page Time'];
+              return [value, 'Pages/Session'];
             }}
           />
           <Legend 
             payload={[
               { value: 'Page Time', type: 'line', color: '#8884d8' },
-              { value: 'Scroll Depth', type: 'line', color: '#82ca9d' }
+              { value: 'Pages per Session', type: 'line', color: '#82ca9d' }
             ]}
           />
           <Line 
             yAxisId="left"
             type="monotone" 
-            dataKey="pageTime" 
+            dataKey="avgTimeOnSite" 
             stroke="#8884d8" 
             name="Page Time" 
             activeDot={{ r: 8 }} 
@@ -61,9 +68,9 @@ export const TimeTrendsTab: React.FC<TimeTrendsTabProps> = ({ timeData, formatTi
           <Line 
             yAxisId="right"
             type="monotone" 
-            dataKey="scrollDepth" 
+            dataKey="pagesPerSession" 
             stroke="#82ca9d" 
-            name="Scroll Depth" 
+            name="Pages per Session" 
           />
         </LineChart>
       </ResponsiveContainer>

@@ -86,20 +86,28 @@ export const VisualAnalyticsTab: React.FC = () => {
                   label={{ value: 'Conversion Rate (%)', angle: -90, position: 'insideLeft', offset: 0 }}
                 />
                 <Tooltip 
-                  formatter={(value, name) => {
-                    const deviceType = name.split(" ")[0].toLowerCase();
-                    const stageName = name.split(" ")[1].toLowerCase();
-                    const timeSpent = timeData[deviceType as keyof typeof timeData][stageName as keyof typeof timeData.mobile] || 'N/A';
-                    return [
-                      <div>
-                        <div>{`${value}%`}</div>
-                        <div className="text-xs text-muted-foreground flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          <span>Avg time: {timeSpent}</span>
-                        </div>
-                      </div>,
-                      name
-                    ];
+                  formatter={(value, name: string | number) => {
+                    if (typeof name === 'string') {
+                      const parts = name.split(" ");
+                      const deviceType = parts[0].toLowerCase();
+                      const stageName = parts[1]?.toLowerCase();
+                      if (stageName && deviceType in timeData) {
+                        const device = deviceType as keyof typeof timeData;
+                        const stage = stageName as keyof typeof timeData.mobile;
+                        const timeSpent = timeData[device][stage] || 'N/A';
+                        return [
+                          <div>
+                            <div>{`${value}%`}</div>
+                            <div className="text-xs text-muted-foreground flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              <span>Avg time: {timeSpent}</span>
+                            </div>
+                          </div>,
+                          name
+                        ];
+                      }
+                    }
+                    return [`${value}%`, name];
                   }}
                   labelFormatter={(label) => `Stage: ${label}`}
                 />
@@ -151,20 +159,28 @@ export const VisualAnalyticsTab: React.FC = () => {
                   label={{ value: 'Friction Score', angle: -90, position: 'insideLeft', offset: 0 }}
                 />
                 <Tooltip 
-                  formatter={(value, name) => {
-                    const deviceType = name.split(" ")[0].toLowerCase();
-                    const stageName = name.split(" ")[1].toLowerCase();
-                    const timeSpent = timeData[deviceType as keyof typeof timeData][stageName as keyof typeof timeData.mobile] || 'N/A';
-                    return [
-                      <div>
-                        <div>Score: {value}</div>
-                        <div className="text-xs text-muted-foreground flex items-center">
-                          <Clock className="h-3 w-3 mr-1" />
-                          <span>Avg time: {timeSpent}</span>
-                        </div>
-                      </div>,
-                      name
-                    ];
+                  formatter={(value, name: string | number) => {
+                    if (typeof name === 'string') {
+                      const parts = name.split(" ");
+                      const deviceType = parts[0].toLowerCase();
+                      const stageName = parts[1]?.toLowerCase();
+                      if (stageName && deviceType in timeData) {
+                        const device = deviceType as keyof typeof timeData;
+                        const stage = stageName as keyof typeof timeData.mobile;
+                        const timeSpent = timeData[device][stage] || 'N/A';
+                        return [
+                          <div>
+                            <div>Score: {value}</div>
+                            <div className="text-xs text-muted-foreground flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              <span>Avg time: {timeSpent}</span>
+                            </div>
+                          </div>,
+                          name
+                        ];
+                      }
+                    }
+                    return [`${value}`, name];
                   }}
                 />
                 <Legend />
