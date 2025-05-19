@@ -10,7 +10,7 @@ const Index = () => {
       <FrictionDashboard />
       
       <div className="container pb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="md:col-span-2">
+        <div className="lg:col-span-1 md:col-span-1">
           <SmartActionNudges />
         </div>
         <SmartTestPlanner />
