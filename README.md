@@ -84,8 +84,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Future Roadmap
 
 See the [PRD.md](PRD.md) file for details on planned features and enhancements beyond the MVP.
-
-## Acknowledgments
-
-- Thanks to all contributors who have helped shape this project
-- Special thanks to the UX research team for providing insights into user friction points
