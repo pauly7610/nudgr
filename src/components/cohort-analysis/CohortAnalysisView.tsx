@@ -4,8 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MarketingFunnelDiagnostics } from '@/components/MarketingFunnelDiagnostics';
 import { FrictionImpactScore } from '@/components/FrictionImpactScore';
-import { BarChart2, MousePointer2, Activity } from 'lucide-react';
+import { MousePointer2, Activity } from 'lucide-react';
 import { UserCohort, Flow } from '@/data/mockData';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 
 interface CohortAnalysisViewProps {
   cohort: UserCohort;
@@ -24,6 +34,34 @@ export const CohortAnalysisView: React.FC<CohortAnalysisViewProps> = ({
   onShowAccessibility,
   onClose
 }) => {
+  // Generate some sample data based on the cohort
+  const performanceData = [
+    {
+      name: 'Homepage',
+      rageClicks: Math.round(cohort.frictionScore * 0.3),
+      formAbandonment: Math.round(cohort.frictionScore * 0.2),
+      navigationLoops: Math.round(cohort.frictionScore * 0.15),
+    },
+    {
+      name: 'Product Page',
+      rageClicks: Math.round(cohort.frictionScore * 0.4),
+      formAbandonment: Math.round(cohort.frictionScore * 0.25),
+      navigationLoops: Math.round(cohort.frictionScore * 0.1),
+    },
+    {
+      name: 'Checkout',
+      rageClicks: Math.round(cohort.frictionScore * 0.6),
+      formAbandonment: Math.round(cohort.frictionScore * 0.5),
+      navigationLoops: Math.round(cohort.frictionScore * 0.3),
+    },
+    {
+      name: 'Confirmation',
+      rageClicks: Math.round(cohort.frictionScore * 0.2),
+      formAbandonment: Math.round(cohort.frictionScore * 0.1),
+      navigationLoops: Math.round(cohort.frictionScore * 0.05),
+    }
+  ];
+
   return (
     <div className="mt-10">
       <div className="flex justify-between items-center mb-4">
@@ -76,11 +114,22 @@ export const CohortAnalysisView: React.FC<CohortAnalysisViewProps> = ({
             <CardTitle>Journey Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] flex items-center justify-center bg-muted/30 rounded-md">
-              <div className="text-center">
-                <BarChart2 className="h-10 w-10 mx-auto mb-3 text-muted-foreground/70" />
-                <p className="text-muted-foreground">Select metrics to visualize cohort performance</p>
-              </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={performanceData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="rageClicks" name="Rage Clicks" fill="#8884d8" />
+                  <Bar dataKey="formAbandonment" name="Form Abandonment" fill="#82ca9d" />
+                  <Bar dataKey="navigationLoops" name="Navigation Loops" fill="#ffc658" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
