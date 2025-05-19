@@ -16,10 +16,12 @@ import { Button } from '@/components/ui/button';
 import { Download, Share2, Plus, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScopeFilter } from '@/components/journey/FrictionScopeFilter';
+import { TopFrictionFunnels } from '@/components/TopFrictionFunnels';
+import { NoDataMessage } from '@/components/journey/NoDataMessage';
 
 const JourneyMap = () => {
   const { flows, activeFlowId, setActiveFlowId, userCohorts } = useFrictionData();
-  const activeFlow = flows.find(f => f.id === activeFlowId) || flows[0];
+  const activeFlow = flows.find(f => f.id === activeFlowId) || null;
   const [viewMode, setViewMode] = useState<'detail' | 'overview'>('detail');
   const [showCreator, setShowCreator] = useState(false);
   const [showCohortFilter, setShowCohortFilter] = useState(false);
@@ -27,10 +29,18 @@ const JourneyMap = () => {
   const [compareScope, setCompareScope] = useState<boolean>(false);
   const [scopeA, setScopeA] = useState<ScopeFilter>({});
   const [scopeB, setScopeB] = useState<ScopeFilter>({});
+  const [journeyExpanded, setJourneyExpanded] = useState<boolean>(false);
+  
+  // When activeFlow changes, auto-expand
+  React.useEffect(() => {
+    if (activeFlow) {
+      setJourneyExpanded(true);
+    }
+  }, [activeFlow]);
   
   return (
     <>
-      <DashboardHeader title="Journey Friction Map" description="Visualize user paths and identify friction points">
+      <DashboardHeader title="Journey Friction Map" description="Visualize visitor paths and identify friction points">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => setShowCreator(true)}>
             <Plus className="h-4 w-4" />
@@ -61,9 +71,10 @@ const JourneyMap = () => {
               <select 
                 id="flow-select"
                 className="bg-background border border-input rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                value={activeFlow?.id}
+                value={activeFlow?.id || ""}
                 onChange={(e) => setActiveFlowId(e.target.value)}
               >
+                <option value="" disabled>Choose a journey</option>
                 {flows.map(flow => (
                   <option key={flow.id} value={flow.id}>{flow.flow}</option>
                 ))}
@@ -95,6 +106,21 @@ const JourneyMap = () => {
             </div>
           </div>
           
+          {/* Display overview of flows when no active flow */}
+          {!activeFlow && (
+            <div className="bg-card border rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4">Journey Friction Overview</h2>
+              <TopFrictionFunnels 
+                flows={flows} 
+                onFlowClick={setActiveFlowId}
+                activeFlowId={null}
+              />
+              <div className="text-center text-muted-foreground mt-6">
+                <p>Select a journey above or click on any journey bar to view detailed friction analysis</p>
+              </div>
+            </div>
+          )}
+          
           <Tabs defaultValue="journey" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="journey">Journey Map</TabsTrigger>
@@ -108,25 +134,32 @@ const JourneyMap = () => {
               {!compareScope ? (
                 <>
                   <JourneyFrictionMap 
-                    flow={activeFlow} 
-                    cohortId={activeCohortId} 
+                    flow={activeFlow}
+                    cohortId={activeCohortId}
+                    expanded={journeyExpanded}
+                    onToggleExpand={() => setJourneyExpanded(!journeyExpanded)}
                   />
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <MarketingFunnelDiagnostics flow={activeFlow} />
-                    <JourneyAnalysisPanel flow={activeFlow} />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <SmartActionNudges flowId={activeFlow?.id} />
-                  </div>
-                  
-                  <JourneyComparisonPanel flows={flows} activeFlowId={activeFlowId} />
-                  
-                  <JourneyHistoricalTrends flow={activeFlow} />
+                  {activeFlow && journeyExpanded && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MarketingFunnelDiagnostics flow={activeFlow} />
+                        <JourneyAnalysisPanel flow={activeFlow} />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <SmartActionNudges flowId={activeFlow?.id} />
+                      </div>
+                      
+                      <JourneyComparisonPanel flows={flows} activeFlowId={activeFlowId} />
+                      
+                      <JourneyHistoricalTrends flow={activeFlow} />
+                    </>
+                  )}
                 </>
               ) : (
                 <>
+                  {/* Comparison view */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="text-lg font-medium mb-4">Scope A</h3>
