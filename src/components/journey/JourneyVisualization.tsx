@@ -86,7 +86,7 @@ export const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
                 />
                 
                 {!isLastStep && (
-                  <div className="flex items-center mx-4">
+                  <div className="flex items-center mx-6">
                     <ArrowRight className="text-muted-foreground" />
                   </div>
                 )}

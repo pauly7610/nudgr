@@ -75,7 +75,7 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center relative">
       <div 
         className={`w-64 p-4 border rounded-lg ${
           hasFriction ? 'border-amber-300 bg-amber-50' : 'border-gray-200'
@@ -148,7 +148,18 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
       
       {step.dropOff && (
         <div className="mt-2 text-center">
-          <div className="text-xs font-medium text-red-500">-{step.dropOff.toLocaleString()} visitors</div>
+          <div className="text-xs font-medium text-red-500">
+            -{step.dropOff.toLocaleString()} visitors
+          </div>
+        </div>
+      )}
+
+      {/* Arrow with drop-off information for non-last steps */}
+      {!isLastStep && step.dropOff && (
+        <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 z-10">
+          <div className="text-xs font-medium text-red-500 bg-white px-2 py-1 rounded border border-red-100 shadow-sm">
+            -{step.dropOff.toLocaleString()} users
+          </div>
         </div>
       )}
     </div>
