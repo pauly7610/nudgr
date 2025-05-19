@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardHeader } from './DashboardHeader';
 import { FrictionAlertBanner } from './FrictionAlertBanner';
 import { StatsCard } from './StatsCard';
@@ -25,6 +25,7 @@ export const FrictionDashboard: React.FC = () => {
   } = useFrictionData();
   
   const [latestAlert, setLatestAlert] = useState<Alert | null>(null);
+  const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(new Set());
   
   // Calculate total users from all flows (first step)
   const totalUsers = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
@@ -56,12 +57,27 @@ export const FrictionDashboard: React.FC = () => {
     setActiveFlowId(alert.flowId);
   };
   
+  // Handle alert dismissal
+  const handleAlertDismiss = (alert: Alert) => {
+    setLatestAlert(null);
+    setDismissedAlertIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(alert.id);
+      return newSet;
+    });
+  };
+  
   // New alert display
-  React.useEffect(() => {
-    if (alerts.length > 0 && (!latestAlert || alerts[0].id !== latestAlert.id)) {
-      setLatestAlert(alerts[0]);
+  useEffect(() => {
+    if (alerts.length > 0) {
+      // Find the first alert that hasn't been dismissed
+      const newAlert = alerts.find(alert => !dismissedAlertIds.has(alert.id));
+      
+      if (newAlert && (!latestAlert || newAlert.id !== latestAlert.id)) {
+        setLatestAlert(newAlert);
+      }
     }
-  }, [alerts, latestAlert]);
+  }, [alerts, latestAlert, dismissedAlertIds]);
   
   return (
     <>
@@ -69,7 +85,7 @@ export const FrictionDashboard: React.FC = () => {
         <FrictionAlertBanner 
           alert={latestAlert} 
           onView={handleAlertView}
-          onDismiss={() => setLatestAlert(null)} 
+          onDismiss={() => handleAlertDismiss(latestAlert)} 
         />
       )}
       
