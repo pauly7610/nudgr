@@ -43,7 +43,7 @@ This project is built with:
 
 ```sh
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/pauly7610/nudgr
 
 # Navigate to the project directory
 cd ux-friction-analyzer
