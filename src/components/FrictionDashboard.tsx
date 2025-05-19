@@ -12,6 +12,8 @@ import { useFrictionData } from '../hooks/useFrictionData';
 import { BarChart2, Zap, Users } from 'lucide-react';
 import { Alert } from '../data/mockData';
 import { JourneyAnalysisPanel } from './JourneyAnalysisPanel';
+import { SmartActionNudges } from './SmartActionNudges';
+import { SmartTestPlanner } from './testing/SmartTestPlanner';
 
 export const FrictionDashboard: React.FC = () => {
   const {
@@ -133,7 +135,15 @@ export const FrictionDashboard: React.FC = () => {
             
             <JourneyFrictionMap flow={activeFlow} />
             
-            {activeFlow && <JourneyAnalysisPanel flow={activeFlow} />}
+            {activeFlow && (
+              <>
+                <JourneyAnalysisPanel flow={activeFlow} />
+                <div className="max-w-2xl space-y-6 mt-0">
+                  <SmartActionNudges />
+                  <SmartTestPlanner />
+                </div>
+              </>
+            )}
           </div>
           
           <div className="space-y-6">

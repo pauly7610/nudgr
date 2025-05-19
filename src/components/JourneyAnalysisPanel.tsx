@@ -86,7 +86,7 @@ export const JourneyAnalysisPanel: React.FC<JourneyAnalysisPanelProps> = ({ flow
   const recommendations = generateRecommendations();
   
   return (
-    <div className="rounded-lg border bg-card overflow-hidden mt-6">
+    <div className="rounded-lg border bg-card overflow-hidden">
       <div className="bg-muted/50 px-4 py-3 flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <h3 className="font-semibold flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-amber-500" />
