@@ -2,6 +2,7 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Clock } from 'lucide-react';
+import { ColorLegend } from '@/components/ui/ColorLegend';
 
 export const VisualAnalyticsTab: React.FC = () => {
   // Sample data for the charts
@@ -57,6 +58,8 @@ export const VisualAnalyticsTab: React.FC = () => {
       <p className="text-muted-foreground mb-4">
         Visualize differences in metrics across selected cohorts
       </p>
+
+      <ColorLegend className="mb-6" />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="border rounded-lg p-4">

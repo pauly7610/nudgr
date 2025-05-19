@@ -12,7 +12,8 @@ import { AccessibilityView } from '@/components/cohort-analysis/AccessibilityVie
 import { CohortComparison } from '@/components/comparison/CohortComparison';
 import { MarketingExport } from '@/components/marketing/MarketingExport';
 import { ElementInteractionAnalysis } from '@/components/element/ElementInteractionAnalysis';
-import { Filter, UserPlus, Tag, MousePointer2 } from 'lucide-react';
+import { ColorLegend } from '@/components/ui/ColorLegend';
+import { UserPlus, Tag, MousePointer2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const UserCohorts = () => {
@@ -66,10 +67,6 @@ const UserCohorts = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Active Cohorts</h2>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <span>Filter</span>
-            </Button>
             <Button className="flex items-center gap-2">
               <UserPlus className="h-4 w-4" />
               <span>New Cohort</span>
@@ -90,6 +87,10 @@ const UserCohorts = () => {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+        
+        {!selectedCohort && (
+          <ColorLegend className="mb-6" />
+        )}
         
         <UserCohortsList 
           cohorts={userCohorts} 

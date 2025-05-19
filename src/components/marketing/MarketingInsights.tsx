@@ -4,11 +4,15 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, ResponsiveContainer 
 } from 'recharts';
+import { ColorLegend } from '@/components/ui/ColorLegend';
 
 export const MarketingInsights: React.FC = () => {
   return (
     <div className="bg-muted/50 p-4 rounded-lg">
       <h3 className="text-lg font-medium mb-3">Marketing Pattern Insights</h3>
+      
+      <ColorLegend className="mb-4" />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <h4 className="text-sm font-medium mb-2">Friction Types by Marketing Source</h4>

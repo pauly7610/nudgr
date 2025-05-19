@@ -4,6 +4,7 @@ import { Flow } from '../data/mockData';
 import { BarChart2, Calendar, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import { Button } from './ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { ColorLegend } from './ui/ColorLegend';
 
 interface JourneyHistoricalTrendsProps {
   flow: Flow | null;
@@ -63,6 +64,7 @@ export const JourneyHistoricalTrends: React.FC<JourneyHistoricalTrendsProps> = (
       
       {expanded && (
         <div className="p-6">
+          <ColorLegend className="mb-6" />
           <div className="space-y-6">
             <div>
               <div className="flex justify-between items-center mb-3">
