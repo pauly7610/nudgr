@@ -94,7 +94,7 @@ export const FrictionDashboard: React.FC = () => {
         description="Monitor and analyze visitor friction points"
       />
       
-      <div className="container py-8 space-y-8">
+      <div className="container py-4 space-y-6">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatsCard 
