@@ -105,7 +105,7 @@ export const TopFrictionFunnels: React.FC<TopFrictionFunnelsProps> = ({
               <Legend 
                 payload={[
                   { value: 'Drop-off Rate', type: 'rect', color: '#7209b7' },
-                  { value: 'Click to view journey details', type: 'rect', color: '#7209b7', opacity: 0.5 }
+                  { value: 'Click to view journey details', type: 'rect', color: '#7209b7' }
                 ]}
               />
               <Bar 
