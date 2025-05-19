@@ -7,6 +7,8 @@ import { BestPracticeLibrary } from '@/components/library/BestPracticeLibrary';
 import { CohortComparisonDocs } from '@/components/library/CohortComparisonDocs';
 import { DocsNavigation } from '@/components/library/DocsNavigation';
 import { MarketingPlaybooks } from '@/components/marketing/MarketingPlaybooks';
+import { LibraryWelcomeMessage } from '@/components/library/LibraryWelcomeMessage';
+import { Card } from '@/components/ui/card';
 
 const Library = () => {
   const location = useLocation();
@@ -21,6 +23,11 @@ const Library = () => {
   };
   
   const [activeTab, setActiveTab] = useState(getDefaultTab());
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  const handleDismissWelcome = () => {
+    setShowWelcome(false);
+  };
 
   return (
     <>
@@ -30,10 +37,13 @@ const Library = () => {
       />
       
       <div className="container py-8">
+        {showWelcome && <LibraryWelcomeMessage onDismiss={handleDismissWelcome} />}
+        
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-64 flex-shrink-0">
+          <Card className="w-full md:w-64 flex-shrink-0 p-4">
+            <h3 className="font-medium mb-3">Resource Categories</h3>
             <DocsNavigation activeSection={activeTab} onSelectSection={setActiveTab} />
-          </div>
+          </Card>
           
           <div className="flex-1">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

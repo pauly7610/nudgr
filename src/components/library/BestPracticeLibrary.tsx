@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Download } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ExternalLink, Download, Search, Filter } from 'lucide-react';
 
 interface BestPracticeItem {
   id: string;
@@ -109,12 +110,27 @@ const technicalGuidesData: BestPracticeItem[] = [
 ];
 
 export const BestPracticeLibrary: React.FC<BestPracticeLibraryProps> = ({ category }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  
   // Select the appropriate data based on the category
-  const data = category === 'journey-mapping' 
+  const allData = category === 'journey-mapping' 
     ? journeyMappingData 
     : category === 'technical' 
       ? technicalGuidesData 
       : [];
+  
+  // Filter data based on search and type filter
+  const filteredData = allData.filter(item => {
+    const matchesSearch = searchTerm === '' || 
+                          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                          
+    const matchesType = selectedType === null || item.documentType === selectedType;
+    
+    return matchesSearch && matchesType;
+  });
 
   const getDocumentTypeColor = (type: string): string => {
     switch (type) {
@@ -125,17 +141,58 @@ export const BestPracticeLibrary: React.FC<BestPracticeLibraryProps> = ({ catego
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+  
+  // Get unique document types for filtering
+  const documentTypes = [...new Set(allData.map(item => item.documentType))];
 
   return (
     <Card>
       <CardContent className="pt-6">
-        <h2 className="text-xl font-semibold mb-6">
-          {category === 'journey-mapping' ? 'Journey Mapping Resources' : 'Technical Documentation'}
-        </h2>
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-semibold">
+              {category === 'journey-mapping' ? 'Journey Mapping Resources' : 'Technical Documentation'}
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              {category === 'journey-mapping' 
+                ? 'Best practices and templates for mapping user journeys and identifying friction points' 
+                : 'Technical guides and reference documents for resolving friction issues'}
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search resources..."
+                className="pl-8 w-[200px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="relative">
+              <select 
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm"
+                value={selectedType || ''}
+                onChange={(e) => setSelectedType(e.target.value === '' ? null : e.target.value)}
+              >
+                <option value="">All Types</option>
+                {documentTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <Filter className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+            </div>
+          </div>
+        </div>
         
-        {data.length > 0 ? (
+        {filteredData.length > 0 ? (
           <div className="space-y-4">
-            {data.map((item) => (
+            {filteredData.map((item) => (
               <div key={item.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-medium">{item.title}</h3>
@@ -170,8 +227,46 @@ export const BestPracticeLibrary: React.FC<BestPracticeLibraryProps> = ({ catego
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No resources available for this category yet.</p>
+          <div className="text-center py-8 border rounded-lg bg-muted/20">
+            <p className="text-muted-foreground mb-2">No resources match your search criteria</p>
+            <Button variant="outline" size="sm" onClick={() => {
+              setSearchTerm('');
+              setSelectedType(null);
+            }}>
+              Clear filters
+            </Button>
+          </div>
+        )}
+        
+        {category === 'journey-mapping' && (
+          <div className="mt-6 p-4 border rounded-lg bg-blue-50/50">
+            <h3 className="font-medium mb-2">How to use Journey Mapping resources</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              These resources will help you map out user journeys, identify friction points, 
+              and implement strategies to improve user experiences across your application.
+            </p>
+            <div className="text-sm">
+              <p className="mb-1"><strong>Guides</strong>: Step-by-step instructions and methodologies</p>
+              <p className="mb-1"><strong>Templates</strong>: Ready-to-use frameworks and structures</p>
+              <p className="mb-1"><strong>Examples</strong>: Real-world implementations and case studies</p>
+              <p><strong>References</strong>: Comprehensive documentation and standards</p>
+            </div>
+          </div>
+        )}
+        
+        {category === 'technical' && (
+          <div className="mt-6 p-4 border rounded-lg bg-blue-50/50">
+            <h3 className="font-medium mb-2">How to use Technical resources</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              These resources provide technical guidance for resolving friction issues, 
+              optimizing performance, and implementing best practices in your application.
+            </p>
+            <div className="text-sm">
+              <p className="mb-1"><strong>Guides</strong>: Step-by-step technical implementation instructions</p>
+              <p className="mb-1"><strong>Templates</strong>: Code snippets and implementation patterns</p>
+              <p className="mb-1"><strong>Examples</strong>: Sample implementations and proofs of concept</p>
+              <p><strong>References</strong>: Technical specifications and API documentation</p>
+            </div>
           </div>
         )}
       </CardContent>
