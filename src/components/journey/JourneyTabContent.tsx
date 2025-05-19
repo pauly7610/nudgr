@@ -52,7 +52,7 @@ export const JourneyTabContent: React.FC<JourneyTabContentProps> = ({
             
             {activeFlow && journeyExpanded && (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   <MarketingFunnelDiagnostics flow={activeFlow} />
                   <JourneyAnalysisPanel flow={activeFlow} />
                 </div>
@@ -122,7 +122,7 @@ export const JourneyTabContent: React.FC<JourneyTabContentProps> = ({
       </TabsContent>
       
       <TabsContent value="analytics">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <MarketingFunnelDiagnostics flow={activeFlow} />
         </div>
       </TabsContent>

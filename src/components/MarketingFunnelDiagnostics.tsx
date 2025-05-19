@@ -64,7 +64,7 @@ export const MarketingFunnelDiagnostics: React.FC<MarketingFunnelDiagnosticsProp
   
   if (dropoutPoints.length === 0) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Marketing Funnel Diagnostics</CardTitle>
           <CardDescription>Why users are leaving your funnel</CardDescription>
@@ -83,7 +83,7 @@ export const MarketingFunnelDiagnostics: React.FC<MarketingFunnelDiagnosticsProp
   const {timeOnPageBeforeExit, failedAttempts, tabSwitchingFrequency, hasMarketingMismatch} = topDropOff.diagnostics;
   
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Marketing Funnel Diagnostics</CardTitle>
         <CardDescription>Why users are leaving your funnel</CardDescription>
