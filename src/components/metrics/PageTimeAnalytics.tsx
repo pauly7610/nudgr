@@ -6,6 +6,7 @@ import { PageTimeByPageTab } from './page-time/PageTimeByPageTab';
 import { TimeTrendsTab } from './page-time/TimeTrendsTab';
 import { EngagementFlowTab } from './page-time/EngagementFlowTab';
 import { TimeMetricCards } from './page-time/TimeMetricCards';
+import { Separator } from '@/components/ui/separator';
 
 export const PageTimeAnalytics: React.FC = () => {
   // Mock data for page time analytics
@@ -38,7 +39,7 @@ export const PageTimeAnalytics: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       <div className="mb-4 flex justify-between items-center">
         <h3 className="text-base font-medium flex items-center">
           <Clock className="h-4 w-4 mr-2 text-primary" />
@@ -49,27 +50,29 @@ export const PageTimeAnalytics: React.FC = () => {
         </span>
       </div>
 
-      <Tabs defaultValue="by-page">
-        <TabsList className="mb-4">
-          <TabsTrigger value="by-page">By Page</TabsTrigger>
-          <TabsTrigger value="trends">Time Trends</TabsTrigger>
-          <TabsTrigger value="engagement">Engagement Flow</TabsTrigger>
-        </TabsList>
+      <div className="border rounded-md p-4">
+        <Tabs defaultValue="by-page">
+          <TabsList className="mb-4">
+            <TabsTrigger value="by-page">By Page</TabsTrigger>
+            <TabsTrigger value="trends">Time Trends</TabsTrigger>
+            <TabsTrigger value="engagement">Engagement Flow</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="by-page">
-          <PageTimeByPageTab pageTimeData={pageTimeData} formatTime={formatTime} />
-        </TabsContent>
+          <TabsContent value="by-page">
+            <PageTimeByPageTab pageTimeData={pageTimeData} formatTime={formatTime} />
+          </TabsContent>
 
-        <TabsContent value="trends">
-          <TimeTrendsTab timeTrendData={timeTrendData} formatTime={formatTime} />
-        </TabsContent>
+          <TabsContent value="trends">
+            <TimeTrendsTab timeTrendData={timeTrendData} formatTime={formatTime} />
+          </TabsContent>
 
-        <TabsContent value="engagement">
-          <EngagementFlowTab />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="engagement">
+            <EngagementFlowTab />
+          </TabsContent>
+        </Tabs>
 
-      <div className="mt-4">
+        <Separator className="my-4" />
+        
         <TimeMetricCards />
       </div>
     </div>
