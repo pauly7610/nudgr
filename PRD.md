@@ -1,4 +1,3 @@
-
 # Product Requirements Document: UX Friction Analyzer MVP
 
 ## TL;DR
@@ -160,6 +159,16 @@ For our company, this represents an opportunity to establish leadership in the e
      - Highlight steps with high friction using visual indicators
      - Show drop-off rates between steps
      - Allow filtering by date range and user segment
+   
+   **Multi-Dimensional Flow Visualization**
+   - **User Story**: As a CRO Specialist, I want to analyze user paths across multiple dimensions beyond just page sequences, so I can understand complex journeys with greater context.
+   - **Description**: Enhanced flow visualization tools that allow for analysis of paths across various dimensions including behaviors, events, and properties.
+   - **Acceptance Criteria**:
+     - Visualize flows based on any user attribute, not just pages
+     - Toggle between different dimensions within the same flow (e.g., switch from pages to events)
+     - Filter flows by specific segments or behaviors
+     - Compare flows between different time periods or segments
+     - Identify high-friction transition points between dimensions
 
 2. **Real-time Friction Alerts**
    - **User Story**: As a CRO Specialist, I want to receive notifications about unusual friction patterns, so I can address issues quickly before they impact many users.
@@ -169,6 +178,16 @@ For our company, this represents an opportunity to establish leadership in the e
      - Deliver in-app notifications for threshold breaches
      - Provide details about the nature of the friction
      - Enable direct navigation to affected journey step
+   
+   **Statistical Anomaly Detection**
+   - **User Story**: As a CRO Specialist, I want the system to automatically identify statistically significant anomalies across all metrics, so I can focus on addressing meaningful changes rather than normal fluctuations.
+   - **Description**: ML-powered anomaly detection system that uses statistical modeling to identify truly unexpected patterns.
+   - **Acceptance Criteria**:
+     - Use statistical models to detect significant deviations from expected performance
+     - Differentiate between normal variance and true anomalies
+     - Adjust sensitivity based on historical patterns and seasonality
+     - Provide confidence levels for detected anomalies
+     - Cluster related anomalies to identify systemic issues
 
 3. **Session Recordings**
    - **User Story**: As a CRO Specialist, I want to watch actual user sessions experiencing high friction, so I can understand exactly what's happening.
@@ -196,6 +215,16 @@ For our company, this represents an opportunity to establish leadership in the e
      - Show funnel performance by campaign source
      - Identify highest-impact friction points in marketing funnels
      - Calculate potential ROI of resolving specific friction issues
+   
+   **Multi-Touch Attribution Models**
+   - **User Story**: As a Marketing Campaign Manager, I want to understand how different touchpoints contribute to conversions, so I can optimize my marketing mix and budget allocation.
+   - **Description**: Sophisticated attribution modeling that shows the impact of each marketing touchpoint on user conversion through the friction-mapped journey.
+   - **Acceptance Criteria**:
+     - Support multiple attribution models (first touch, last touch, linear, time decay, etc.)
+     - Visualize attribution impact across the user journey
+     - Compare attribution models side-by-side
+     - Calculate ROI by channel based on chosen attribution model
+     - Show how friction points affect attribution at each stage
 
 #### MVP-Next
 
@@ -207,6 +236,16 @@ For our company, this represents an opportunity to establish leadership in the e
      - Display side-by-side comparisons of cohort experiences
      - Show statistical significance of differences
      - Enable filtering and drilling down into specific cohort data
+   
+   **Enhanced Segmentation Engine**
+   - **User Story**: As a Marketing Analyst, I want to create complex, nested user segments based on sequential behaviors and multiple variables, so I can identify highly specific user groups with unique friction patterns.
+   - **Description**: Advanced segmentation capabilities that allow for multi-dimensional analysis using behavioral sequences, not just static attributes.
+   - **Acceptance Criteria**:
+     - Support for sequential behavioral segmentation (e.g., users who viewed page A, then experienced friction on page B, then abandoned)
+     - Nested segment creation with AND/OR/NOT logic
+     - Segment comparison tools showing overlap and differences
+     - Ability to save, share, and iterate on segments
+     - Apply segments across all platform features and visualizations
 
 7. **Marketing Playbooks**
    - **User Story**: As a Marketing Campaign Manager, I want access to best practices for solving common friction issues, so I don't have to reinvent solutions.
@@ -274,6 +313,48 @@ For our company, this represents an opportunity to establish leadership in the e
     - Benchmarks components vs. industry norms
     - Ranks test variants by ROI potential
 
+13. **Predictive Friction Analysis**
+    - **User Story**: As a Head of Digital Marketing, I want to forecast potential friction points before they impact users, so I can proactively optimize experiences.
+    - **Description**: AI-powered predictive capabilities that identify patterns likely to cause friction in the future.
+    - **Acceptance Criteria**:
+      - Forecast friction trends based on historical data
+      - Identify content likely to become stale based on engagement trajectories
+      - Predict campaign performance based on detected friction patterns
+      - Alert users to potential future friction points with confidence ratings
+      - Recommend preemptive actions to avoid predicted friction
+
+14. **Unified Online-Offline Journey Analysis**
+    - **User Story**: As a Head of Digital Marketing, I want to connect online user behavior with offline customer interactions, so I can understand the complete customer journey across all touchpoints.
+    - **Description**: Integration capabilities that combine web/app analytics with CRM, call center, in-store, and other offline customer data.
+    - **Acceptance Criteria**:
+      - Import offline interaction data from major CRM systems
+      - Map online users to offline customer profiles
+      - Identify friction points that drive offline channel switching
+      - Measure impact of online friction on offline conversions
+      - Visualize complete customer journeys across all channels
+
+#### Custom Calculated Metrics
+15. **Custom Calculated Metrics**
+   - **User Story**: As a Data Analyst, I want to create complex custom metrics using mathematical formulas, so I can measure specific business concepts unique to our organization.
+   - **Description**: Formula builder for creating custom metrics based on existing data points.
+   - **Acceptance Criteria**:
+     - Visual formula editor with mathematical operations
+     - Support for combining multiple metrics in a single formula
+     - Ability to use segments within calculated metrics
+     - Preview calculated metric results before saving
+     - Share custom metrics across the organization
+
+#### Extensible API Platform
+16. **Extensible API Platform**
+   - **User Story**: As a Marketing Technology Manager, I want robust API access to all platform data and functionality, so I can build custom integrations and workflows specific to our business needs.
+   - **Description**: Comprehensive API ecosystem that enables deep integration with other systems and custom implementation scenarios.
+   - **Acceptance Criteria**:
+     - RESTful API with complete documentation
+     - Support for all major platform functions (not just data extraction)
+     - Webhooks for real-time event notification
+     - API rate limits appropriate for enterprise usage
+     - Developer sandbox for testing integrations
+
 ### Information Architecture / Navigation
 
 **Main Navigation:**
@@ -310,17 +391,17 @@ For our company, this represents an opportunity to establish leadership in the e
 - Basic UI + dashboard scaffold
 
 **MVP-1: Core Functionality**
-- Journey Friction Mapping
-- Real-time Alerts
+- Journey Friction Mapping with Multi-Dimensional Flow Visualization
+- Real-time Alerts with Statistical Anomaly Detection
 - Session Recording
 
 **MVP-2: Collaboration Layer**
 - Shared views, comments, tasks
-- User Cohort Analysis
+- User Cohort Analysis with Enhanced Segmentation Engine
 
 **MVP-3: Marketing Integrations**
 - Campaign import (Google/Facebook)
-- Marketing Funnel Diagnostics
+- Marketing Funnel Diagnostics with Multi-Touch Attribution Models
 
 **MVP-4: Stale Content + Auth Analytics**
 - Content decay metrics
@@ -393,6 +474,24 @@ The MVP will be considered ready for release when:
 3. Expanded integrations with marketing platforms
 4. Custom reporting and dashboard creation
 5. API access for custom implementations
+6. **Custom Calculated Metrics**
+   - **User Story**: As a Data Analyst, I want to create complex custom metrics using mathematical formulas, so I can measure specific business concepts unique to our organization.
+   - **Description**: Formula builder for creating custom metrics based on existing data points.
+   - **Acceptance Criteria**:
+     - Visual formula editor with mathematical operations
+     - Support for combining multiple metrics in a single formula
+     - Ability to use segments within calculated metrics
+     - Preview calculated metric results before saving
+     - Share custom metrics across the organization
+7. **Extensible API Platform**
+   - **User Story**: As a Marketing Technology Manager, I want robust API access to all platform data and functionality, so I can build custom integrations and workflows specific to our business needs.
+   - **Description**: Comprehensive API ecosystem that enables deep integration with other systems and custom implementation scenarios.
+   - **Acceptance Criteria**:
+     - RESTful API with complete documentation
+     - Support for all major platform functions (not just data extraction)
+     - Webhooks for real-time event notification
+     - API rate limits appropriate for enterprise usage
+     - Developer sandbox for testing integrations
 
 ## V. Appendix & Other Considerations
 
@@ -449,3 +548,4 @@ The following items are explicitly out of scope for the MVP:
 - V1.0 (05/18/2023): Initial draft
 - V1.1 (06/05/2023): Added stale content analysis and marketing metrics features
 - V1.2 (07/12/2023): Updated based on beta user feedback, added authentication analytics
+- V1.3 (05/18/2025): Integrated Adobe Analytics-inspired features including Enhanced Segmentation, Predictive Analytics, Multi-Touch Attribution, Anomaly Detection, and more
