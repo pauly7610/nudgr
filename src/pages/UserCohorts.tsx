@@ -68,7 +68,7 @@ const UserCohorts = () => {
   
   return (
     <>
-      <DashboardHeader title="Visitor Cohorts" description="Compare metrics across different visitor segments" />
+      <DashboardHeader title="Audience Cohorts" description="Compare metrics across different visitor segments" />
       
       <div className="container py-8">
         {/* Help card for new users */}
@@ -78,7 +78,7 @@ const UserCohorts = () => {
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-500 mt-0.5" />
                 <div className="flex-1">
-                  <h3 className="font-medium text-blue-800 mb-1">Getting Started with Visitor Cohorts</h3>
+                  <h3 className="font-medium text-blue-800 mb-1">Getting Started with Audience Cohorts</h3>
                   <p className="text-sm text-blue-700">
                     Cohorts group your visitors based on shared characteristics. Select a cohort card 
                     to view detailed friction analytics or use the tabs to filter different cohort types.

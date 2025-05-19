@@ -58,7 +58,7 @@ export const SidebarNav: React.FC = () => {
                 <SidebarMenuButton asChild className={location.pathname === '/user-cohorts' ? 'bg-sidebar-accent' : ''}>
                   <Link to="/user-cohorts" className="flex items-center">
                     <Users className="mr-3 h-4 w-4" />
-                    <span>User Cohorts</span>
+                    <span>Audience Cohorts</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
