@@ -12,6 +12,8 @@ import { SmartTestPlanner } from '@/components/testing/SmartTestPlanner';
 import { SmartActionNudges } from '@/components/SmartActionNudges';
 import { TabsContent } from '@/components/ui/tabs';
 import { ScopeFilter } from '@/components/journey/FrictionScopeFilter';
+import { Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface JourneyTabContentProps {
   activeFlow: Flow | null;
@@ -38,11 +40,30 @@ export const JourneyTabContent: React.FC<JourneyTabContentProps> = ({
 }) => {
   if (!activeFlow) return null;
   
+  // Tab explanation helper texts
+  const tabExplanations = {
+    journey: "Visualize user journey steps and identify friction points",
+    sessions: "View recordings of actual user sessions to see friction in action",
+    testing: "Plan A/B tests to optimize problem areas in your journey",
+    analytics: "Analyze marketing performance across your journey funnel",
+    annotations: "Add notes and documentation to your journey for team collaboration"
+  };
+  
+  // Helper component for guidance banners
+  const GuidanceBanner = ({ message }: { message: string }) => (
+    <div className="bg-blue-50 text-blue-800 px-4 py-2 rounded-md mb-4 text-sm flex items-center gap-2">
+      <Info className="h-4 w-4" />
+      <span>{message}</span>
+    </div>
+  );
+  
   return (
     <>
       <TabsContent value="journey" className="space-y-6">
         {!compareScope ? (
           <>
+            <GuidanceBanner message="The Journey Map shows the flow of visitors through your funnel, highlighting drop-offs and friction points." />
+            
             <JourneyFrictionMap 
               flow={activeFlow}
               cohortId={activeCohortId}
@@ -69,17 +90,43 @@ export const JourneyTabContent: React.FC<JourneyTabContentProps> = ({
           </>
         ) : (
           <>
+            <GuidanceBanner message="Compare two different scopes of your journey to identify which performs better." />
+            
             {/* Comparison view */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-lg font-medium mb-4">Scope A</h3>
+                <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                  Scope A
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>This shows journey performance for your first scope selection</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </h3>
                 <JourneyFrictionMap 
                   flow={activeFlow} 
                   cohortId={activeCohortId} 
                 />
               </div>
               <div>
-                <h3 className="text-lg font-medium mb-4">Scope B</h3>
+                <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+                  Scope B
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>This shows journey performance for your second scope selection</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </h3>
                 <JourneyFrictionMap 
                   flow={activeFlow} 
                   cohortId={activeCohortId} 
@@ -112,22 +159,26 @@ export const JourneyTabContent: React.FC<JourneyTabContentProps> = ({
       </TabsContent>
       
       <TabsContent value="sessions">
+        <GuidanceBanner message={tabExplanations.sessions} />
         <SessionRecordings flow={activeFlow} />
       </TabsContent>
       
       <TabsContent value="testing">
+        <GuidanceBanner message={tabExplanations.testing} />
         <div className="mb-6">
           <SmartTestPlanner flowId={activeFlow?.id} />
         </div>
       </TabsContent>
       
       <TabsContent value="analytics">
+        <GuidanceBanner message={tabExplanations.analytics} />
         <div className="grid grid-cols-1 gap-6">
           <MarketingFunnelDiagnostics flow={activeFlow} />
         </div>
       </TabsContent>
       
       <TabsContent value="annotations">
+        <GuidanceBanner message={tabExplanations.annotations} />
         <JourneyAnnotations flow={activeFlow} />
       </TabsContent>
     </>
