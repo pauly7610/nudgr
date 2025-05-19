@@ -22,14 +22,14 @@ export const EngagementFlowTab: React.FC = () => {
     <div className="border rounded-md p-4">
       <div className="mb-4">
         <h4 className="text-sm font-medium mb-1">Page Flow Engagement</h4>
-        <p className="text-xs text-muted-foreground">How users move through pages and where they spend the most time</p>
+        <p className="text-xs text-muted-foreground">How visitors move through pages and where they spend the most time</p>
       </div>
 
-      <div className="flex overflow-x-auto pb-4 space-x-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {pageEngagements.map((item, i) => (
-          <div key={i} className="flex-shrink-0 w-40 border rounded-lg p-3">
-            <div className="text-sm font-medium">{item.page}</div>
-            <div className="mt-2 flex justify-between text-xs">
+          <div key={i} className="border rounded-lg p-2.5">
+            <div className="text-sm font-medium mb-1">{item.page}</div>
+            <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Time:</span>
               <span className="font-medium">{item.time}</span>
             </div>
@@ -39,7 +39,7 @@ export const EngagementFlowTab: React.FC = () => {
                 {item.engaged}%
               </span>
             </div>
-            <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
+            <div className="mt-1.5 w-full bg-gray-200 rounded-full h-1.5">
               <div 
                 className={`h-1.5 rounded-full ${item.engaged > 80 ? 'bg-green-500' : 'bg-amber-500'}`}
                 style={{ width: `${item.engaged}%` }}
@@ -51,7 +51,7 @@ export const EngagementFlowTab: React.FC = () => {
 
       <div className="mt-4 text-xs text-muted-foreground text-center">
         <Clock className="h-3 w-3 inline mr-1" />
-        Users spend the most time on product and checkout pages
+        Visitors spend the most time on product and checkout pages
       </div>
     </div>
   );
