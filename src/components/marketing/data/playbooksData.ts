@@ -61,5 +61,45 @@ export const playbooks: PlaybookType[] = [
     popularity: 88,
     difficulty: 'easy',
     estimatedLift: '5-15%'
+  },
+  {
+    id: 'playbook-7',
+    title: 'Content Hierarchy Improvement',
+    description: 'Structure content to improve readability and comprehension',
+    category: 'content',
+    frictionType: ['information_overload', 'confusion'],
+    popularity: 87,
+    difficulty: 'medium',
+    estimatedLift: '8-16%'
+  },
+  {
+    id: 'playbook-8',
+    title: 'Value Proposition Clarity',
+    description: 'Optimize content to clearly communicate value to users',
+    category: 'content',
+    frictionType: ['bounce_rate', 'engagement_drop'],
+    popularity: 91,
+    difficulty: 'medium',
+    estimatedLift: '10-20%'
+  },
+  {
+    id: 'playbook-9',
+    title: 'API Response Optimization',
+    description: 'Improve API response times to reduce waiting friction',
+    category: 'technical',
+    frictionType: ['slow_loading', 'user_frustration'],
+    popularity: 93,
+    difficulty: 'hard',
+    estimatedLift: '15-25%'
+  },
+  {
+    id: 'playbook-10',
+    title: 'Frontend Performance Tuning',
+    description: 'Optimize JavaScript execution and rendering performance',
+    category: 'technical',
+    frictionType: ['slow_interaction', 'stuttering_ui'],
+    popularity: 89,
+    difficulty: 'hard',
+    estimatedLift: '10-22%'
   }
 ];
