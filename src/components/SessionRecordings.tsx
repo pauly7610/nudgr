@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Flow } from '../data/mockData';
 import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Play, Calendar, User, Eye, Filter, AlertCircle, Clock } from 'lucide-react';
+import { Play, Calendar, User, Eye, AlertCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 
 interface JourneySessionProps {
@@ -61,10 +60,6 @@ export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
           <h3 className="font-semibold">User Session Recordings</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Replay actual user sessions to identify pain points</p>
         </div>
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          <span>Filter</span>
-        </Button>
       </div>
       
       <div className="p-6">
