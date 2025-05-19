@@ -5,9 +5,12 @@ import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { DetailedStep, FrictionType } from '../../data/mockData';
 import { DetailedActions } from './DetailedActions';
 
+type FlowDimension = 'pages' | 'events' | 'devices' | 'marketing';
+
 interface JourneyStepProps {
   step: {
     label: string;
+    dimensionLabel?: string;
     users: number;
     dropOff?: number;
     friction?: FrictionType[];
@@ -18,6 +21,7 @@ interface JourneyStepProps {
   detailedStep: DetailedStep | null;
   isExpanded: boolean;
   toggleExpanded: () => void;
+  flowDimension?: FlowDimension;
 }
 
 export const JourneyStep: React.FC<JourneyStepProps> = ({
@@ -28,6 +32,7 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
   detailedStep,
   isExpanded,
   toggleExpanded,
+  flowDimension = 'pages',
 }) => {
   const dropOffRate = step.dropOff ? Math.round((step.dropOff / previousUsers) * 100) : 0;
   const hasFriction = step.friction && step.friction.length > 0;
@@ -54,6 +59,20 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+  
+  // Get dimension-specific badge color
+  const getDimensionBadgeClass = () => {
+    switch(flowDimension) {
+      case 'events':
+        return 'bg-blue-100 text-blue-800';
+      case 'devices':
+        return 'bg-purple-100 text-purple-800';
+      case 'marketing':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -63,8 +82,13 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
         }`}
       >
         <div className="text-center mb-2">
-          <div className="font-medium">{step.label}</div>
+          <div className="font-medium">{step.dimensionLabel || step.label}</div>
           <div className="text-sm text-muted-foreground">Step {index + 1}</div>
+          {flowDimension !== 'pages' && (
+            <div className={`text-xs px-2 py-0.5 rounded-full inline-block mt-1 ${getDimensionBadgeClass()}`}>
+              {flowDimension}
+            </div>
+          )}
           {detailedStep && (
             <div className="text-xs text-blue-600 mt-1">
               {detailedStep.page} 
