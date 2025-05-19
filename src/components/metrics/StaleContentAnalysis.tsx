@@ -72,7 +72,10 @@ export const StaleContentAnalysis: React.FC<StaleContentAnalysisProps> = ({ clas
       <CardContent>
         <div className="space-y-6">
           <FrictionMatrix matrixData={matrixData} />
-          <BehaviorLegend />
+          <BehaviorLegend 
+            selectedFilter={selectedCurveFilter}
+            onFilterChange={setSelectedCurveFilter}
+          />
           <StaleContentTable filteredContent={filteredContent} />
         </div>
       </CardContent>

@@ -39,13 +39,11 @@ const Metrics = () => {
   
   return (
     <>
-      <div className="text-center">
-        <DashboardHeader title="Metrics" description="Key performance indicators and trends" />
-      </div>
+      <DashboardHeader title="Metrics" description="Key performance indicators and trends" />
       
-      <div className="container py-8 space-y-8">
+      <div className="container py-6 space-y-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="marketing">Marketing</TabsTrigger>
             <TabsTrigger value="content">Content Analytics</TabsTrigger>
@@ -53,7 +51,7 @@ const Metrics = () => {
           </TabsList>
           
           <TabsContent value="overview">
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div className="flex justify-end mb-4">
                 <select 
                   className="bg-background border border-input rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"

@@ -1,11 +1,47 @@
 
 import React from 'react';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { CurveBehavior } from './types';
 
-export const BehaviorLegend: React.FC = () => {
+interface BehaviorLegendProps {
+  selectedFilter: CurveBehavior | 'all';
+  onFilterChange: (value: CurveBehavior | 'all') => void;
+}
+
+export const BehaviorLegend: React.FC<BehaviorLegendProps> = ({ selectedFilter, onFilterChange }) => {
   return (
     <div className="mb-4">
       <h4 className="font-medium mb-2">View Behavior Classification</h4>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <ToggleGroup 
+        type="single" 
+        value={selectedFilter} 
+        onValueChange={(value) => {
+          if (value) onFilterChange(value as CurveBehavior | 'all');
+        }}
+        className="justify-start w-full"
+      >
+        <ToggleGroupItem value="all" className="px-3 gap-2">
+          <span>All</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="recentSpike" className="px-3 gap-2">
+          <span className="text-lg">📈</span>
+          <span className="hidden sm:inline">Recent Spike</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="suddenDrop" className="px-3 gap-2">
+          <span className="text-lg">📉</span>
+          <span className="hidden sm:inline">Sudden Drop</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="lowValue" className="px-3 gap-2">
+          <span className="text-lg">🧊</span>
+          <span className="hidden sm:inline">Low Value</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="slowDecay" className="px-3 gap-2">
+          <span className="text-lg">🔄</span>
+          <span className="hidden sm:inline">Slow Decay</span>
+        </ToggleGroupItem>
+      </ToggleGroup>
+      
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
         <div className="flex items-center p-2 border rounded-md bg-slate-50">
           <div className="text-2xl mr-2">📈</div>
           <div>
