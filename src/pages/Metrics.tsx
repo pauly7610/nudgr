@@ -15,7 +15,7 @@ const Metrics = () => {
   const [timeRange, setTimeRange] = useState('7days');
   
   // Calculate metrics
-  const totalUsers = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
+  const totalVisitors = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
   
   const avgDropOffRate = flows.reduce((acc, flow) => {
     const firstStep = flow.steps[0];
@@ -28,13 +28,13 @@ const Metrics = () => {
   
   // Generate mock trend data
   const trendData = [
-    { day: 'Mon', users: Math.floor(totalUsers * 0.85), conversion: conversionRate - 3, dropoff: avgDropOffRate + 3 },
-    { day: 'Tue', users: Math.floor(totalUsers * 0.9), conversion: conversionRate - 2, dropoff: avgDropOffRate + 2 },
-    { day: 'Wed', users: Math.floor(totalUsers * 0.95), conversion: conversionRate - 1, dropoff: avgDropOffRate + 1 },
-    { day: 'Thu', users: totalUsers, conversion: conversionRate, dropoff: avgDropOffRate },
-    { day: 'Fri', users: Math.floor(totalUsers * 1.05), conversion: conversionRate + 1, dropoff: avgDropOffRate - 1 },
-    { day: 'Sat', users: Math.floor(totalUsers * 0.85), conversion: conversionRate - 0.5, dropoff: avgDropOffRate + 0.5 },
-    { day: 'Sun', users: Math.floor(totalUsers * 0.8), conversion: conversionRate - 1.5, dropoff: avgDropOffRate + 1.5 },
+    { day: 'Mon', visitors: Math.floor(totalVisitors * 0.85), conversion: conversionRate - 3, dropoff: avgDropOffRate + 3 },
+    { day: 'Tue', visitors: Math.floor(totalVisitors * 0.9), conversion: conversionRate - 2, dropoff: avgDropOffRate + 2 },
+    { day: 'Wed', visitors: Math.floor(totalVisitors * 0.95), conversion: conversionRate - 1, dropoff: avgDropOffRate + 1 },
+    { day: 'Thu', visitors: totalVisitors, conversion: conversionRate, dropoff: avgDropOffRate },
+    { day: 'Fri', visitors: Math.floor(totalVisitors * 1.05), conversion: conversionRate + 1, dropoff: avgDropOffRate - 1 },
+    { day: 'Sat', visitors: Math.floor(totalVisitors * 0.85), conversion: conversionRate - 0.5, dropoff: avgDropOffRate + 0.5 },
+    { day: 'Sun', visitors: Math.floor(totalVisitors * 0.8), conversion: conversionRate - 1.5, dropoff: avgDropOffRate + 1.5 },
   ];
   
   return (
@@ -69,9 +69,9 @@ const Metrics = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatsCard 
-                  title="Total Users"
-                  value={totalUsers.toLocaleString()}
-                  description="Active users in selected period"
+                  title="Total Visitors"
+                  value={totalVisitors.toLocaleString()}
+                  description="Active visitors in selected period"
                   change={5.2}
                   icon={<Users className="h-5 w-5 text-primary" />}
                 />
@@ -109,7 +109,7 @@ const Metrics = () => {
                       <YAxis yAxisId="left" />
                       <YAxis yAxisId="right" orientation="right" />
                       <Tooltip />
-                      <Line yAxisId="left" type="monotone" dataKey="users" stroke="#6366f1" name="Users" />
+                      <Line yAxisId="left" type="monotone" dataKey="visitors" stroke="#6366f1" name="Visitors" />
                       <Line yAxisId="right" type="monotone" dataKey="conversion" stroke="#10b981" name="Conversion %" />
                       <Line yAxisId="right" type="monotone" dataKey="dropoff" stroke="#ef4444" name="Drop-off %" />
                     </LineChart>
