@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface MetricCardProps {
   title: string;
@@ -31,7 +32,7 @@ export const TimeMetricCards: React.FC = () => {
   ];
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {metrics.map((metric, index) => (
         <MetricCard 
           key={index}
@@ -47,12 +48,14 @@ export const TimeMetricCards: React.FC = () => {
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, trend, trendValue }) => {
   return (
-    <div className="border rounded-md p-3">
-      <div className="text-sm font-medium mb-1">{title}</div>
-      <div className="text-2xl font-bold text-primary">{value}</div>
-      <div className={`text-xs ${trend === 'up' ? 'text-green-600' : 'text-amber-600'}`}>
-        {trend === 'up' ? '↑' : '↓'} {trendValue}% vs last period
-      </div>
-    </div>
+    <Card>
+      <CardContent className="pt-4">
+        <div className="text-sm font-medium mb-1">{title}</div>
+        <div className="text-2xl font-bold text-primary">{value}</div>
+        <div className={`text-xs mt-1 ${trend === 'up' ? 'text-green-600' : 'text-amber-600'}`}>
+          {trend === 'up' ? '↑' : '↓'} {trendValue}% vs last period
+        </div>
+      </CardContent>
+    </Card>
   );
 };
