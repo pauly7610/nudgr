@@ -44,7 +44,7 @@ export const UserCohortsList: React.FC<UserCohortsListProps> = ({
       {/* Empty cohort card for adding new one */}
       <div className="rounded-lg border border-dashed bg-card p-6 flex flex-col items-center justify-center text-muted-foreground hover:border-primary/50 hover:text-primary/70 cursor-pointer transition-colors">
         <UsersIcon className="h-12 w-12 mb-3 opacity-50" />
-        <p className="text-center">Create a new user cohort to track and analyze</p>
+        <p className="text-center">Create a new visitor cohort to track and analyze</p>
         {activeTab === "marketing" && (
           <p className="text-xs text-center mt-2">
             Create cohorts based on campaigns, sources, or marketing touchpoints

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Alert, Flow, UserCohort, flowData, initialAlerts, userCohorts as initialUserCohorts, generateRandomAlert } from '../data/mockData';
 
@@ -94,7 +95,7 @@ export const useFrictionData = (): FrictionDataState => {
     // Calculate impact score based on:
     // 1. Drop-off rates
     // 2. Number of friction types
-    // 3. User volume
+    // 3. Visitor volume
     
     // Get first and last step
     const firstStep = flow.steps[0];
@@ -108,12 +109,12 @@ export const useFrictionData = (): FrictionDataState => {
       return count + (step.friction?.length || 0);
     }, 0);
     
-    // Calculate normalized user volume factor (0-1 scale)
+    // Calculate normalized visitor volume factor (0-1 scale)
     const maxUsers = Math.max(...flows.map(f => f.steps[0].users));
     const userVolumeFactor = firstStep.users / maxUsers;
     
     // Calculate impact score (0-100 scale)
-    // weightings: 50% drop-off rate, 30% friction issues, 20% user volume
+    // weightings: 50% drop-off rate, 30% friction issues, 20% visitor volume
     const impactScore = 
       (dropOffRate * 50) + 
       (Math.min(frictionIssues / 10, 1) * 30) + 

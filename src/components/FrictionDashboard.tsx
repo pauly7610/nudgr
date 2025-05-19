@@ -27,8 +27,8 @@ export const FrictionDashboard: React.FC = () => {
   const [latestAlert, setLatestAlert] = useState<Alert | null>(null);
   const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(new Set());
   
-  // Calculate total users from all flows (first step)
-  const totalUsers = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
+  // Calculate total visitors from all flows (first step)
+  const totalVisitors = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
   
   // Calculate average drop-off rate
   const avgDropOffRate = flows.reduce((acc, flow) => {
@@ -38,7 +38,7 @@ export const FrictionDashboard: React.FC = () => {
     return acc + dropOffRate;
   }, 0) / flows.length * 100;
   
-  // Calculate friction index (total friction events / total users)
+  // Calculate friction index (total friction events / total visitors)
   const totalFrictionEvents = flows.reduce((acc, flow) => {
     return acc + flow.steps.reduce((stepAcc, step) => {
       return stepAcc + (step.friction?.length || 0);
@@ -91,15 +91,15 @@ export const FrictionDashboard: React.FC = () => {
       
       <DashboardHeader 
         title="Friction Dashboard" 
-        description="Monitor and analyze user friction points"
+        description="Monitor and analyze visitor friction points"
       />
       
       <div className="container py-8 space-y-8">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatsCard 
-            title="Total Users Tracked"
-            value={totalUsers.toLocaleString()}
+            title="Total Visitors Tracked"
+            value={totalVisitors.toLocaleString()}
             description="Across all funnels"
             change={4.2}
             icon={<Users className="h-5 w-5 text-primary" />}
@@ -142,7 +142,7 @@ export const FrictionDashboard: React.FC = () => {
             <AlertsFeed alerts={alerts} onAlertClick={handleAlertView} />
             
             <div>
-              <h3 className="text-lg font-semibold mb-3">User Cohorts</h3>
+              <h3 className="text-lg font-semibold mb-3">Visitor Cohorts</h3>
               <div className="grid gap-4">
                 {userCohorts.slice(0, 3).map(cohort => (
                   <UserCohortCard key={cohort.id} cohort={cohort} />

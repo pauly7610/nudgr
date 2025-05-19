@@ -100,7 +100,7 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="bg-muted/40 p-2 rounded text-center">
             <div className="font-medium">{step.users.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Users</div>
+            <div className="text-xs text-muted-foreground">Visitors</div>
           </div>
           
           <div className={`p-2 rounded text-center ${
@@ -148,7 +148,7 @@ export const JourneyStep: React.FC<JourneyStepProps> = ({
       
       {step.dropOff && (
         <div className="mt-2 text-center">
-          <div className="text-xs font-medium text-red-500">-{step.dropOff.toLocaleString()} users</div>
+          <div className="text-xs font-medium text-red-500">-{step.dropOff.toLocaleString()} visitors</div>
         </div>
       )}
     </div>

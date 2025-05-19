@@ -60,7 +60,7 @@ const UserCohorts = () => {
   
   return (
     <>
-      <DashboardHeader title="User Cohorts" description="Compare metrics across different user segments" />
+      <DashboardHeader title="Visitor Cohorts" description="Compare metrics across different visitor segments" />
       
       <div className="container py-8">
         <div className="flex justify-between items-center mb-6">

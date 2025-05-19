@@ -62,7 +62,7 @@ export const JourneyAnalysisPanel: React.FC<JourneyAnalysisPanelProps> = ({ flow
     if (allFrictionTypes.includes('navigation_loops')) {
       recommendations.push({
         title: "Improve Navigation", 
-        description: "Review navigation patterns where users repeatedly visit the same pages."
+        description: "Review navigation patterns where visitors repeatedly visit the same pages."
       });
     }
     
@@ -76,7 +76,7 @@ export const JourneyAnalysisPanel: React.FC<JourneyAnalysisPanelProps> = ({ flow
     if (overallDropOff > 50) {
       recommendations.push({
         title: "Address High Drop-off", 
-        description: "Review the entire funnel for major bottlenecks causing significant user loss."
+        description: "Review the entire funnel for major bottlenecks causing significant visitor loss."
       });
     }
     

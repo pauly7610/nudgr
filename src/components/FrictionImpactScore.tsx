@@ -51,7 +51,7 @@ export const FrictionImpactScore: React.FC<FrictionImpactScoreProps> = ({
               <div className="flex justify-between items-center mb-2">
                 <div>
                   <h3 className="font-medium">{flow.flow}</h3>
-                  <p className="text-sm text-muted-foreground">{flow.steps[0].users.toLocaleString()} users</p>
+                  <p className="text-sm text-muted-foreground">{flow.steps[0].users.toLocaleString()} visitors</p>
                 </div>
                 <Badge 
                   variant="outline" 
@@ -73,7 +73,7 @@ export const FrictionImpactScore: React.FC<FrictionImpactScoreProps> = ({
               </div>
               
               <div className="text-xs text-muted-foreground mt-1 mb-3">
-                Impact scoring factors: drop-off rate, friction types, and user volume
+                Impact scoring factors: drop-off rate, friction types, and visitor volume
               </div>
             </div>
           );
