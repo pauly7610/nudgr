@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,8 @@ import { DocsNavigation } from '@/components/library/DocsNavigation';
 import { MarketingPlaybooks } from '@/components/marketing/MarketingPlaybooks';
 import { LibraryWelcomeMessage } from '@/components/library/LibraryWelcomeMessage';
 import { Card } from '@/components/ui/card';
+import { BookOpen, Users, Map, Code } from 'lucide-react';
+import { PlaybookFilter } from '@/components/marketing/components/PlaybookFilter';
 
 const Library = () => {
   const location = useLocation();
@@ -24,10 +26,24 @@ const Library = () => {
   
   const [activeTab, setActiveTab] = useState(getDefaultTab());
   const [showWelcome, setShowWelcome] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Unified filter options for consistency
+  const filterOptions = [
+    { value: 'playbooks', label: 'Marketing Playbooks', icon: BookOpen },
+    { value: 'cohort-comparison', label: 'Cohort Analysis', icon: Users },
+    { value: 'journey-mapping', label: 'Journey Mapping', icon: Map },
+    { value: 'technical', label: 'Technical Docs', icon: Code }
+  ];
 
   const handleDismissWelcome = () => {
     setShowWelcome(false);
   };
+
+  // Reset search when changing tabs
+  useEffect(() => {
+    setSearchTerm('');
+  }, [activeTab]);
 
   return (
     <>
@@ -46,28 +62,31 @@ const Library = () => {
           </Card>
           
           <div className="flex-1">
+            <PlaybookFilter
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedCategory={activeTab}
+              onCategoryChange={setActiveTab}
+              filterOptions={filterOptions}
+              variant="tabs"
+              className="mb-6"
+            />
+            
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="mb-6 w-full justify-start">
-                <TabsTrigger value="playbooks">Marketing Playbooks</TabsTrigger>
-                <TabsTrigger value="cohort-comparison">Cohort Analysis</TabsTrigger>
-                <TabsTrigger value="journey-mapping">Journey Mapping</TabsTrigger>
-                <TabsTrigger value="technical">Technical Docs</TabsTrigger>
-              </TabsList>
-              
               <TabsContent value="playbooks" className="mt-0">
-                <MarketingPlaybooks />
+                <MarketingPlaybooks initialSearchTerm={searchTerm} />
               </TabsContent>
               
               <TabsContent value="cohort-comparison" className="mt-0">
-                <CohortComparisonDocs />
+                <CohortComparisonDocs searchTerm={searchTerm} />
               </TabsContent>
               
               <TabsContent value="journey-mapping" className="mt-0">
-                <BestPracticeLibrary category="journey-mapping" />
+                <BestPracticeLibrary category="journey-mapping" searchTerm={searchTerm} />
               </TabsContent>
               
               <TabsContent value="technical" className="mt-0">
-                <BestPracticeLibrary category="technical" />
+                <BestPracticeLibrary category="technical" searchTerm={searchTerm} />
               </TabsContent>
             </Tabs>
           </div>

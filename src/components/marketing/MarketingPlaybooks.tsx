@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, MousePointer2, Tag, Code } from 'lucide-react';
 import { PlaybookFilter } from './components/PlaybookFilter';
 import { PlaybookList } from './components/PlaybookList';
 import { FrictionTags } from './components/FrictionTags';
@@ -11,11 +11,29 @@ import { PlaybookType, convertToMarketingPlaybook } from './utils/playbookConver
 import { playbooks } from './data/playbooksData';
 import { MarketingPlaybook } from './types/marketingPlaybookTypes';
 
-export const MarketingPlaybooks = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+interface MarketingPlaybooksProps {
+  initialSearchTerm?: string;
+}
+
+export const MarketingPlaybooks: React.FC<MarketingPlaybooksProps> = ({ initialSearchTerm = '' }) => {
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPlaybook, setSelectedPlaybook] = useState<string | null>(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
+  
+  // Update search term when prop changes
+  useEffect(() => {
+    setSearchTerm(initialSearchTerm);
+  }, [initialSearchTerm]);
+  
+  // Category filter options
+  const filterOptions = [
+    { value: 'all', label: 'All' },
+    { value: 'form', label: 'Forms', icon: MousePointer2 },
+    { value: 'navigation', label: 'Navigation', icon: Tag },
+    { value: 'content', label: 'Content', icon: BookOpen },
+    { value: 'technical', label: 'Technical', icon: Code }
+  ];
   
   // Filter playbooks based on search term and category
   const filteredPlaybooks = playbooks.filter(playbook => {
@@ -68,6 +86,9 @@ export const MarketingPlaybooks = () => {
               onSearchChange={setSearchTerm}
               selectedCategory={selectedCategory}
               onCategoryChange={handleCategoryChange}
+              filterOptions={filterOptions}
+              variant="tabs"
+              placeholder="Search playbooks..."
             />
             
             <PlaybookList 

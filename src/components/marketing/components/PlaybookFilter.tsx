@@ -1,57 +1,72 @@
 
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, BookOpen, Users, Map, Code } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MousePointer2, Tag, BookOpen, Code } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+interface FilterOption {
+  value: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
 
 interface PlaybookFilterProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  filterOptions: FilterOption[];
+  variant?: 'tabs' | 'toggles';
+  placeholder?: string;
+  className?: string;
 }
 
 export const PlaybookFilter: React.FC<PlaybookFilterProps> = ({
   searchTerm,
   onSearchChange,
   selectedCategory,
-  onCategoryChange
+  onCategoryChange,
+  filterOptions,
+  variant = 'tabs',
+  placeholder = "Search resources...",
+  className
 }) => {
   return (
-    <>
-      <div className="relative mb-6">
+    <div className={cn("space-y-4", className)}>
+      <div className="relative">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search playbooks..."
+          placeholder={placeholder}
           className="pl-8"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
       
-      <Tabs defaultValue="all" value={selectedCategory} onValueChange={onCategoryChange} className="mb-6">
-        <TabsList className="grid grid-cols-5">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="form" className="flex items-center gap-1">
-            <MousePointer2 className="h-3.5 w-3.5" />
-            <span>Forms</span>
-          </TabsTrigger>
-          <TabsTrigger value="navigation" className="flex items-center gap-1">
-            <Tag className="h-3.5 w-3.5" />
-            <span>Navigation</span>
-          </TabsTrigger>
-          <TabsTrigger value="content" className="flex items-center gap-1">
-            <BookOpen className="h-3.5 w-3.5" />
-            <span>Content</span>
-          </TabsTrigger>
-          <TabsTrigger value="technical" className="flex items-center gap-1">
-            <Code className="h-3.5 w-3.5" />
-            <span>Technical</span>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-    </>
+      {variant === 'tabs' ? (
+        <Tabs defaultValue={selectedCategory} value={selectedCategory} onValueChange={onCategoryChange}>
+          <TabsList className="grid" style={{ gridTemplateColumns: `repeat(${filterOptions.length}, 1fr)` }}>
+            {filterOptions.map(option => (
+              <TabsTrigger key={option.value} value={option.value} className="flex items-center gap-1">
+                {option.icon && <option.icon className="h-3.5 w-3.5" />}
+                <span>{option.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      ) : (
+        <ToggleGroup type="single" value={selectedCategory} onValueChange={(value) => value && onCategoryChange(value)}>
+          {filterOptions.map(option => (
+            <ToggleGroupItem key={option.value} value={option.value} className="flex items-center gap-1">
+              {option.icon && <option.icon className="h-4 w-4" />}
+              <span>{option.label}</span>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      )}
+    </div>
   );
 };
