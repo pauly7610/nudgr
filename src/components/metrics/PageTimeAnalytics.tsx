@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock } from 'lucide-react';
@@ -70,10 +69,10 @@ export const PageTimeAnalytics: React.FC = () => {
             <EngagementFlowTab />
           </TabsContent>
         </Tabs>
-
-        <Separator className="my-4" />
         
         <TimeMetricCards />
+        
+        <Separator className="my-4" />
       </div>
     </div>
   );
