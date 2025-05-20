@@ -6,7 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChartBarIcon } from 'lucide-react';
 import { PageTimeAnalytics } from './PageTimeAnalytics';
 import { MarketingMetricsProps, SegmentType } from './marketing/types';
-import { marketingData } from './marketing/mockData';
+import { 
+  dailyMarketingData, 
+  weeklyMarketingData, 
+  monthlyMarketingData, 
+  quarterlyMarketingData 
+} from './marketing/mockData';
 import { MarketingMetricsSummary } from './marketing/MarketingMetricsSummary';
 import { KeyMetricsTab } from './marketing/KeyMetricsTab';
 import { CTRAnalysisTab } from './marketing/CTRAnalysisTab';
@@ -17,8 +22,26 @@ export const MarketingMetrics: React.FC<MarketingMetricsProps> = ({ className })
   const [segmentType, setSegmentType] = useState<SegmentType>('all');
   const [selectedTab, setSelectedTab] = useState('metrics');
 
+  // Get the appropriate data based on selected time range
+  const getDataForTimeRange = () => {
+    switch (timeRange) {
+      case 'day':
+        return dailyMarketingData;
+      case '7days':
+        return weeklyMarketingData;
+      case '30days':
+        return monthlyMarketingData;
+      case '90days':
+        return quarterlyMarketingData;
+      default:
+        return weeklyMarketingData;
+    }
+  };
+
+  const currentData = getDataForTimeRange();
+
   // Calculate metrics
-  const aggregateMetrics = marketingData.reduce((acc, day) => {
+  const aggregateMetrics = currentData.reduce((acc, day) => {
     let dataToUse = day;
     
     if (segmentType === 'authenticated') {
@@ -46,7 +69,7 @@ export const MarketingMetrics: React.FC<MarketingMetricsProps> = ({ className })
 
   // Function to get chart data based on segment type
   const getChartData = () => {
-    return marketingData.map(day => {
+    return currentData.map(day => {
       if (segmentType === 'authenticated' && day.authenticated) {
         return {
           ...day.authenticated,
@@ -69,12 +92,28 @@ export const MarketingMetrics: React.FC<MarketingMetricsProps> = ({ className })
 
   const chartData = getChartData();
 
+  // Generate title suffix based on time range
+  const getTimeRangeTitle = () => {
+    switch (timeRange) {
+      case 'day':
+        return 'Today';
+      case '7days':
+        return 'Last 7 Days';
+      case '30days':
+        return 'Last 30 Days';
+      case '90days':
+        return 'Last 90 Days';
+      default:
+        return 'Last 7 Days';
+    }
+  };
+
   return (
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-medium flex items-center gap-2">
           <ChartBarIcon className="h-5 w-5 text-primary" />
-          Marketing Performance Metrics
+          Marketing Performance Metrics ({getTimeRangeTitle()})
         </CardTitle>
         <div className="flex items-center gap-2">
           <Select value={segmentType} onValueChange={(value) => setSegmentType(value as SegmentType)}>
