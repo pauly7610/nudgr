@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Flow } from '@/data/mockData';
 import { JourneyFrictionMap } from '@/components/JourneyFrictionMap';
@@ -78,7 +77,7 @@ export const JourneyTabContent: React.FC<JourneyTabContentProps> = ({
                   <JourneyAnalysisPanel flow={activeFlow} />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   <SmartActionNudges flowId={activeFlow?.id} />
                 </div>
                 
