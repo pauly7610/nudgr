@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { MousePointer, Clock } from 'lucide-react';
+import { MousePointer, Clock, Info } from 'lucide-react';
 
 export const HoverAnalysisTab: React.FC = () => {
   return (
@@ -47,18 +47,45 @@ export const HoverAnalysisTab: React.FC = () => {
           </div>
           <div className="absolute inset-0 p-4 flex flex-col justify-between">
             <div className="flex justify-between">
-              <div className="bg-red-500/20 border border-red-500 rounded-md w-16 h-10"></div>
-              <div className="bg-orange-500/30 border border-orange-500 rounded-md w-20 h-12"></div>
+              <div className="bg-red-500/20 border border-red-500 rounded-md w-16 h-10 flex items-center justify-center">
+                <span className="text-xs text-red-700 font-medium">High</span>
+              </div>
+              <div className="bg-orange-500/30 border border-orange-500 rounded-md w-20 h-12 flex items-center justify-center">
+                <span className="text-xs text-orange-700 font-medium">Medium</span>
+              </div>
             </div>
             <div className="flex justify-center">
-              <div className="bg-red-600/40 border border-red-600 rounded-md w-32 h-14"></div>
+              <div className="bg-red-600/40 border border-red-600 rounded-md w-32 h-14 flex items-center justify-center">
+                <span className="text-xs text-red-800 font-semibold">Critical (12.5s)</span>
+              </div>
             </div>
             <div className="flex justify-between">
-              <div className="bg-yellow-500/20 border border-yellow-500 rounded-md w-24 h-10"></div>
-              <div className="bg-red-500/30 border border-red-500 rounded-md w-16 h-12"></div>
+              <div className="bg-yellow-500/20 border border-yellow-500 rounded-md w-24 h-10 flex items-center justify-center">
+                <span className="text-xs text-yellow-700 font-medium">Low</span>
+              </div>
+              <div className="bg-red-500/30 border border-red-500 rounded-md w-16 h-12 flex items-center justify-center">
+                <span className="text-xs text-red-700 font-medium">High</span>
+              </div>
             </div>
-            <div className="text-center text-sm text-muted-foreground mt-4">
-              Interaction heat map visualization
+            <div className="text-center text-sm mt-4">
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-red-500 mr-1.5"></div>
+                  <span className="text-xs">High (10s+)</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-orange-500 mr-1.5"></div>
+                  <span className="text-xs">Medium (5-10s)</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500 mr-1.5"></div>
+                  <span className="text-xs">Low (0-5s)</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-1 text-muted-foreground">
+                <Info className="h-3 w-3" />
+                <span className="text-xs">Interaction heat map visualization</span>
+              </div>
             </div>
           </div>
         </div>
