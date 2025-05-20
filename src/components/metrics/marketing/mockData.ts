@@ -1,82 +1,81 @@
-
 import { MarketingMetricItem } from './types';
 
 // Daily marketing metrics data (for 'day' selection)
 export const dailyMarketingData: MarketingMetricItem[] = [
   {
     date: 'May 20 (9AM)',
-    impressions: 3200,
-    clicks: 160,
-    views: 480,
-    conversions: 16,
+    impressions: 1200,
+    clicks: 60,
+    views: 180,
+    conversions: 6,
     authenticated: {
-      impressions: 1280,
-      clicks: 96,
-      views: 288,
-      conversions: 13
+      impressions: 480,
+      clicks: 36,
+      views: 108,
+      conversions: 5
     },
     nonAuthenticated: {
-      impressions: 1920,
-      clicks: 64,
-      views: 192,
-      conversions: 3
+      impressions: 720,
+      clicks: 24,
+      views: 72,
+      conversions: 1
     }
   },
   {
     date: 'May 20 (12PM)',
-    impressions: 4100,
-    clicks: 205,
-    views: 615,
-    conversions: 21,
+    impressions: 1500,
+    clicks: 75,
+    views: 225,
+    conversions: 8,
     authenticated: {
-      impressions: 1640,
-      clicks: 123,
-      views: 369,
-      conversions: 17
+      impressions: 600,
+      clicks: 45,
+      views: 135,
+      conversions: 6
     },
     nonAuthenticated: {
-      impressions: 2460,
-      clicks: 82,
-      views: 246,
-      conversions: 4
+      impressions: 900,
+      clicks: 30,
+      views: 90,
+      conversions: 2
     }
   },
   {
     date: 'May 20 (3PM)',
-    impressions: 3900,
-    clicks: 195,
-    views: 585,
-    conversions: 20,
+    impressions: 1400,
+    clicks: 70,
+    views: 210,
+    conversions: 7,
     authenticated: {
-      impressions: 1560,
-      clicks: 117,
-      views: 351,
-      conversions: 16
+      impressions: 560,
+      clicks: 42,
+      views: 126,
+      conversions: 6
     },
     nonAuthenticated: {
-      impressions: 2340,
-      clicks: 78,
-      views: 234,
-      conversions: 4
+      impressions: 840,
+      clicks: 28,
+      views: 84,
+      conversions: 1
     }
   },
   {
     date: 'May 20 (6PM)',
-    impressions: 4500,
-    clicks: 225,
-    views: 675,
-    conversions: 23,
+    impressions: 1700,
+    clicks: 85,
+    views: 255,
+    conversions: 9,
     authenticated: {
-      impressions: 1800,
-      clicks: 135,
-      views: 405,
-      conversions: 18
+      impressions: 680,
+      clicks: 51,
+      views: 153,
+      conversions: 7
     },
     nonAuthenticated: {
-      impressions: 2700,
-      clicks: 90,
-      views: 270,
-      conversions: 5
+      impressions: 1020,
+      clicks: 34,
+      views: 102,
+      conversions: 2
     }
   }
 ];
@@ -85,135 +84,135 @@ export const dailyMarketingData: MarketingMetricItem[] = [
 export const weeklyMarketingData: MarketingMetricItem[] = [
   {
     date: 'May 12',
-    impressions: 24500,
-    clicks: 1225,
-    views: 3750,
-    conversions: 125,
+    impressions: 12000,
+    clicks: 600,
+    views: 1800,
+    conversions: 63,
     authenticated: {
-      impressions: 9800,
-      clicks: 735,
-      views: 2250,
-      conversions: 98
+      impressions: 4800,
+      clicks: 360,
+      views: 1080,
+      conversions: 50
     },
     nonAuthenticated: {
-      impressions: 14700,
-      clicks: 490,
-      views: 1500,
-      conversions: 27
+      impressions: 7200,
+      clicks: 240,
+      views: 720,
+      conversions: 13
     }
   },
   {
     date: 'May 13',
-    impressions: 26800,
-    clicks: 1340,
-    views: 4100,
-    conversions: 142,
+    impressions: 13200,
+    clicks: 660,
+    views: 1980,
+    conversions: 69,
     authenticated: {
-      impressions: 10720,
-      clicks: 804,
-      views: 2460,
-      conversions: 112
+      impressions: 5280,
+      clicks: 396,
+      views: 1188,
+      conversions: 55
     },
     nonAuthenticated: {
-      impressions: 16080,
-      clicks: 536,
-      views: 1640,
-      conversions: 30
+      impressions: 7920,
+      clicks: 264,
+      views: 792,
+      conversions: 14
     }
   },
   {
     date: 'May 14',
-    impressions: 22300,
-    clicks: 1115,
-    views: 3400,
-    conversions: 118,
+    impressions: 11300,
+    clicks: 565,
+    views: 1700,
+    conversions: 59,
     authenticated: {
-      impressions: 8920,
-      clicks: 669,
-      views: 2040,
-      conversions: 93
+      impressions: 4520,
+      clicks: 339,
+      views: 1020,
+      conversions: 47
     },
     nonAuthenticated: {
-      impressions: 13380,
-      clicks: 446,
-      views: 1360,
-      conversions: 25
+      impressions: 6780,
+      clicks: 226,
+      views: 680,
+      conversions: 12
     }
   },
   {
     date: 'May 15',
-    impressions: 28900,
-    clicks: 1445,
-    views: 4400,
-    conversions: 154,
+    impressions: 14500,
+    clicks: 725,
+    views: 2200,
+    conversions: 77,
     authenticated: {
-      impressions: 11560,
-      clicks: 867,
-      views: 2640,
-      conversions: 121
+      impressions: 5800,
+      clicks: 435,
+      views: 1320,
+      conversions: 61
     },
     nonAuthenticated: {
-      impressions: 17340,
-      clicks: 578,
-      views: 1760,
-      conversions: 33
+      impressions: 8700,
+      clicks: 290,
+      views: 880,
+      conversions: 16
     }
   },
   {
     date: 'May 16',
-    impressions: 31200,
-    clicks: 1560,
-    views: 4750,
-    conversions: 165,
+    impressions: 15600,
+    clicks: 780,
+    views: 2375,
+    conversions: 83,
     authenticated: {
-      impressions: 12480,
-      clicks: 936,
-      views: 2850,
-      conversions: 130
+      impressions: 6240,
+      clicks: 468,
+      views: 1425,
+      conversions: 65
     },
     nonAuthenticated: {
-      impressions: 18720,
-      clicks: 624,
-      views: 1900,
-      conversions: 35
+      impressions: 9360,
+      clicks: 312,
+      views: 950,
+      conversions: 18
     }
   },
   {
     date: 'May 17',
-    impressions: 29600,
-    clicks: 1480,
-    views: 4500,
-    conversions: 158,
+    impressions: 13900,
+    clicks: 695,
+    views: 2250,
+    conversions: 79,
     authenticated: {
-      impressions: 11840,
-      clicks: 888,
-      views: 2700,
-      conversions: 124
+      impressions: 5560,
+      clicks: 417,
+      views: 1350,
+      conversions: 62
     },
     nonAuthenticated: {
-      impressions: 17760,
-      clicks: 592,
-      views: 1800,
-      conversions: 34
+      impressions: 8340,
+      clicks: 278,
+      views: 900,
+      conversions: 17
     }
   },
   {
     date: 'May 18',
-    impressions: 27200,
-    clicks: 1360,
-    views: 4150,
-    conversions: 145,
+    impressions: 12700,
+    clicks: 635,
+    views: 1975,
+    conversions: 72,
     authenticated: {
-      impressions: 10880,
-      clicks: 816,
-      views: 2490,
-      conversions: 114
+      impressions: 5080,
+      clicks: 381,
+      views: 1185,
+      conversions: 56
     },
     nonAuthenticated: {
-      impressions: 16320,
-      clicks: 544,
-      views: 1660,
-      conversions: 31
+      impressions: 7620,
+      clicks: 254,
+      views: 790,
+      conversions: 16
     }
   }
 ];
@@ -222,154 +221,154 @@ export const weeklyMarketingData: MarketingMetricItem[] = [
 export const monthlyMarketingData: MarketingMetricItem[] = [
   { 
     date: 'Apr 20', 
-    impressions: 18500, 
-    clicks: 925, 
-    views: 2700, 
-    conversions: 94,
+    impressions: 52000, 
+    clicks: 2600, 
+    views: 7800, 
+    conversions: 273,
     authenticated: {
-      impressions: 7400,
-      clicks: 555,
-      views: 1620,
-      conversions: 74
+      impressions: 20800,
+      clicks: 1560,
+      views: 4680,
+      conversions: 215
     },
     nonAuthenticated: {
-      impressions: 11100,
-      clicks: 370,
-      views: 1080,
-      conversions: 20
+      impressions: 31200,
+      clicks: 1040,
+      views: 3120,
+      conversions: 58
     }
   },
   { 
     date: 'Apr 24', 
-    impressions: 19800, 
-    clicks: 990, 
-    views: 3000, 
-    conversions: 105,
+    impressions: 55000, 
+    clicks: 2750, 
+    views: 8250, 
+    conversions: 289,
     authenticated: {
-      impressions: 7920,
-      clicks: 594,
-      views: 1800,
-      conversions: 82
+      impressions: 22000,
+      clicks: 1650,
+      views: 4950,
+      conversions: 228
     },
     nonAuthenticated: {
-      impressions: 11880,
-      clicks: 396,
-      views: 1200,
-      conversions: 23
+      impressions: 33000,
+      clicks: 1100,
+      views: 3300,
+      conversions: 61
     }
   },
   { 
     date: 'Apr 28', 
-    impressions: 21500, 
-    clicks: 1075, 
-    views: 3250, 
-    conversions: 113,
+    impressions: 47500, 
+    clicks: 2375, 
+    views: 7125, 
+    conversions: 249,
     authenticated: {
-      impressions: 8600,
-      clicks: 645,
-      views: 1950,
-      conversions: 89
+      impressions: 19000,
+      clicks: 1425,
+      views: 4275,
+      conversions: 196
     },
     nonAuthenticated: {
-      impressions: 12900,
-      clicks: 430,
-      views: 1300,
-      conversions: 24
+      impressions: 28500,
+      clicks: 950,
+      views: 2850,
+      conversions: 53
     }
   },
   { 
     date: 'May 2', 
-    impressions: 23200, 
-    clicks: 1160, 
-    views: 3500, 
-    conversions: 122,
+    impressions: 59000, 
+    clicks: 2950, 
+    views: 8850, 
+    conversions: 310,
     authenticated: {
-      impressions: 9280,
-      clicks: 696,
-      views: 2100,
-      conversions: 96
+      impressions: 23600,
+      clicks: 1770,
+      views: 5310,
+      conversions: 244
     },
     nonAuthenticated: {
-      impressions: 13920,
-      clicks: 464,
-      views: 1400,
-      conversions: 26
+      impressions: 35400,
+      clicks: 1180,
+      views: 3540,
+      conversions: 66
     }
   },
   { 
     date: 'May 6', 
-    impressions: 24800, 
-    clicks: 1240, 
-    views: 3750, 
-    conversions: 131,
+    impressions: 62000, 
+    clicks: 3100, 
+    views: 9375, 
+    conversions: 326,
     authenticated: {
-      impressions: 9920,
-      clicks: 744,
-      views: 2250,
-      conversions: 103
+      impressions: 24800,
+      clicks: 1860,
+      views: 5625,
+      conversions: 257
     },
     nonAuthenticated: {
-      impressions: 14880,
-      clicks: 496,
-      views: 1500,
-      conversions: 28
+      impressions: 37200,
+      clicks: 1240,
+      views: 3750,
+      conversions: 69
     }
   },
   { 
     date: 'May 10', 
-    impressions: 26500, 
-    clicks: 1325, 
-    views: 4000, 
-    conversions: 140,
+    impressions: 56500, 
+    clicks: 2825, 
+    views: 8500, 
+    conversions: 297,
     authenticated: {
-      impressions: 10600,
-      clicks: 795,
-      views: 2400,
-      conversions: 110
+      impressions: 22600,
+      clicks: 1695,
+      views: 5100,
+      conversions: 234
     },
     nonAuthenticated: {
-      impressions: 15900,
-      clicks: 530,
-      views: 1600,
-      conversions: 30
+      impressions: 33900,
+      clicks: 1130,
+      views: 3400,
+      conversions: 63
     }
   },
   { 
     date: 'May 14', 
-    impressions: 28200, 
-    clicks: 1410, 
-    views: 4250, 
-    conversions: 148,
+    impressions: 53000, 
+    clicks: 2650, 
+    views: 8000, 
+    conversions: 279,
     authenticated: {
-      impressions: 11280,
-      clicks: 846,
-      views: 2550,
-      conversions: 116
+      impressions: 21200,
+      clicks: 1590,
+      views: 4800,
+      conversions: 220
     },
     nonAuthenticated: {
-      impressions: 16920,
-      clicks: 564,
-      views: 1700,
-      conversions: 32
+      impressions: 31800,
+      clicks: 1060,
+      views: 3200,
+      conversions: 59
     }
   },
   { 
     date: 'May 18', 
-    impressions: 29900, 
-    clicks: 1495, 
-    views: 4500, 
-    conversions: 157,
+    impressions: 51000, 
+    clicks: 2550, 
+    views: 7650, 
+    conversions: 268,
     authenticated: {
-      impressions: 11960,
-      clicks: 897,
-      views: 2700,
-      conversions: 124
+      impressions: 20400,
+      clicks: 1530,
+      views: 4590,
+      conversions: 211
     },
     nonAuthenticated: {
-      impressions: 17940,
-      clicks: 598,
-      views: 1800,
-      conversions: 33
+      impressions: 30600,
+      clicks: 1020,
+      views: 3060,
+      conversions: 57
     }
   }
 ];
@@ -378,135 +377,135 @@ export const monthlyMarketingData: MarketingMetricItem[] = [
 export const quarterlyMarketingData: MarketingMetricItem[] = [
   { 
     date: 'Feb 20', 
-    impressions: 12000, 
-    clicks: 600, 
-    views: 1800, 
-    conversions: 63,
+    impressions: 185000, 
+    clicks: 9250, 
+    views: 27750, 
+    conversions: 971,
     authenticated: {
-      impressions: 4800,
-      clicks: 360,
-      views: 1080,
-      conversions: 49
+      impressions: 74000,
+      clicks: 5550,
+      views: 16650,
+      conversions: 765
     },
     nonAuthenticated: {
-      impressions: 7200,
-      clicks: 240,
-      views: 720,
-      conversions: 14
+      impressions: 111000,
+      clicks: 3700,
+      views: 11100,
+      conversions: 206
     }
   },
   { 
     date: 'Mar 5', 
-    impressions: 14500, 
-    clicks: 725, 
-    views: 2175, 
-    conversions: 76,
+    impressions: 196000, 
+    clicks: 9800, 
+    views: 29400, 
+    conversions: 1029,
     authenticated: {
-      impressions: 5800,
-      clicks: 435,
-      views: 1305,
-      conversions: 60
+      impressions: 78400,
+      clicks: 5880,
+      views: 17640,
+      conversions: 810
     },
     nonAuthenticated: {
-      impressions: 8700,
-      clicks: 290,
-      views: 870,
-      conversions: 16
+      impressions: 117600,
+      clicks: 3920,
+      views: 11760,
+      conversions: 219
     }
   },
   { 
     date: 'Mar 20', 
-    impressions: 17000, 
-    clicks: 850, 
-    views: 2550, 
-    conversions: 89,
+    impressions: 170000, 
+    clicks: 8500, 
+    views: 25500, 
+    conversions: 893,
     authenticated: {
-      impressions: 6800,
-      clicks: 510,
-      views: 1530,
-      conversions: 70
+      impressions: 68000,
+      clicks: 5100,
+      views: 15300,
+      conversions: 703
     },
     nonAuthenticated: {
-      impressions: 10200,
-      clicks: 340,
-      views: 1020,
-      conversions: 19
+      impressions: 102000,
+      clicks: 3400,
+      views: 10200,
+      conversions: 190
     }
   },
   { 
     date: 'Apr 5', 
-    impressions: 19500, 
-    clicks: 975, 
-    views: 2925, 
-    conversions: 102,
+    impressions: 210000, 
+    clicks: 10500, 
+    views: 31500, 
+    conversions: 1103,
     authenticated: {
-      impressions: 7800,
-      clicks: 585,
-      views: 1755,
-      conversions: 80
+      impressions: 84000,
+      clicks: 6300,
+      views: 18900,
+      conversions: 869
     },
     nonAuthenticated: {
-      impressions: 11700,
-      clicks: 390,
-      views: 1170,
-      conversions: 22
+      impressions: 126000,
+      clicks: 4200,
+      views: 12600,
+      conversions: 234
     }
   },
   { 
     date: 'Apr 20', 
-    impressions: 22000, 
-    clicks: 1100, 
-    views: 3300, 
-    conversions: 115,
+    impressions: 220000, 
+    clicks: 11000, 
+    views: 33000, 
+    conversions: 1155,
     authenticated: {
-      impressions: 8800,
-      clicks: 660,
-      views: 1980,
-      conversions: 91
+      impressions: 88000,
+      clicks: 6600,
+      views: 19800,
+      conversions: 909
     },
     nonAuthenticated: {
-      impressions: 13200,
-      clicks: 440,
-      views: 1320,
-      conversions: 24
+      impressions: 132000,
+      clicks: 4400,
+      views: 13200,
+      conversions: 246
     }
   },
   { 
     date: 'May 5', 
-    impressions: 24500, 
-    clicks: 1225, 
-    views: 3675, 
-    conversions: 128,
+    impressions: 245000, 
+    clicks: 12250, 
+    views: 36750, 
+    conversions: 1286,
     authenticated: {
-      impressions: 9800,
-      clicks: 735,
-      views: 2205,
-      conversions: 101
+      impressions: 98000,
+      clicks: 7350,
+      views: 22050,
+      conversions: 1012
     },
     nonAuthenticated: {
-      impressions: 14700,
-      clicks: 490,
-      views: 1470,
-      conversions: 27
+      impressions: 147000,
+      clicks: 4900,
+      views: 14700,
+      conversions: 274
     }
   },
   { 
     date: 'May 20', 
-    impressions: 27000, 
-    clicks: 1350, 
-    views: 4050, 
-    conversions: 141,
+    impressions: 270000, 
+    clicks: 13500, 
+    views: 40500, 
+    conversions: 1418,
     authenticated: {
-      impressions: 10800,
-      clicks: 810,
-      views: 2430,
-      conversions: 111
+      impressions: 108000,
+      clicks: 8100,
+      views: 24300,
+      conversions: 1117
     },
     nonAuthenticated: {
-      impressions: 16200,
-      clicks: 540,
-      views: 1620,
-      conversions: 30
+      impressions: 162000,
+      clicks: 5400,
+      views: 16200,
+      conversions: 301
     }
   }
 ];
