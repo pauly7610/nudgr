@@ -1,0 +1,4 @@
+project_id = "nykvaozegqidulsgqrfg"
+
+[functions.analyze-friction]
+verify_jwt = false
