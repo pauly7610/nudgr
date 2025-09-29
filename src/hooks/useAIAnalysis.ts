@@ -27,11 +27,20 @@ export const useAIAnalysis = () => {
           description: "Insights have been generated successfully.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error analyzing with AI:', error);
+      
+      const errorMessage = error?.message || "Failed to generate AI insights.";
+      let title = "Analysis Failed";
+      
+      // Handle rate limiting specifically
+      if (errorMessage.includes('Rate limit exceeded') || errorMessage.includes('429')) {
+        title = "Rate Limit Exceeded";
+      }
+      
       toast({
-        title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to generate AI insights.",
+        title,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

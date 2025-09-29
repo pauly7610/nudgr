@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { checkRateLimit, getRateLimitHeaders } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,33 @@ serve(async (req) => {
   }
 
   try {
+    // Get identifier from IP or authorization header
+    const identifier = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                      req.headers.get('authorization')?.split(' ')[1] || 
+                      'anonymous';
+
+    // Check rate limit (10 requests per minute)
+    const rateLimitResult = await checkRateLimit(identifier, 'analyze-friction', {
+      maxRequests: 10,
+      windowMs: 60000
+    });
+
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded. Please try again later.',
+          resetAt: rateLimitResult.resetAt 
+        }), 
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            ...getRateLimitHeaders(rateLimitResult),
+            'Content-Type': 'application/json' 
+          },
+        }
+      );
+    }
     const { frictionData, analysisType } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
@@ -80,7 +108,11 @@ serve(async (req) => {
     const analysis = data.choices?.[0]?.message?.content;
 
     return new Response(JSON.stringify({ analysis }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { 
+        ...corsHeaders, 
+        ...getRateLimitHeaders(rateLimitResult),
+        "Content-Type": "application/json" 
+      },
     });
   } catch (error) {
     console.error("Error in analyze-friction function:", error);
