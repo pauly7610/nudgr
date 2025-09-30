@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from '@/components/ui/sidebar';
-import { BarChart2, Activity, Map, Settings, Users, Home, Library, Plug, BookOpen, Shield } from 'lucide-react';
+import { BarChart2, Activity, Map, Settings, Users, Home, Library, Plug, BookOpen, Shield, ShieldCheck } from 'lucide-react';
 import { UserProfileButton } from './UserProfileButton';
 
 export const SidebarNav: React.FC = () => {
@@ -92,6 +92,14 @@ export const SidebarNav: React.FC = () => {
                   <Link to="/monitoring" className="flex items-center">
                     <Shield className="mr-3 h-4 w-4" />
                     <span>Monitoring</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className={location.pathname === '/security' ? 'bg-sidebar-accent' : ''}>
+                  <Link to="/security" className="flex items-center">
+                    <ShieldCheck className="mr-3 h-4 w-4" />
+                    <span>Security</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

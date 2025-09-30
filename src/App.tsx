@@ -20,6 +20,7 @@ import { OnboardingGuide } from './components/onboarding/OnboardingGuide';
 import { useAnalytics } from './hooks/useAnalytics';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { MonitoringDashboard } from './components/monitoring/MonitoringDashboard';
+import { SecurityDashboard } from './components/security/SecurityDashboard';
 
 function App() {
   useAnalytics();
@@ -44,6 +45,7 @@ function App() {
           <Route path="integrations" element={<Integrations />} />
           <Route path="user-cohorts" element={<UserCohorts />} />
           <Route path="monitoring" element={<MonitoringDashboard />} />
+          <Route path="security" element={<SecurityDashboard />} />
           <Route path="pricing" element={<Pricing />} />
           <Route path="*" element={<NotFound />} />
         </Route>
