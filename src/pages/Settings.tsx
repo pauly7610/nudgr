@@ -3,6 +3,7 @@ import { DashboardHeader } from '@/components/DashboardHeader';
 import { Separator } from '@/components/ui/separator';
 import { APIKeysManager } from '@/components/settings/APIKeysManager';
 import { SlackIntegration } from '@/components/alerts/SlackIntegration';
+import { DemoModeToggle } from '@/components/settings/DemoModeToggle';
 
 const Settings = () => {
   return (
@@ -11,6 +12,10 @@ const Settings = () => {
       
       <div className="container py-8 space-y-12 max-w-4xl">
         <APIKeysManager />
+        
+        <Separator />
+        
+        <DemoModeToggle />
         
         <Separator />
         
