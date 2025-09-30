@@ -64,6 +64,45 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          allowed_domains: string[] | null
+          api_key: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          key_name: string
+          last_used_at: string | null
+          metadata: Json | null
+          rate_limit_per_minute: number | null
+          user_id: string
+        }
+        Insert: {
+          allowed_domains?: string[] | null
+          api_key: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          key_name: string
+          last_used_at?: string | null
+          metadata?: Json | null
+          rate_limit_per_minute?: number | null
+          user_id: string
+        }
+        Update: {
+          allowed_domains?: string[] | null
+          api_key?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          key_name?: string
+          last_used_at?: string | null
+          metadata?: Json | null
+          rate_limit_per_minute?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       cohorts: {
         Row: {
           created_at: string
@@ -259,6 +298,7 @@ export type Database = {
           id: string
           metadata: Json | null
           page_url: string
+          screenshot_url: string | null
           session_id: string
           severity_score: number
           timestamp: string
@@ -272,6 +312,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           page_url: string
+          screenshot_url?: string | null
           session_id: string
           severity_score: number
           timestamp?: string
@@ -285,6 +326,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           page_url?: string
+          screenshot_url?: string | null
           session_id?: string
           severity_score?: number
           timestamp?: string

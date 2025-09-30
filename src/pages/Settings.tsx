@@ -6,13 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { APIKeysManager } from '@/components/settings/APIKeysManager';
 
 const Settings = () => {
   return (
     <>
-      <DashboardHeader title="Settings" description="Configure dashboard preferences and notifications" />
+      <DashboardHeader title="Settings" description="Configure dashboard preferences, API keys, and notifications" />
       
-      <div className="container py-8 space-y-12 max-w-3xl">
+      <div className="container py-8 space-y-12 max-w-4xl">
+        <APIKeysManager />
+        
+        <Separator />
         <div>
           <h2 className="text-xl font-semibold mb-6">Alert Settings</h2>
           <div className="space-y-6">
