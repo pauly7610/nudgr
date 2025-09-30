@@ -4,6 +4,9 @@ import { Separator } from '@/components/ui/separator';
 import { APIKeysManager } from '@/components/settings/APIKeysManager';
 import { SlackIntegration } from '@/components/alerts/SlackIntegration';
 import { DemoModeToggle } from '@/components/settings/DemoModeToggle';
+import { TeamCollaboration } from '@/components/settings/TeamCollaboration';
+import { ABTestManager } from '@/components/testing/ABTestManager';
+import { APIAccessDocs } from '@/components/api/APIAccessDocs';
 
 const Settings = () => {
   return (
@@ -12,6 +15,18 @@ const Settings = () => {
       
       <div className="container py-8 space-y-12 max-w-4xl">
         <APIKeysManager />
+        
+        <Separator />
+        
+        <APIAccessDocs />
+        
+        <Separator />
+        
+        <TeamCollaboration />
+        
+        <Separator />
+        
+        <ABTestManager />
         
         <Separator />
         

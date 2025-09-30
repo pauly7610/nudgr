@@ -83,6 +83,33 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Mobile responsive improvements */
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    
+    /* Make cards stack on mobile */
+    .grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Adjust text sizes for mobile */
+    h1 {
+      font-size: 1.5rem;
+    }
+    
+    h2 {
+      font-size: 1.25rem;
+    }
+
+    /* Make tables scrollable on mobile */
+    .table-container {
+      overflow-x: auto;
+    }
+  }
 }
 
 @layer base {
