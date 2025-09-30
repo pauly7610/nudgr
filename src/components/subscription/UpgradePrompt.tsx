@@ -15,14 +15,14 @@ const TIER_INFO = {
   professional: {
     icon: Zap,
     name: 'Professional',
-    price: '$99/month',
+    price: '$149/month',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
   },
   enterprise: {
     icon: Crown,
     name: 'Enterprise',
-    price: '$299/month',
+    price: '$499/month',
     color: 'text-purple-500',
     bgColor: 'bg-purple-500/10',
   },

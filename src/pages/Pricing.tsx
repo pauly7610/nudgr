@@ -28,7 +28,7 @@ const PRICING_TIERS = [
   {
     name: 'Professional',
     tier: 'professional',
-    price: '$99',
+    price: '$149',
     description: 'Advanced analytics for growing teams',
     icon: Zap,
     features: [
@@ -48,7 +48,7 @@ const PRICING_TIERS = [
   {
     name: 'Enterprise',
     tier: 'enterprise',
-    price: '$299',
+    price: '$499',
     description: 'Custom solutions for large organizations',
     icon: Crown,
     features: [
