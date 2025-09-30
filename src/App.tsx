@@ -16,8 +16,11 @@ import Documentation from './pages/Documentation';
 import './App.css';
 import { Outlet } from 'react-router-dom';
 import { OnboardingGuide } from './components/onboarding/OnboardingGuide';
+import { useAnalytics } from './hooks/useAnalytics';
 
 function App() {
+  useAnalytics();
+  
   return (
     <ErrorBoundary>
       <CommandPalette />

@@ -12,6 +12,7 @@ import { WebhookTester } from '@/components/testing/WebhookTester';
 import { SDKDebugger } from '@/components/testing/SDKDebugger';
 import { DataRetentionPolicy } from '@/components/settings/DataRetentionPolicy';
 import { SettingsImportExport } from '@/components/settings/SettingsImportExport';
+import { SampleDataGenerator } from '@/components/testing/SampleDataGenerator';
 
 const Settings = () => {
   return (
@@ -56,6 +57,10 @@ const Settings = () => {
         <Separator />
         
         <DemoModeToggle />
+        
+        <Separator />
+        
+        <SampleDataGenerator />
         
         <Separator />
         
