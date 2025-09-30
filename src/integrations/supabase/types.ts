@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_tests: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+          variants: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+          variants?: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+          variants?: Json
+        }
+        Relationships: []
+      }
       alerts_config: {
         Row: {
           alert_type: string
@@ -303,6 +336,7 @@ export type Database = {
           severity_score: number
           timestamp: string
           user_action: string | null
+          variant_id: string | null
         }
         Insert: {
           created_at?: string
@@ -317,6 +351,7 @@ export type Database = {
           severity_score: number
           timestamp?: string
           user_action?: string | null
+          variant_id?: string | null
         }
         Update: {
           created_at?: string
@@ -331,6 +366,7 @@ export type Database = {
           severity_score?: number
           timestamp?: string
           user_action?: string | null
+          variant_id?: string | null
         }
         Relationships: [
           {
@@ -668,6 +704,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      team_members: {
+        Row: {
+          id: string
+          invited_at: string | null
+          joined_at: string | null
+          member_email: string
+          member_user_id: string | null
+          role: string
+          status: string
+          team_owner_id: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string | null
+          joined_at?: string | null
+          member_email: string
+          member_user_id?: string | null
+          role?: string
+          status?: string
+          team_owner_id: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string | null
+          joined_at?: string | null
+          member_email?: string
+          member_user_id?: string | null
+          role?: string
+          status?: string
+          team_owner_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
