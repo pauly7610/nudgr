@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from '@/components/ui/sidebar';
 import { BarChart2, Activity, Map, Settings, Users, Home, Library } from 'lucide-react';
+import { UserProfileButton } from './UserProfileButton';
 
 export const SidebarNav: React.FC = () => {
   const location = useLocation();
@@ -82,6 +83,11 @@ export const SidebarNav: React.FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t p-4">
+        <div className="flex items-center gap-3">
+          <UserProfileButton />
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 };
