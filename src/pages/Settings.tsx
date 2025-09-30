@@ -7,6 +7,11 @@ import { DemoModeToggle } from '@/components/settings/DemoModeToggle';
 import { TeamCollaboration } from '@/components/settings/TeamCollaboration';
 import { ABTestManager } from '@/components/testing/ABTestManager';
 import { APIAccessDocs } from '@/components/api/APIAccessDocs';
+import { SystemHealth } from '@/components/system/SystemHealth';
+import { WebhookTester } from '@/components/testing/WebhookTester';
+import { SDKDebugger } from '@/components/testing/SDKDebugger';
+import { DataRetentionPolicy } from '@/components/settings/DataRetentionPolicy';
+import { SettingsImportExport } from '@/components/settings/SettingsImportExport';
 
 const Settings = () => {
   return (
@@ -14,11 +19,31 @@ const Settings = () => {
       <DashboardHeader title="Settings" description="Configure dashboard preferences, API keys, and notifications" />
       
       <div className="container py-8 space-y-12 max-w-4xl">
+        <SystemHealth />
+        
+        <Separator />
+        
+        <SettingsImportExport />
+        
+        <Separator />
+        
         <APIKeysManager />
         
         <Separator />
         
+        <SDKDebugger />
+        
+        <Separator />
+        
+        <WebhookTester />
+        
+        <Separator />
+        
         <APIAccessDocs />
+        
+        <Separator />
+        
+        <DataRetentionPolicy />
         
         <Separator />
         

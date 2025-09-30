@@ -9,6 +9,7 @@ import { DashboardWidgetConfig } from '@/components/dashboard/DashboardWidgetCon
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TestTube, Users, Zap, Activity } from 'lucide-react';
+import { RateLimitWarning } from '@/components/system/RateLimitWarning';
 
 const Index = () => {
   return (
@@ -19,6 +20,8 @@ const Index = () => {
       >
         <DashboardWidgetConfig />
       </DashboardHeader>
+      
+      <RateLimitWarning />
       
       <div className="space-y-6">
         <Tabs defaultValue="overview" className="w-full">

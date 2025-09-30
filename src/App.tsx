@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { CommandPalette } from './components/CommandPalette';
 import Index from './pages/Index';
 import JourneyMap from './pages/JourneyMap';
 import Metrics from './pages/Metrics';
@@ -17,7 +19,8 @@ import { OnboardingGuide } from './components/onboarding/OnboardingGuide';
 
 function App() {
   return (
-    <>
+    <ErrorBoundary>
+      <CommandPalette />
       <OnboardingGuide />
       <Routes>
         <Route path="/auth" element={<Auth />} />
@@ -36,7 +39,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
-    </>
+    </ErrorBoundary>
   );
 }
 
