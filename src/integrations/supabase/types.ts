@@ -538,6 +538,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      upsert_heatmap_data: {
+        Args: {
+          p_element_selector: string
+          p_friction_score: number
+          p_interaction_type: string
+          p_page_url: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
