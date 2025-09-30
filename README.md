@@ -351,6 +351,7 @@ npm run build
 - [Installation Guide](./docs/INSTALLATION.md) - Detailed installation instructions
 - [API Reference](./docs/API_DOCUMENTATION.md) - Complete API documentation
 - [Architecture](./docs/ARCHITECTURE.md) - System architecture overview
+- [Monitoring](./docs/MONITORING.md) - Error tracking, performance monitoring, analytics
 - [Testing Guide](./README.test.md) - Testing best practices
 - [Phase 2: Analytics](./docs/PHASE_2_ANALYTICS.md) - Advanced analytics features
 - [Phase 3: AI & Realtime](./docs/PHASE_3_AI_REALTIME.md) - AI integration guide

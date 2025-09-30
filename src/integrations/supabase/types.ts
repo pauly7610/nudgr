@@ -97,6 +97,39 @@ export type Database = {
           },
         ]
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          event_properties: Json | null
+          id: string
+          page_url: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          event_properties?: Json | null
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          event_properties?: Json | null
+          id?: string
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           allowed_domains: string[] | null
@@ -223,6 +256,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      error_logs: {
+        Row: {
+          component_name: string | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          metadata: Json | null
+          page_url: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_name?: string | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          error_type: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_name?: string | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       export_jobs: {
         Row: {
@@ -521,6 +602,39 @@ export type Database = {
           page_url?: string
           total_page_views?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_value: number
+          page_url: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_value: number
+          page_url: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_value?: number
+          page_url?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -894,6 +1008,30 @@ export type Database = {
       get_current_usage: {
         Args: { _usage_type: string; _user_id: string }
         Returns: number
+      }
+      get_error_statistics: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          critical_errors: number
+          error_rate: number
+          total_errors: number
+          unresolved_errors: number
+        }[]
+      }
+      get_performance_statistics: {
+        Args: {
+          p_end_date: string
+          p_metric_name: string
+          p_start_date: string
+        }
+        Returns: {
+          avg_value: number
+          max_value: number
+          min_value: number
+          p50_value: number
+          p95_value: number
+          p99_value: number
+        }[]
       }
       get_user_role: {
         Args: { _user_id: string }

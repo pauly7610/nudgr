@@ -13,13 +13,17 @@ import UserCohorts from './pages/UserCohorts';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
 import Documentation from './pages/Documentation';
+import Pricing from './pages/Pricing';
 import './App.css';
 import { Outlet } from 'react-router-dom';
 import { OnboardingGuide } from './components/onboarding/OnboardingGuide';
 import { useAnalytics } from './hooks/useAnalytics';
+import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
+import { MonitoringDashboard } from './components/monitoring/MonitoringDashboard';
 
 function App() {
   useAnalytics();
+  usePerformanceMonitor();
   
   return (
     <ErrorBoundary>
@@ -39,6 +43,8 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="integrations" element={<Integrations />} />
           <Route path="user-cohorts" element={<UserCohorts />} />
+          <Route path="monitoring" element={<MonitoringDashboard />} />
+          <Route path="pricing" element={<Pricing />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

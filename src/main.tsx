@@ -7,6 +7,10 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import App from './App.tsx'
 import './index.css'
+import { errorTracker } from './lib/errorTracker'
+
+// Initialize error tracking
+errorTracker.setUserId(null);
 
 const queryClient = new QueryClient()
 
