@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts_config: {
+        Row: {
+          alert_type: string
+          conditions: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          name: string
+          notification_channels: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          conditions: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name: string
+          notification_channels?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          conditions?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          name?: string
+          notification_channels?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_config_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cohorts: {
         Row: {
           created_at: string
@@ -51,6 +101,110 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dashboard_configs: {
+        Row: {
+          created_at: string
+          description: string | null
+          filters: Json | null
+          id: string
+          is_default: boolean | null
+          is_shared: boolean | null
+          layout: Json
+          name: string
+          shared_with_roles: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          filters?: Json | null
+          id?: string
+          is_default?: boolean | null
+          is_shared?: boolean | null
+          layout?: Json
+          name: string
+          shared_with_roles?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          filters?: Json | null
+          id?: string
+          is_default?: boolean | null
+          is_shared?: boolean | null
+          layout?: Json
+          name?: string
+          shared_with_roles?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_configs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_analytics: {
+        Row: {
+          abandonment_count: number | null
+          abandonment_rate: number | null
+          avg_time_to_complete_ms: number | null
+          common_error_messages: Json | null
+          created_at: string
+          date_bucket: string
+          error_rate: number | null
+          field_name: string
+          field_type: string | null
+          form_selector: string
+          id: string
+          page_url: string
+          total_errors: number | null
+          total_interactions: number | null
+          updated_at: string
+        }
+        Insert: {
+          abandonment_count?: number | null
+          abandonment_rate?: number | null
+          avg_time_to_complete_ms?: number | null
+          common_error_messages?: Json | null
+          created_at?: string
+          date_bucket?: string
+          error_rate?: number | null
+          field_name: string
+          field_type?: string | null
+          form_selector: string
+          id?: string
+          page_url: string
+          total_errors?: number | null
+          total_interactions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          abandonment_count?: number | null
+          abandonment_rate?: number | null
+          avg_time_to_complete_ms?: number | null
+          common_error_messages?: Json | null
+          created_at?: string
+          date_bucket?: string
+          error_rate?: number | null
+          field_name?: string
+          field_type?: string | null
+          form_selector?: string
+          id?: string
+          page_url?: string
+          total_errors?: number | null
+          total_interactions?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       friction_events: {
         Row: {
@@ -101,6 +255,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      heatmap_data: {
+        Row: {
+          avg_duration_ms: number | null
+          created_at: string
+          date_bucket: string
+          element_selector: string
+          friction_score: number | null
+          id: string
+          interaction_count: number | null
+          interaction_type: string
+          page_url: string
+          total_duration_ms: number | null
+          updated_at: string
+          viewport_height: number | null
+          viewport_width: number | null
+          x_position: number | null
+          y_position: number | null
+        }
+        Insert: {
+          avg_duration_ms?: number | null
+          created_at?: string
+          date_bucket?: string
+          element_selector: string
+          friction_score?: number | null
+          id?: string
+          interaction_count?: number | null
+          interaction_type: string
+          page_url: string
+          total_duration_ms?: number | null
+          updated_at?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+          x_position?: number | null
+          y_position?: number | null
+        }
+        Update: {
+          avg_duration_ms?: number | null
+          created_at?: string
+          date_bucket?: string
+          element_selector?: string
+          friction_score?: number | null
+          id?: string
+          interaction_count?: number | null
+          interaction_type?: string
+          page_url?: string
+          total_duration_ms?: number | null
+          updated_at?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+          x_position?: number | null
+          y_position?: number | null
+        }
+        Relationships: []
+      }
+      page_performance_metrics: {
+        Row: {
+          avg_first_contentful_paint_ms: number | null
+          avg_load_time_ms: number | null
+          avg_time_on_page_seconds: number | null
+          avg_time_to_interactive_ms: number | null
+          bounce_rate: number | null
+          created_at: string
+          date_bucket: string
+          exit_rate: number | null
+          id: string
+          page_url: string
+          total_page_views: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_first_contentful_paint_ms?: number | null
+          avg_load_time_ms?: number | null
+          avg_time_on_page_seconds?: number | null
+          avg_time_to_interactive_ms?: number | null
+          bounce_rate?: number | null
+          created_at?: string
+          date_bucket?: string
+          exit_rate?: number | null
+          id?: string
+          page_url: string
+          total_page_views?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_first_contentful_paint_ms?: number | null
+          avg_load_time_ms?: number | null
+          avg_time_on_page_seconds?: number | null
+          avg_time_to_interactive_ms?: number | null
+          bounce_rate?: number | null
+          created_at?: string
+          date_bucket?: string
+          exit_rate?: number | null
+          id?: string
+          page_url?: string
+          total_page_views?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -153,6 +406,42 @@ export type Database = {
           identifier?: string
           request_count?: number | null
           window_start?: string | null
+        }
+        Relationships: []
+      }
+      scroll_depth_analytics: {
+        Row: {
+          avg_scroll_percentage: number
+          bounce_at_percentage: number | null
+          created_at: string
+          date_bucket: string
+          id: string
+          max_scroll_percentage: number
+          page_url: string
+          total_sessions: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_scroll_percentage: number
+          bounce_at_percentage?: number | null
+          created_at?: string
+          date_bucket?: string
+          id?: string
+          max_scroll_percentage: number
+          page_url: string
+          total_sessions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_scroll_percentage?: number
+          bounce_at_percentage?: number | null
+          created_at?: string
+          date_bucket?: string
+          id?: string
+          max_scroll_percentage?: number
+          page_url?: string
+          total_sessions?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
