@@ -2,3 +2,12 @@ project_id = "nykvaozegqidulsgqrfg"
 
 [functions.analyze-friction]
 verify_jwt = false
+
+[functions.detect-friction]
+verify_jwt = true
+
+[functions.score-friction]
+verify_jwt = false
+
+[functions.realtime-dashboard]
+verify_jwt = true
