@@ -348,6 +348,7 @@ npm run build
 
 ## 📚 Additional Documentation
 
+- **[Pre-Launch Checklist](./docs/PRE_LAUNCH_CHECKLIST.md)** ⭐ - **Ready to go live? Start here!**
 - [Installation Guide](./docs/INSTALLATION.md) - Detailed installation instructions
 - [API Reference](./docs/API_DOCUMENTATION.md) - Complete API documentation
 - [Architecture](./docs/ARCHITECTURE.md) - System architecture overview
