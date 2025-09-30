@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -16,6 +16,29 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Validate API key
+    const apiKey = req.headers.get('x-api-key');
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing API key' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify API key
+    const { data: keyData, error: keyError } = await supabase
+      .from('api_keys')
+      .select('id, is_active, user_id')
+      .eq('api_key', apiKey)
+      .maybeSingle();
+
+    if (keyError || !keyData || !keyData.is_active) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or inactive API key' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -54,6 +77,8 @@ serve(async (req) => {
         .update({ screenshot_url: publicUrl })
         .eq('id', eventId);
     }
+
+    console.log('Screenshot uploaded:', fileName);
 
     return new Response(
       JSON.stringify({ 

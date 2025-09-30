@@ -7,54 +7,18 @@ import { useFileStorage } from "@/hooks/useFileStorage";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SessionReplayPlayer } from "./SessionReplayPlayer";
 
 export const RecordingsManager = () => {
   const { user } = useAuth();
   const { useRecordings } = useFileStorage();
   const { data: recordings, isLoading } = useRecordings(user?.id || '');
   const [selectedRecording, setSelectedRecording] = useState<any>(null);
-  const [playbackData, setPlaybackData] = useState<any>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const loadRecording = async (recording: any) => {
-    setSelectedRecording(recording);
-    try {
-      const response = await fetch(
-        `https://nykvaozegqidulsgqrfg.supabase.co/storage/v1/object/public/session-recordings/${recording.storage_path}`
-      );
-      const data = await response.json();
-      setPlaybackData(data);
-    } catch (error) {
-      console.error('Failed to load recording:', error);
-    }
-  };
-
-  const playRecording = () => {
-    if (!playbackData || playbackData.length === 0) return;
-    
-    setIsPlaying(true);
-    
-    // Simple playback simulation
-    let currentIndex = 0;
-    const playInterval = setInterval(() => {
-      if (currentIndex >= playbackData.length) {
-        clearInterval(playInterval);
-        setIsPlaying(false);
-        return;
-      }
-      
-      const event = playbackData[currentIndex];
-      console.log('Playback event:', event);
-      // In a real implementation, you would replay the event here
-      
-      currentIndex++;
-    }, 100);
   };
 
   return (
@@ -122,7 +86,7 @@ export const RecordingsManager = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => loadRecording(recording)}
+                        onClick={() => setSelectedRecording(recording)}
                       >
                         <Play className="h-4 w-4 mr-1" />
                         View
@@ -161,75 +125,21 @@ export const RecordingsManager = () => {
         </CardContent>
       </Card>
 
-      {/* Playback Dialog */}
+      {/* Session Replay Dialog */}
       <Dialog open={!!selectedRecording} onOpenChange={() => setSelectedRecording(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>
               Session Recording - {selectedRecording?.session_id.slice(0, 8)}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            {playbackData ? (
-              <>
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">
-                      {playbackData.length} events captured
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedRecording?.friction_events_count || 0} friction events detected
-                    </p>
-                  </div>
-                  <Button onClick={playRecording} disabled={isPlaying}>
-                    {isPlaying ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Playing...
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-2" />
-                        Replay Session
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <div className="border rounded-lg p-4 max-h-96 overflow-y-auto">
-                  <h4 className="font-medium mb-3">Recording Timeline</h4>
-                  <div className="space-y-2">
-                    {playbackData.slice(0, 50).map((event: any, index: number) => (
-                      <div key={index} className="flex items-start gap-3 text-sm p-2 hover:bg-accent/50 rounded">
-                        <Badge variant="outline" className="text-xs">
-                          {(event.timestamp / 1000).toFixed(2)}s
-                        </Badge>
-                        <div className="flex-1">
-                          <span className="font-medium">{event.type}</span>
-                          {event.target && (
-                            <span className="text-muted-foreground ml-2">
-                              → {event.target}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {playbackData.length > 50 && (
-                      <p className="text-xs text-muted-foreground text-center py-2">
-                        ... and {playbackData.length - 50} more events
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="text-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Loading recording data...</p>
-              </div>
-            )}
-          </div>
+          {selectedRecording && (
+            <SessionReplayPlayer
+              recordingPath={selectedRecording.storage_path}
+              sessionId={selectedRecording.session_id}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>

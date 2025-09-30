@@ -12,9 +12,12 @@
   const API_KEY = script?.getAttribute('data-api-key') || '';
   const ENDPOINT = script?.getAttribute('data-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/ingest-events';
   const UPLOAD_ENDPOINT = script?.getAttribute('data-upload-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/upload-recording';
+  const SCREENSHOT_ENDPOINT = script?.getAttribute('data-screenshot-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/upload-screenshot';
   const BATCH_SIZE = parseInt(script?.getAttribute('data-batch-size') || '10');
   const BATCH_INTERVAL = parseInt(script?.getAttribute('data-batch-interval') || '5000');
   const ENABLE_RECORDING = script?.getAttribute('data-enable-recording') === 'true';
+  const ENABLE_SCREENSHOTS = script?.getAttribute('data-enable-screenshots') === 'true';
+  const SCREENSHOT_ON_FRICTION = script?.getAttribute('data-screenshot-friction') === 'true';
   const RECORDING_MAX_DURATION = parseInt(script?.getAttribute('data-recording-duration') || '300000'); // 5 minutes
   const RECORDING_SAMPLE_RATE = parseFloat(script?.getAttribute('data-sample-rate') || '1.0'); // 100% of sessions
 
@@ -204,12 +207,20 @@
 
   function trackFriction(data) {
     frictionEventCount++;
+    const eventId = generateUUID();
+    
     queueEvent({
       type: 'friction',
       sessionId: SESSION_ID,
       timestamp: Date.now(),
+      eventId,
       data,
     });
+
+    // Capture screenshot if enabled
+    if ((ENABLE_SCREENSHOTS || SCREENSHOT_ON_FRICTION) && data.severityScore >= 7) {
+      captureScreenshot(eventId);
+    }
 
     // Start recording on first friction event if enabled and sampling allows
     if (ENABLE_RECORDING && !isRecording && Math.random() < RECORDING_SAMPLE_RATE) {
@@ -451,6 +462,62 @@
       sendBatch();
     }
   });
+
+  // Screenshot capture using html2canvas
+  async function captureScreenshot(eventId) {
+    try {
+      // Dynamically load html2canvas if not already loaded
+      if (!window.html2canvas) {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.async = true;
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
+      // Capture screenshot
+      const canvas = await window.html2canvas(document.body, {
+        allowTaint: true,
+        useCORS: true,
+        logging: false,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+      });
+
+      // Convert to blob
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+
+        const formData = new FormData();
+        formData.append('file', blob, `screenshot-${eventId}.png`);
+        formData.append('eventId', eventId);
+        formData.append('userId', 'anonymous');
+
+        // Upload screenshot
+        fetch(SCREENSHOT_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'x-api-key': API_KEY,
+          },
+          body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('[FrictionTracker] Screenshot uploaded:', data);
+        })
+        .catch(error => {
+          console.error('[FrictionTracker] Failed to upload screenshot:', error);
+        });
+      }, 'image/png');
+    } catch (error) {
+      console.error('[FrictionTracker] Screenshot capture failed:', error);
+    }
+  }
 
   // Send page view
   trackHeatmap({
