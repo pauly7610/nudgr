@@ -780,6 +780,75 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_limits: {
+        Row: {
+          created_at: string
+          id: string
+          included_amount: number
+          overage_price: number
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          unit: string
+          usage_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          included_amount?: number
+          overage_price?: number
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          unit: string
+          usage_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          included_amount?: number
+          overage_price?: number
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          unit?: string
+          usage_type?: string
+        }
+        Relationships: []
+      }
+      usage_records: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          period_end: string
+          period_start: string
+          unit: string
+          updated_at: string
+          usage_type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          period_end: string
+          period_start: string
+          unit: string
+          updated_at?: string
+          usage_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          period_end?: string
+          period_start?: string
+          unit?: string
+          updated_at?: string
+          usage_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -814,9 +883,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_usage_limit: {
+        Args: { _usage_type: string; _user_id: string }
+        Returns: boolean
+      }
       cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_current_usage: {
+        Args: { _usage_type: string; _user_id: string }
+        Returns: number
       }
       get_user_role: {
         Args: { _user_id: string }

@@ -1,8 +1,9 @@
 import React from 'react';
-import { Check, Zap, Crown, Sparkles } from 'lucide-react';
+import { Check, Zap, Crown, Sparkles, Video, Database, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -134,26 +135,43 @@ const Pricing = () => {
         </div>
 
         <div className="mt-16 max-w-4xl mx-auto">
-          <h3 className="text-2xl font-bold mb-6">Usage-Based Pricing</h3>
+          <h3 className="text-2xl font-bold mb-2">Usage-Based Pricing</h3>
+          <p className="text-muted-foreground mb-6">
+            Pay only for what you use beyond your plan limits. No surprises.
+          </p>
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Session Recordings</CardTitle>
-                <CardDescription>Pay only for what you use</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5" />
+                  Session Recordings
+                </CardTitle>
+                <CardDescription>Metered billing for recordings</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">First 1,000 recordings</span>
-                    <span className="font-semibold">Included in Pro</span>
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">Free Tier</span>
+                      <Badge variant="outline">100 recordings/month</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Hard limit - no overage</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Additional recordings</span>
-                    <span className="font-semibold">$0.10 each</span>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">Professional</span>
+                      <Badge variant="outline">1,000 included</Badge>
+                    </div>
+                    <div className="flex justify-between text-sm mt-2">
+                      <span className="text-muted-foreground">Additional recordings</span>
+                      <span className="font-semibold">$0.10 each</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Enterprise</span>
-                    <span className="font-semibold">Unlimited</span>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Enterprise</span>
+                      <Badge>Unlimited</Badge>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -161,27 +179,55 @@ const Pricing = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Data Storage</CardTitle>
-                <CardDescription>Extended retention periods</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Data Storage
+                </CardTitle>
+                <CardDescription>Flexible storage pricing</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Free: 7 days</span>
-                    <span className="font-semibold">$0</span>
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">Free Tier</span>
+                      <Badge variant="outline">1 GB included</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">7-day retention</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Pro: 90 days</span>
-                    <span className="font-semibold">Included</span>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">Professional</span>
+                      <Badge variant="outline">10 GB included</Badge>
+                    </div>
+                    <div className="flex justify-between text-sm mt-2">
+                      <span className="text-muted-foreground">Additional storage</span>
+                      <span className="font-semibold">$0.05/GB</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">90-day retention</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Enterprise</span>
-                    <span className="font-semibold">Custom</span>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">Enterprise</span>
+                      <Badge variant="outline">100 GB included</Badge>
+                    </div>
+                    <div className="flex justify-between text-sm mt-2">
+                      <span className="text-muted-foreground">Additional storage</span>
+                      <span className="font-semibold">$0.02/GB</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Custom retention</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          <Alert className="mt-6">
+            <TrendingUp className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Transparent Billing:</strong> Track your usage in real-time from the Settings page. 
+              You'll receive alerts when approaching your limits, and overage charges are calculated monthly.
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     </>

@@ -13,6 +13,7 @@ import { SDKDebugger } from '@/components/testing/SDKDebugger';
 import { DataRetentionPolicy } from '@/components/settings/DataRetentionPolicy';
 import { SettingsImportExport } from '@/components/settings/SettingsImportExport';
 import { SampleDataGenerator } from '@/components/testing/SampleDataGenerator';
+import { UsageMetrics } from '@/components/subscription/UsageMetrics';
 
 const Settings = () => {
   return (
@@ -20,6 +21,10 @@ const Settings = () => {
       <DashboardHeader title="Settings" description="Configure dashboard preferences, API keys, and notifications" />
       
       <div className="container py-8 space-y-12 max-w-4xl">
+        <UsageMetrics />
+        
+        <Separator />
+        
         <SystemHealth />
         
         <Separator />
