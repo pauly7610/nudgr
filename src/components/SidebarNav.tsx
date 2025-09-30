@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from '@/components/ui/sidebar';
-import { BarChart2, Activity, Map, Settings, Users, Home, Library } from 'lucide-react';
+import { BarChart2, Activity, Map, Settings, Users, Home, Library, Plug } from 'lucide-react';
 import { UserProfileButton } from './UserProfileButton';
 
 export const SidebarNav: React.FC = () => {
@@ -68,6 +68,14 @@ export const SidebarNav: React.FC = () => {
                   <Link to="/library" className="flex items-center">
                     <Library className="mr-3 h-4 w-4" />
                     <span>Library</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className={location.pathname === '/integrations' ? 'bg-sidebar-accent' : ''}>
+                  <Link to="/integrations" className="flex items-center">
+                    <Plug className="mr-3 h-4 w-4" />
+                    <span>Integrations</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -7,6 +7,7 @@ import JourneyMap from './pages/JourneyMap';
 import Metrics from './pages/Metrics';
 import Library from './pages/Library';
 import Settings from './pages/Settings';
+import Integrations from './pages/Integrations';
 import UserCohorts from './pages/UserCohorts';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
@@ -26,6 +27,7 @@ function App() {
         <Route path="library/journey-mapping" element={<Library />} />
         <Route path="library/technical" element={<Library />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="integrations" element={<Integrations />} />
         <Route path="user-cohorts" element={<UserCohorts />} />
         <Route path="*" element={<NotFound />} />
       </Route>
