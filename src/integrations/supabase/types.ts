@@ -152,6 +152,50 @@ export type Database = {
           },
         ]
       }
+      export_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          export_type: string
+          id: string
+          parameters: Json | null
+          status: string
+          storage_path: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          export_type: string
+          id?: string
+          parameters?: Json | null
+          status?: string
+          storage_path?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          export_type?: string
+          id?: string
+          parameters?: Json | null
+          status?: string
+          storage_path?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_analytics: {
         Row: {
           abandonment_count: number | null
@@ -310,6 +354,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_log: {
+        Row: {
+          alert_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          message: string
+          notification_type: string
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          alert_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message: string
+          notification_type: string
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          alert_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message?: string
+          notification_type?: string
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_log_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "alerts_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_performance_metrics: {
         Row: {
           avg_first_contentful_paint_ms: number | null
@@ -444,6 +535,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      session_recordings: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          file_size_bytes: number | null
+          friction_events_count: number | null
+          id: string
+          metadata: Json | null
+          recording_end: string | null
+          recording_start: string
+          session_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          friction_events_count?: number | null
+          id?: string
+          metadata?: Json | null
+          recording_end?: string | null
+          recording_start: string
+          session_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          friction_events_count?: number | null
+          id?: string
+          metadata?: Json | null
+          recording_end?: string | null
+          recording_start?: string
+          session_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_recordings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sessions: {
         Row: {
