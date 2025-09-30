@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Play, Calendar, User, Eye, AlertCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { FeatureGate } from '@/components/subscription/FeatureGate';
 
 interface JourneySessionProps {
   flow: Flow | null;
@@ -54,7 +55,12 @@ export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
   };
   
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <FeatureGate 
+      feature="sessionRecordings"
+      featureName="Session Recordings"
+      description="Record and replay user sessions to identify friction"
+    >
+      <div className="rounded-lg border bg-card overflow-hidden">
       <div className="bg-muted/50 px-4 py-3 flex items-center justify-between">
         <div>
           <h3 className="font-semibold">User Session Recordings</h3>
@@ -168,5 +174,6 @@ export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
         )}
       </div>
     </div>
+    </FeatureGate>
   );
 };

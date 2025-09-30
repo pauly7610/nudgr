@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { FeatureGate } from '@/components/subscription/FeatureGate';
 
 interface Prediction {
   type: 'friction_increase' | 'conversion_drop' | 'performance_issue' | 'improvement';
@@ -62,7 +63,12 @@ export const PredictiveAnalytics = () => {
   };
 
   return (
-    <Card>
+    <FeatureGate 
+      feature="predictiveAnalytics"
+      featureName="Predictive Analytics"
+      description="Get AI-powered predictions and trend analysis"
+    >
+      <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
@@ -103,5 +109,6 @@ export const PredictiveAnalytics = () => {
         </div>
       </CardContent>
     </Card>
+    </FeatureGate>
   );
 };

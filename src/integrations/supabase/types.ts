@@ -705,6 +705,48 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           id: string
@@ -780,6 +822,17 @@ export type Database = {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_user_subscription_tier: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["subscription_tier"]
+      }
+      has_feature_access: {
+        Args: {
+          _required_tier: Database["public"]["Enums"]["subscription_tier"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -799,6 +852,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
+      subscription_tier: "free" | "professional" | "enterprise"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -927,6 +981,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "analyst", "viewer"],
+      subscription_tier: ["free", "professional", "enterprise"],
     },
   },
 } as const

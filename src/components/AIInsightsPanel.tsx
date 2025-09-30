@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { useAIAnalysis } from '@/hooks/useAIAnalysis';
 import { Badge } from '@/components/ui/badge';
+import { FeatureGate } from '@/components/subscription/FeatureGate';
 
 interface AIInsightsPanelProps {
   frictionData: any;
@@ -19,7 +20,12 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
   const { analyzeWithAI, isAnalyzing, analysis } = useAIAnalysis();
 
   return (
-    <Card className="mt-6">
+    <FeatureGate 
+      feature="aiAnalysis"
+      featureName="AI-Powered Analysis"
+      description="Unlock intelligent recommendations and automated insights"
+    >
+      <Card className="mt-6">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -75,5 +81,6 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
         )}
       </CardContent>
     </Card>
+    </FeatureGate>
   );
 };
