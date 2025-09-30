@@ -1,6 +1,6 @@
 /**
- * Friction Analytics Tracking SDK
- * Embed this script on your website to track user friction events
+ * Friction Analytics Tracking SDK with Session Recording
+ * Embed this script on your website to track user friction events and record sessions
  * Usage: <script src="https://your-domain.com/friction-tracker.js" data-api-key="your-api-key"></script>
  */
 
@@ -11,9 +11,12 @@
   const script = document.currentScript;
   const API_KEY = script?.getAttribute('data-api-key') || '';
   const ENDPOINT = script?.getAttribute('data-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/ingest-events';
+  const UPLOAD_ENDPOINT = script?.getAttribute('data-upload-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/upload-recording';
   const BATCH_SIZE = parseInt(script?.getAttribute('data-batch-size') || '10');
   const BATCH_INTERVAL = parseInt(script?.getAttribute('data-batch-interval') || '5000');
   const ENABLE_RECORDING = script?.getAttribute('data-enable-recording') === 'true';
+  const RECORDING_MAX_DURATION = parseInt(script?.getAttribute('data-recording-duration') || '300000'); // 5 minutes
+  const RECORDING_SAMPLE_RATE = parseFloat(script?.getAttribute('data-sample-rate') || '1.0'); // 100% of sessions
 
   if (!API_KEY) {
     console.error('[FrictionTracker] Missing API key');
@@ -24,6 +27,13 @@
   const SESSION_ID = generateUUID();
   const eventQueue = [];
   let batchTimer;
+
+  // Session recording state
+  let isRecording = false;
+  let recordingData = [];
+  let recordingStartTime = null;
+  let recordingTimer = null;
+  let frictionEventCount = 0;
 
   // Rage click detection
   const clickTracker = new Map();
@@ -193,12 +203,18 @@
   }
 
   function trackFriction(data) {
+    frictionEventCount++;
     queueEvent({
       type: 'friction',
       sessionId: SESSION_ID,
       timestamp: Date.now(),
       data,
     });
+
+    // Start recording on first friction event if enabled and sampling allows
+    if (ENABLE_RECORDING && !isRecording && Math.random() < RECORDING_SAMPLE_RATE) {
+      startRecording();
+    }
   }
 
   function trackHeatmap(data) {
@@ -217,6 +233,182 @@
       timestamp: Date.now(),
       data,
     });
+  }
+
+  // Session Recording Functions
+  function startRecording() {
+    if (isRecording) return;
+    
+    console.log('[FrictionTracker] Starting session recording');
+    isRecording = true;
+    recordingStartTime = Date.now();
+    recordingData = [];
+
+    // Capture initial DOM snapshot
+    captureSnapshot('full');
+
+    // Set up mutation observer for DOM changes
+    const observer = new MutationObserver((mutations) => {
+      if (!isRecording) return;
+      
+      mutations.forEach((mutation) => {
+        recordingData.push({
+          type: 'mutation',
+          timestamp: Date.now() - recordingStartTime,
+          target: getSelector(mutation.target),
+          mutationType: mutation.type,
+          addedNodes: Array.from(mutation.addedNodes).map(n => getNodeInfo(n)),
+          removedNodes: Array.from(mutation.removedNodes).map(n => getNodeInfo(n)),
+        });
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true,
+    });
+
+    // Capture mouse movements (throttled)
+    let lastMouseCapture = 0;
+    const mouseMoveHandler = (e) => {
+      const now = Date.now();
+      if (now - lastMouseCapture < 50) return; // Throttle to 20fps
+      lastMouseCapture = now;
+
+      recordingData.push({
+        type: 'mouse',
+        timestamp: now - recordingStartTime,
+        x: e.clientX,
+        y: e.clientY,
+      });
+    };
+    document.addEventListener('mousemove', mouseMoveHandler);
+
+    // Capture clicks
+    const clickHandler = (e) => {
+      recordingData.push({
+        type: 'click',
+        timestamp: Date.now() - recordingStartTime,
+        x: e.clientX,
+        y: e.clientY,
+        target: getSelector(e.target),
+      });
+    };
+    document.addEventListener('click', clickHandler, true);
+
+    // Capture scrolls
+    const scrollHandler = () => {
+      recordingData.push({
+        type: 'scroll',
+        timestamp: Date.now() - recordingStartTime,
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+      });
+    };
+    window.addEventListener('scroll', scrollHandler);
+
+    // Auto-stop recording after max duration
+    recordingTimer = setTimeout(() => {
+      stopRecording();
+    }, RECORDING_MAX_DURATION);
+
+    // Store handlers for cleanup
+    window.__frictionTrackerHandlers = {
+      observer,
+      mouseMoveHandler,
+      clickHandler,
+      scrollHandler,
+    };
+  }
+
+  function stopRecording() {
+    if (!isRecording) return;
+
+    console.log('[FrictionTracker] Stopping session recording');
+    isRecording = false;
+
+    // Clean up event listeners
+    const handlers = window.__frictionTrackerHandlers;
+    if (handlers) {
+      handlers.observer?.disconnect();
+      document.removeEventListener('mousemove', handlers.mouseMoveHandler);
+      document.removeEventListener('click', handlers.clickHandler, true);
+      window.removeEventListener('scroll', handlers.scrollHandler);
+    }
+
+    clearTimeout(recordingTimer);
+
+    // Upload recording
+    uploadRecording();
+  }
+
+  function captureSnapshot(type) {
+    const snapshot = {
+      type: 'snapshot',
+      snapshotType: type,
+      timestamp: Date.now() - (recordingStartTime || Date.now()),
+      url: window.location.href,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+      html: document.documentElement.outerHTML.substring(0, 50000), // Limit size
+    };
+    recordingData.push(snapshot);
+  }
+
+  function getNodeInfo(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return { type: 'text', content: node.textContent?.substring(0, 100) };
+    }
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      return { 
+        type: 'element', 
+        tag: node.tagName?.toLowerCase(),
+        selector: getSelector(node),
+      };
+    }
+    return { type: 'other' };
+  }
+
+  function uploadRecording() {
+    if (recordingData.length === 0) return;
+
+    const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+    const recordingBlob = new Blob([JSON.stringify(recordingData)], { type: 'application/json' });
+
+    const formData = new FormData();
+    formData.append('file', recordingBlob, `session-${SESSION_ID}.json`);
+    formData.append('sessionId', SESSION_ID);
+    formData.append('userId', 'anonymous'); // Could be enhanced with actual user ID
+    formData.append('metadata', JSON.stringify({
+      duration,
+      pageUrl: window.location.href,
+      userAgent: navigator.userAgent,
+      frictionCount: frictionEventCount,
+      recordingStartTime: new Date(recordingStartTime).toISOString(),
+    }));
+
+    fetch(UPLOAD_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'x-api-key': API_KEY,
+      },
+      body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('[FrictionTracker] Recording uploaded:', data);
+    })
+    .catch(error => {
+      console.error('[FrictionTracker] Failed to upload recording:', error);
+    });
+
+    // Reset recording data
+    recordingData = [];
+    frictionEventCount = 0;
   }
 
   function queueEvent(event) {
@@ -252,6 +444,9 @@
 
   // Send remaining events before page unload
   window.addEventListener('beforeunload', () => {
+    if (isRecording) {
+      stopRecording();
+    }
     if (eventQueue.length > 0) {
       sendBatch();
     }

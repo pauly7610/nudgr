@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -17,11 +17,35 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get and validate API key
+    const apiKey = req.headers.get('x-api-key');
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: 'Missing API key' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: keyData, error: keyError } = await supabase
+      .from('api_keys')
+      .select('user_id')
+      .eq('api_key', apiKey)
+      .eq('is_active', true)
+      .single();
+
+    if (keyError || !keyData) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or inactive API key' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Parse form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const sessionId = formData.get('sessionId') as string;
-    const userId = formData.get('userId') as string;
-    const metadata = JSON.parse(formData.get('metadata') as string || '{}');
+    const metadataStr = formData.get('metadata') as string;
+    const metadata = metadataStr ? JSON.parse(metadataStr) : {};
 
     if (!file || !sessionId) {
       return new Response(
@@ -31,40 +55,45 @@ serve(async (req) => {
     }
 
     // Upload to storage
-    const fileName = `${userId}/${sessionId}_${Date.now()}.webm`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const fileName = `${keyData.user_id}/${sessionId}_${Date.now()}.json`;
+    const { error: uploadError } = await supabase.storage
       .from('session-recordings')
       .upload(fileName, file, {
-        contentType: 'video/webm',
+        contentType: 'application/json',
         upsert: false,
       });
 
     if (uploadError) {
+      console.error('Upload error:', uploadError);
       throw uploadError;
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('session-recordings')
-      .getPublicUrl(fileName);
+    // Insert metadata into database
+    const recordingStart = metadata.recordingStartTime 
+      ? new Date(metadata.recordingStartTime).toISOString()
+      : new Date().toISOString();
 
-    // Insert metadata
     const { data: recordingData, error: dbError } = await supabase
       .from('session_recordings')
       .insert({
         session_id: sessionId,
-        user_id: userId,
         storage_path: fileName,
-        recording_url: publicUrl,
         duration_seconds: metadata.duration || 0,
-        page_url: metadata.pageUrl || '',
-        user_agent: metadata.userAgent || '',
-        friction_count: metadata.frictionCount || 0,
+        friction_events_count: metadata.frictionCount || 0,
+        recording_start: recordingStart,
+        recording_end: new Date().toISOString(),
+        file_size_bytes: file.size,
+        metadata: {
+          pageUrl: metadata.pageUrl,
+          userAgent: metadata.userAgent,
+          capturedBy: keyData.user_id,
+        },
       })
       .select()
       .single();
 
     if (dbError) {
+      console.error('Database error:', dbError);
       throw dbError;
     }
 
