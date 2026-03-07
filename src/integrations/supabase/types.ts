@@ -1001,10 +1001,7 @@ export type Database = {
         Args: { _usage_type: string; _user_id: string }
         Returns: boolean
       }
-      cleanup_old_rate_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_current_usage: {
         Args: { _usage_type: string; _user_id: string }
         Returns: number
