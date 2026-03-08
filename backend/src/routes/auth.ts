@@ -1,13 +1,10 @@
 import bcrypt from "bcryptjs";
 import { createHash, randomUUID } from "node:crypto";
 import type { FastifyPluginAsync } from "fastify";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
-
-type AnalyticsEventPropertiesInput = NonNullable<
-  Parameters<typeof prisma.analyticsEvent.create>[0]["data"]["eventProperties"]
->;
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -89,7 +86,7 @@ const issueRefreshToken = async (app: {
         revoked: false,
         issuedAt: issuedAt.toISOString(),
         expiresAt: expiresAt?.toISOString() ?? null
-      } as AnalyticsEventPropertiesInput
+      } as InputJsonValue
     }
   });
 
@@ -212,7 +209,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
               tokenId: payload.tokenId,
               reason: "not_found",
               detectedAt: new Date().toISOString()
-            } as AnalyticsEventPropertiesInput
+            } as InputJsonValue
           }
         });
         return reply.code(401).send({ message: "Invalid refresh token" });
@@ -228,7 +225,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
               reuseDetected: true,
               reuseDetectedAt: new Date().toISOString(),
               reuseReason: "replay_after_revocation"
-            } as AnalyticsEventPropertiesInput
+            } as InputJsonValue
           }
         });
         return reply.code(401).send({ message: "Refresh token revoked" });
@@ -244,7 +241,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
               revoked: true,
               revokedAt: new Date().toISOString(),
               revokedReason: "expired"
-            } as AnalyticsEventPropertiesInput
+            } as InputJsonValue
           }
         });
         return reply.code(401).send({ message: "Refresh token expired" });
@@ -271,7 +268,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
             revokedAt: new Date().toISOString(),
             revokedReason: "rotation",
             replacedByTokenId: replacementTokenId
-          } as AnalyticsEventPropertiesInput
+          } as InputJsonValue
         }
       });
 
@@ -347,7 +344,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
                   revoked: true,
                   revokedAt: new Date().toISOString(),
                   revokedReason: "logout"
-                } as AnalyticsEventPropertiesInput
+                } as InputJsonValue
               }
             });
           }

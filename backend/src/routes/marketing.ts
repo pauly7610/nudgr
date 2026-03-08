@@ -1,15 +1,15 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 
-type AnalyticsEventCreateManyData = NonNullable<
-  Parameters<typeof prisma.analyticsEvent.createMany>[0]
->["data"];
-type ArrayItem<T> = T extends Array<infer Item> ? Item : T;
-type AnalyticsEventCreateManyInput = ArrayItem<AnalyticsEventCreateManyData>;
-type AnalyticsEventPropertiesInput = NonNullable<
-  Parameters<typeof prisma.analyticsEvent.create>[0]["data"]["eventProperties"]
->;
+type MarketingImportRecord = {
+  userId: string;
+  eventName: string;
+  pageUrl?: string;
+  sessionId?: string;
+  eventProperties: InputJsonValue;
+};
 
 const marketingProviderSchema = z.enum(["ga4", "google_ads", "meta_ads"]);
 
@@ -38,7 +38,7 @@ const toRecord = (
   userId: string,
   provider: z.infer<typeof marketingProviderSchema>,
   event: z.infer<typeof marketingEventSchema>
-): AnalyticsEventCreateManyInput => {
+): MarketingImportRecord => {
   return {
     userId,
     eventName: `marketing_${provider}`,
@@ -58,7 +58,7 @@ const toRecord = (
       importedAt: new Date().toISOString(),
       originalTimestamp: event.timestamp,
       metadata: event.metadata ?? {}
-    } as AnalyticsEventPropertiesInput
+    } as InputJsonValue
   };
 };
 

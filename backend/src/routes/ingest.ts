@@ -1,11 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
 import { uploadObject } from "../lib/storage.js";
-
-type SessionRecordingMetadataInput = Parameters<typeof prisma.sessionRecording.create>[0]["data"]["metadata"];
 
 const ingestEventSchema = z.object({
   type: z.string(),
@@ -356,7 +355,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
           ...(identity.authType === "sdk" ? { ingestApiKeyId: identity.apiKeyId } : {}),
           originalFilename: filePart.filename,
           contentType: filePart.mimetype || "application/octet-stream"
-        } as SessionRecordingMetadataInput
+        } as InputJsonValue
       }
     });
 

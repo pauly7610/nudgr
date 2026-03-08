@@ -1,15 +1,28 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { downloadObject, uploadObject } from "../lib/storage.js";
 import { renderExportPdf } from "../lib/pdfExport.js";
 
-type DashboardLayoutInput = Parameters<typeof prisma.dashboardConfig.create>[0]["data"]["layout"];
-type DashboardFiltersInput = Parameters<typeof prisma.dashboardConfig.create>[0]["data"]["filters"];
-type DashboardConfigUpdateData = Parameters<typeof prisma.dashboardConfig.update>[0]["data"];
-type AlertConditionsInput = Parameters<typeof prisma.alertConfig.create>[0]["data"]["conditions"];
-type AlertConfigUpdateData = Parameters<typeof prisma.alertConfig.update>[0]["data"];
-type ExportJobParametersInput = Parameters<typeof prisma.exportJob.create>[0]["data"]["parameters"];
+type DashboardConfigUpdateData = {
+  name?: string;
+  description?: string | null;
+  isDefault?: boolean;
+  isShared?: boolean;
+  sharedWithRoles?: string[];
+  layout?: InputJsonValue;
+  filters?: InputJsonValue;
+};
+
+type AlertConfigUpdateData = {
+  name?: string;
+  description?: string | null;
+  alertType?: string;
+  notificationChannels?: string[];
+  isActive?: boolean;
+  conditions?: InputJsonValue;
+};
 
 const getUserId = (request: { user?: unknown }): string | null => {
   const payload = request.user as { sub?: string } | undefined;
@@ -200,8 +213,8 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         userId,
         name: parseResult.data.name,
         description: parseResult.data.description,
-        layout: parseResult.data.layout as DashboardLayoutInput,
-        filters: parseResult.data.filters as DashboardFiltersInput,
+        layout: parseResult.data.layout as InputJsonValue,
+        filters: parseResult.data.filters as InputJsonValue,
         isDefault: parseResult.data.isDefault,
         isShared: parseResult.data.isShared,
         sharedWithRoles: parseResult.data.sharedWithRoles
@@ -241,11 +254,11 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
     };
 
     if (parseResult.data.layout !== undefined) {
-      updatedPayload.layout = parseResult.data.layout as DashboardLayoutInput;
+      updatedPayload.layout = parseResult.data.layout as InputJsonValue;
     }
 
     if (parseResult.data.filters !== undefined) {
-      updatedPayload.filters = parseResult.data.filters as DashboardFiltersInput;
+      updatedPayload.filters = parseResult.data.filters as InputJsonValue;
     }
 
     const updated = await prisma.dashboardConfig.update({
@@ -287,7 +300,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         name: parseResult.data.name,
         description: parseResult.data.description,
         alertType: parseResult.data.alertType,
-        conditions: parseResult.data.conditions as AlertConditionsInput,
+        conditions: parseResult.data.conditions as InputJsonValue,
         notificationChannels: parseResult.data.notificationChannels,
         isActive: parseResult.data.isActive
       }
@@ -326,7 +339,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
     };
 
     if (parseResult.data.conditions !== undefined) {
-      updatedPayload.conditions = parseResult.data.conditions as AlertConditionsInput;
+      updatedPayload.conditions = parseResult.data.conditions as InputJsonValue;
     }
 
     const updated = await prisma.alertConfig.update({
@@ -718,7 +731,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         parameters: {
           reportType: parseResult.data.reportType,
           filters: parseResult.data.filters
-        } as ExportJobParametersInput,
+        } as InputJsonValue,
         completedAt: new Date()
       }
     });

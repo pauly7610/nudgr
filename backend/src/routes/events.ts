@@ -1,10 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
+import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
-
-type FrictionEventMetadataInput = Parameters<typeof prisma.frictionEvent.create>[0]["data"]["metadata"];
-type PerformanceMetricMetadataInput = Parameters<typeof prisma.performanceMetric.create>[0]["data"]["metadata"];
-type ErrorLogMetadataInput = Parameters<typeof prisma.errorLog.create>[0]["data"]["metadata"];
 
 const eventSchema = z.object({
   eventType: z.string().min(1),
@@ -70,7 +67,7 @@ export const eventRoutes: FastifyPluginAsync = async (app) => {
         pageUrl: parseResult.data.pageUrl,
         sessionId: parseResult.data.sessionId,
         severityScore: parseResult.data.severityScore,
-        metadata: parseResult.data.metadata as FrictionEventMetadataInput
+        metadata: parseResult.data.metadata as InputJsonValue
       }
     });
 
@@ -95,7 +92,7 @@ export const eventRoutes: FastifyPluginAsync = async (app) => {
         metricValue: parseResult.data.metricValue,
         pageUrl: parseResult.data.pageUrl,
         userAgent: parseResult.data.userAgent,
-        metadata: parseResult.data.metadata as PerformanceMetricMetadataInput
+        metadata: parseResult.data.metadata as InputJsonValue
       }
     });
 
@@ -123,7 +120,7 @@ export const eventRoutes: FastifyPluginAsync = async (app) => {
         pageUrl: parseResult.data.pageUrl,
         userAgent: parseResult.data.userAgent,
         severity: parseResult.data.severity,
-        metadata: parseResult.data.metadata as ErrorLogMetadataInput
+        metadata: parseResult.data.metadata as InputJsonValue
       }
     });
 
