@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { GripVertical, Settings, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
@@ -17,6 +17,7 @@ interface Widget {
 
 const AVAILABLE_WIDGETS: Widget[] = [
   { id: 'friction-summary', name: 'Friction Summary', description: 'Key metrics overview', component: 'StatsCard', enabled: true },
+  { id: 'auth-token-hygiene', name: 'Auth Token Hygiene', description: 'Refresh token security posture', component: 'AuthTokenHygiene', enabled: true },
   { id: 'top-friction', name: 'Top Friction Points', description: 'Most critical friction events', component: 'TopFrictionFunnels', enabled: true },
   { id: 'recent-alerts', name: 'Recent Alerts', description: 'Latest friction alerts', component: 'AlertsFeed', enabled: true },
   { id: 'session-recordings', name: 'Session Recordings', description: 'Recent user sessions', component: 'SessionRecordings', enabled: false },
@@ -40,7 +41,7 @@ export const DashboardWidgetConfig = () => {
     localStorage.setItem('dashboard_widgets', JSON.stringify(updated));
   };
 
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(widgets);
@@ -127,14 +128,4 @@ export const DashboardWidgetConfig = () => {
       </DialogContent>
     </Dialog>
   );
-};
-
-// Hook to get enabled widgets in order
-export const useDashboardWidgets = () => {
-  const [widgets] = useState<Widget[]>(() => {
-    const saved = localStorage.getItem('dashboard_widgets');
-    return saved ? JSON.parse(saved) : AVAILABLE_WIDGETS;
-  });
-
-  return widgets.filter(w => w.enabled);
 };

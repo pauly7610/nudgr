@@ -9,11 +9,14 @@ import { UserCohortCard } from './UserCohortCard';
 import { JourneyFrictionMap } from './JourneyFrictionMap';
 import { FrictionImpactScore } from './FrictionImpactScore';
 import { useFrictionData } from '../hooks/useFrictionData';
-import { BarChart2, Zap, Users } from 'lucide-react';
+import { BarChart2, ShieldAlert, ShieldCheck, Users, Zap } from 'lucide-react';
 import { Alert } from '../data/mockData';
 import { JourneyAnalysisPanel } from './JourneyAnalysisPanel';
 import { SmartActionNudges } from './SmartActionNudges';
 import { SmartTestPlanner } from './testing/SmartTestPlanner';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
+import { useTokenHygieneSummary } from '@/hooks/useTokenHygieneSummary';
 
 export const FrictionDashboard: React.FC = () => {
   const {
@@ -25,6 +28,8 @@ export const FrictionDashboard: React.FC = () => {
     activeAlert,
     setActiveAlert
   } = useFrictionData();
+  const { data: tokenHygieneSummary, isLoading: isTokenHygieneLoading } = useTokenHygieneSummary();
+  const enabledWidgets = useDashboardWidgets();
   
   const [latestAlert, setLatestAlert] = useState<Alert | null>(null);
   const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(new Set());
@@ -48,6 +53,8 @@ export const FrictionDashboard: React.FC = () => {
   }, 0);
   
   const frictionIndex = (totalFrictionEvents / flows.length) * 10;
+  const tokenSummary = tokenHygieneSummary?.summary;
+  const showAuthTokenHygieneWidget = enabledWidgets.some((widget) => widget.id === 'auth-token-hygiene');
   
   // Find active flow
   const activeFlow = flows.find(f => f.id === activeFlowId) || null;
@@ -123,6 +130,69 @@ export const FrictionDashboard: React.FC = () => {
             icon={<Zap className="h-5 w-5 text-primary" />}
           />
         </div>
+
+        {showAuthTokenHygieneWidget && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                <CardTitle>Auth Token Hygiene</CardTitle>
+              </div>
+              <CardDescription>
+                Refresh-token security posture across the last {tokenHygieneSummary?.windowDays ?? 30} days.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isTokenHygieneLoading && (
+                <p className="text-sm text-muted-foreground">Loading auth token metrics...</p>
+              )}
+
+              {!isTokenHygieneLoading && !tokenSummary && (
+                <p className="text-sm text-muted-foreground">
+                  Token hygiene metrics are unavailable right now.
+                </p>
+              )}
+
+              {!isTokenHygieneLoading && tokenSummary && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="rounded-md border p-3 bg-muted/20">
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">Active</div>
+                      <div className="text-2xl font-semibold">{tokenSummary.activeTokens}</div>
+                    </div>
+                    <div className="rounded-md border p-3 bg-muted/20">
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">Revoked</div>
+                      <div className="text-2xl font-semibold">{tokenSummary.revokedTokens}</div>
+                    </div>
+                    <div className="rounded-md border p-3 bg-muted/20">
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">Expired</div>
+                      <div className="text-2xl font-semibold">{tokenSummary.expiredTokens}</div>
+                    </div>
+                    <div className="rounded-md border p-3 bg-muted/20">
+                      <div className="text-xs uppercase tracking-wide text-muted-foreground">Reuse Alerts</div>
+                      <div className="text-2xl font-semibold">{tokenSummary.reuseDetections}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <span>Issued: {tokenSummary.issuedTokens}</span>
+                    <span>Rotated: {tokenSummary.rotatedTokens}</span>
+                    <span>Logout Revocations: {tokenSummary.logoutRevocations}</span>
+                  </div>
+
+                  {tokenSummary.reuseDetections > 0 && (
+                    <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-amber-900">
+                      <ShieldAlert className="h-4 w-4 mt-0.5" />
+                      <p className="text-sm">
+                        Reuse detections indicate attempted replay of old refresh tokens. Investigate unusual sign-in activity.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         
         {/* Main Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
