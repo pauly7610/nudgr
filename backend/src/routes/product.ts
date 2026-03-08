@@ -1,9 +1,15 @@
 import type { FastifyPluginAsync } from "fastify";
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { downloadObject, uploadObject } from "../lib/storage.js";
 import { renderExportPdf } from "../lib/pdfExport.js";
+
+type DashboardLayoutInput = Parameters<typeof prisma.dashboardConfig.create>[0]["data"]["layout"];
+type DashboardFiltersInput = Parameters<typeof prisma.dashboardConfig.create>[0]["data"]["filters"];
+type DashboardConfigUpdateData = Parameters<typeof prisma.dashboardConfig.update>[0]["data"];
+type AlertConditionsInput = Parameters<typeof prisma.alertConfig.create>[0]["data"]["conditions"];
+type AlertConfigUpdateData = Parameters<typeof prisma.alertConfig.update>[0]["data"];
+type ExportJobParametersInput = Parameters<typeof prisma.exportJob.create>[0]["data"]["parameters"];
 
 const getUserId = (request: { user?: unknown }): string | null => {
   const payload = request.user as { sub?: string } | undefined;
@@ -194,8 +200,8 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         userId,
         name: parseResult.data.name,
         description: parseResult.data.description,
-        layout: parseResult.data.layout as Prisma.InputJsonValue,
-        filters: parseResult.data.filters as Prisma.InputJsonValue,
+        layout: parseResult.data.layout as DashboardLayoutInput,
+        filters: parseResult.data.filters as DashboardFiltersInput,
         isDefault: parseResult.data.isDefault,
         isShared: parseResult.data.isShared,
         sharedWithRoles: parseResult.data.sharedWithRoles
@@ -226,7 +232,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(404).send({ message: "Dashboard config not found" });
     }
 
-    const updatedPayload: Prisma.DashboardConfigUpdateInput = {
+    const updatedPayload: DashboardConfigUpdateData = {
       name: parseResult.data.name,
       description: parseResult.data.description,
       isDefault: parseResult.data.isDefault,
@@ -235,11 +241,11 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
     };
 
     if (parseResult.data.layout !== undefined) {
-      updatedPayload.layout = parseResult.data.layout as Prisma.InputJsonValue;
+      updatedPayload.layout = parseResult.data.layout as DashboardLayoutInput;
     }
 
     if (parseResult.data.filters !== undefined) {
-      updatedPayload.filters = parseResult.data.filters as Prisma.InputJsonValue;
+      updatedPayload.filters = parseResult.data.filters as DashboardFiltersInput;
     }
 
     const updated = await prisma.dashboardConfig.update({
@@ -281,7 +287,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         name: parseResult.data.name,
         description: parseResult.data.description,
         alertType: parseResult.data.alertType,
-        conditions: parseResult.data.conditions as Prisma.InputJsonValue,
+        conditions: parseResult.data.conditions as AlertConditionsInput,
         notificationChannels: parseResult.data.notificationChannels,
         isActive: parseResult.data.isActive
       }
@@ -311,7 +317,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(404).send({ message: "Alert not found" });
     }
 
-    const updatedPayload: Prisma.AlertConfigUpdateInput = {
+    const updatedPayload: AlertConfigUpdateData = {
       name: parseResult.data.name,
       description: parseResult.data.description,
       alertType: parseResult.data.alertType,
@@ -320,7 +326,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
     };
 
     if (parseResult.data.conditions !== undefined) {
-      updatedPayload.conditions = parseResult.data.conditions as Prisma.InputJsonValue;
+      updatedPayload.conditions = parseResult.data.conditions as AlertConditionsInput;
     }
 
     const updated = await prisma.alertConfig.update({
@@ -586,7 +592,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
       orderBy: { recordingStart: "desc" }
     });
 
-    return reply.send(recordings.map((recording) => ({
+    return reply.send(recordings.map((recording: (typeof recordings)[number]) => ({
       id: recording.id,
       session_id: recording.sessionId,
       storage_path: recording.storagePath,
@@ -608,7 +614,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
       orderBy: { createdAt: "desc" }
     });
 
-    return reply.send(jobs.map((job) => ({
+    return reply.send(jobs.map((job: (typeof jobs)[number]) => ({
       id: job.id,
       export_type: job.exportType,
       created_at: job.createdAt.toISOString(),
@@ -678,9 +684,9 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
       .slice(0, 10);
 
     const averageSeverity = events.length > 0
-      ? events.reduce((acc, event) => acc + event.severityScore, 0) / events.length
+      ? events.reduce((acc: number, event: (typeof events)[number]) => acc + event.severityScore, 0) / events.length
       : 0;
-    const criticalErrors = errors.filter((error) => error.severity === "critical").length;
+    const criticalErrors = errors.filter((error: (typeof errors)[number]) => error.severity === "critical").length;
 
     const pdfContent = await renderExportPdf({
       reportType: parseResult.data.reportType,
@@ -712,7 +718,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         parameters: {
           reportType: parseResult.data.reportType,
           filters: parseResult.data.filters
-        } as Prisma.InputJsonValue,
+        } as ExportJobParametersInput,
         completedAt: new Date()
       }
     });
