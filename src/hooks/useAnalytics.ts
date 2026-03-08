@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 
 interface AnalyticsEvent {
   event_name: string;
@@ -17,18 +17,19 @@ export const useAnalytics = () => {
 
   const trackPageView = async (path: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      await supabase.from('friction_events').insert({
-        event_type: 'page_view',
-        page_url: path,
-        session_id: getSessionId(),
-        severity_score: 0,
+      await apiRequest<{ id: string; createdAt: string }>('/events', {
+        method: 'POST',
+        body: JSON.stringify({
+          eventType: 'page_view',
+          pageUrl: path,
+          sessionId: getSessionId(),
+          severityScore: 0,
         metadata: {
           timestamp: new Date().toISOString(),
           referrer: document.referrer,
-          user_id: user?.id,
+            source: 'frontend',
         },
+        }),
       });
     } catch (error) {
       console.error('Analytics tracking error:', error);
@@ -37,18 +38,19 @@ export const useAnalytics = () => {
 
   const trackEvent = async ({ event_name, properties }: AnalyticsEvent) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      await supabase.from('friction_events').insert({
-        event_type: event_name,
-        page_url: location.pathname,
-        session_id: getSessionId(),
-        severity_score: 0,
+      await apiRequest<{ id: string; createdAt: string }>('/events', {
+        method: 'POST',
+        body: JSON.stringify({
+          eventType: event_name,
+          pageUrl: location.pathname,
+          sessionId: getSessionId(),
+          severityScore: 0,
         metadata: {
           ...properties,
           timestamp: new Date().toISOString(),
-          user_id: user?.id,
+            source: 'frontend',
         },
+        }),
       });
     } catch (error) {
       console.error('Analytics tracking error:', error);

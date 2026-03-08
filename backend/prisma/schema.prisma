@@ -1,0 +1,385 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionTier {
+  free
+  professional
+  enterprise
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile          Profile?
+  subscriptions    Subscription[]
+  apiKeys          ApiKey[]
+  usageRecords     UsageRecord[]
+  dashboardConfigs DashboardConfig[]
+  alertConfigs     AlertConfig[]
+  abTests          AbTest[]
+  ownedTeamMembers TeamMember[]      @relation("TeamOwnerMembers")
+  memberTeams      TeamMember[]      @relation("TeamUserMembership")
+  exportJobs       ExportJob[]
+  analyticsEvents  AnalyticsEvent[]
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String           @id @default(uuid())
+  userId               String
+  tier                 SubscriptionTier @default(free)
+  status               String           @default("active")
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model ApiKey {
+  id             String    @id @default(uuid())
+  userId         String
+  keyName        String
+  keyHash        String    @unique
+  keyPrefix      String
+  isActive       Boolean   @default(true)
+  allowedDomains String[]
+  lastUsedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+}
+
+model UsageRecord {
+  id          String   @id @default(uuid())
+  userId      String
+  usageType   String
+  amount      Int
+  unit        String
+  periodStart DateTime
+  periodEnd   DateTime
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, usageType, periodStart])
+}
+
+model UsageLimit {
+  id             String           @id @default(uuid())
+  tier           SubscriptionTier
+  usageType      String
+  includedAmount Int
+  overagePrice   Decimal          @db.Decimal(10, 2)
+  unit           String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@unique([tier, usageType])
+}
+
+model FrictionEvent {
+  id            String   @id @default(uuid())
+  userId        String?
+  eventType     String
+  pageUrl       String
+  sessionId     String
+  severityScore Int      @default(0)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([userId, createdAt])
+}
+
+model PerformanceMetric {
+  id          String   @id @default(uuid())
+  userId      String?
+  metricName  String
+  metricValue Float
+  pageUrl     String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([metricName, createdAt])
+}
+
+model ErrorLog {
+  id            String   @id @default(uuid())
+  userId        String?
+  errorType     String
+  errorMessage  String
+  errorStack    String?
+  componentName String?
+  pageUrl       String?
+  userAgent     String?
+  severity      String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([severity, createdAt])
+}
+
+model RateLimit {
+  id           String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  identifier   String
+  endpoint     String
+  requestCount Int      @default(1)
+  windowStart  DateTime @default(now()) @db.Timestamptz
+  createdAt    DateTime @default(now()) @db.Timestamptz
+
+  @@unique([identifier, endpoint])
+  @@index([identifier, endpoint])
+  @@index([windowStart])
+}
+
+model HeatmapData {
+  id               String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  pageUrl          String
+  elementSelector  String
+  interactionType  String
+  xPosition        Int?
+  yPosition        Int?
+  viewportWidth    Int?
+  viewportHeight   Int?
+  interactionCount Int      @default(1)
+  totalDurationMs  Int      @default(0)
+  avgDurationMs    Int?
+  frictionScore    Int      @default(0)
+  dateBucket       DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  createdAt        DateTime @default(now()) @db.Timestamptz
+  updatedAt        DateTime @default(now()) @db.Timestamptz
+
+  @@unique([pageUrl, elementSelector, interactionType, dateBucket])
+  @@index([pageUrl])
+  @@index([dateBucket(sort: Desc)])
+  @@index([interactionType])
+  @@index([frictionScore(sort: Desc)])
+}
+
+model ScrollDepthAnalytics {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  pageUrl             String
+  maxScrollPercentage Int
+  avgScrollPercentage Int
+  bounceAtPercentage  Int?
+  totalSessions       Int      @default(1)
+  dateBucket          DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  createdAt           DateTime @default(now()) @db.Timestamptz
+  updatedAt           DateTime @default(now()) @db.Timestamptz
+
+  @@index([pageUrl])
+  @@index([dateBucket(sort: Desc)])
+}
+
+model PagePerformanceMetric {
+  id                        String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  pageUrl                   String
+  avgLoadTimeMs             Int?
+  avgTimeToInteractiveMs    Int?
+  avgFirstContentfulPaintMs Int?
+  totalPageViews            Int      @default(1)
+  bounceRate                Decimal? @db.Decimal(5, 2)
+  avgTimeOnPageSeconds      Int?
+  exitRate                  Decimal? @db.Decimal(5, 2)
+  dateBucket                DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  createdAt                 DateTime @default(now()) @db.Timestamptz
+  updatedAt                 DateTime @default(now()) @db.Timestamptz
+
+  @@index([pageUrl])
+  @@index([dateBucket(sort: Desc)])
+}
+
+model FormAnalytics {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  pageUrl             String
+  formSelector        String
+  fieldName           String
+  fieldType           String?
+  totalInteractions   Int      @default(0)
+  totalErrors         Int      @default(0)
+  errorRate           Decimal? @db.Decimal(5, 2)
+  avgTimeToCompleteMs Int?
+  abandonmentCount    Int      @default(0)
+  abandonmentRate     Decimal? @db.Decimal(5, 2)
+  commonErrorMessages Json     @default("[]")
+  dateBucket          DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  createdAt           DateTime @default(now()) @db.Timestamptz
+  updatedAt           DateTime @default(now()) @db.Timestamptz
+
+  @@index([pageUrl])
+  @@index([errorRate(sort: Desc)])
+  @@index([dateBucket(sort: Desc)])
+}
+
+model DashboardConfig {
+  id              String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId          String
+  name            String
+  description     String?
+  layout          Json     @default("[]")
+  filters         Json     @default("{}")
+  isDefault       Boolean  @default(false)
+  isShared        Boolean  @default(false)
+  sharedWithRoles String[] @default([])
+  createdAt       DateTime @default(now()) @db.Timestamptz
+  updatedAt       DateTime @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isDefault])
+}
+
+model AlertConfig {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId               String
+  name                 String
+  description          String?
+  alertType            String
+  conditions           Json
+  notificationChannels Json      @default("[\"email\"]")
+  isActive             Boolean   @default(true)
+  lastTriggeredAt      DateTime? @db.Timestamptz
+  createdAt            DateTime  @default(now()) @db.Timestamptz
+  updatedAt            DateTime  @default(now()) @db.Timestamptz
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationLogs NotificationLog[]
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model AbTest {
+  id          String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId      String
+  name        String
+  description String?
+  variants    Json     @default("[]")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model TeamMember {
+  id           String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  teamOwnerId  String
+  memberEmail  String
+  memberUserId String?
+  role         String    @default("viewer")
+  status       String    @default("pending")
+  invitedAt    DateTime  @default(now()) @db.Timestamptz
+  joinedAt     DateTime? @db.Timestamptz
+
+  teamOwner  User  @relation("TeamOwnerMembers", fields: [teamOwnerId], references: [id], onDelete: Cascade)
+  memberUser User? @relation("TeamUserMembership", fields: [memberUserId], references: [id], onDelete: SetNull)
+
+  @@unique([teamOwnerId, memberEmail])
+  @@index([teamOwnerId])
+  @@index([memberUserId])
+}
+
+model SessionRecording {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  sessionId           String
+  storagePath         String
+  durationSeconds     Int?
+  fileSizeBytes       BigInt?
+  recordingStart      DateTime  @db.Timestamptz
+  recordingEnd        DateTime? @db.Timestamptz
+  frictionEventsCount Int       @default(0)
+  metadata            Json      @default("{}")
+  createdAt           DateTime  @default(now()) @db.Timestamptz
+
+  @@index([sessionId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model ExportJob {
+  id           String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId       String
+  exportType   String
+  status       String    @default("pending")
+  storagePath  String?
+  parameters   Json      @default("{}")
+  errorMessage String?
+  createdAt    DateTime  @default(now()) @db.Timestamptz
+  completedAt  DateTime? @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+}
+
+model NotificationLog {
+  id               String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  alertId          String?
+  notificationType String
+  recipient        String
+  subject          String?
+  message          String
+  status           String    @default("pending")
+  errorMessage     String?
+  sentAt           DateTime? @db.Timestamptz
+  createdAt        DateTime  @default(now()) @db.Timestamptz
+
+  alert AlertConfig? @relation(fields: [alertId], references: [id], onDelete: SetNull)
+
+  @@index([alertId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model AnalyticsEvent {
+  id              String   @id @default(dbgenerated("gen_random_uuid()::text"))
+  userId          String?
+  eventName       String
+  eventProperties Json     @default("{}")
+  pageUrl         String?
+  sessionId       String?
+  userAgent       String?
+  createdAt       DateTime @default(now()) @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([eventName])
+  @@index([createdAt(sort: Desc)])
+}

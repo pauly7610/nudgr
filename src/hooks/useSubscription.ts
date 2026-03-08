@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useAuth } from './useAuth';
 
 export type SubscriptionTier = 'free' | 'professional' | 'enterprise';
 
 export interface Subscription {
   id: string;
-  user_id: string;
+  userId: string;
   tier: SubscriptionTier;
   status: string;
-  stripe_customer_id?: string;
-  stripe_subscription_id?: string;
-  current_period_start?: string;
-  current_period_end?: string;
-  cancel_at_period_end: boolean;
-  created_at: string;
-  updated_at: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const FEATURE_ACCESS = {
@@ -52,15 +52,8 @@ export const useSubscription = () => {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as Subscription | null;
+      const response = await apiRequest<{ subscription: Subscription | null }>('/subscription');
+      return response.subscription;
     },
     enabled: !!user?.id,
   });

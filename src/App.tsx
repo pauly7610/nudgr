@@ -31,7 +31,18 @@ function App() {
       <CommandPalette />
       <OnboardingGuide />
       <Routes>
-        <Route path="/" element={<Layout><Outlet /></Layout>}>
+        <Route path="/auth" element={<Auth />} />
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Outlet />
+              </Layout>
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Index />} />
           <Route path="journey-map" element={<JourneyMap />} />
           <Route path="metrics" element={<Metrics />} />

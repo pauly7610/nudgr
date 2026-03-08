@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Frontend typecheck
+        run: npm run typecheck
+
+      - name: Backend typecheck
+        run: npm run typecheck --prefix backend
+
+      - name: Backend auth-guard tests
+        run: npm test --prefix backend
+
+      - name: Frontend realtime hook regression test
+        run: npm test -- --run src/hooks/__tests__/useRealtimeDashboard.test.ts
+
+      - name: Build frontend
+        run: npm run build

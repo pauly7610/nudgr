@@ -8,9 +8,9 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Webhook, Mail, Bell, AlertCircle } from 'lucide-react';
+import { MessageSquare, Webhook, Mail, Bell } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface AlertConfig {
@@ -28,6 +28,26 @@ interface AlertConfig {
   notification_channels: string[];
   is_active: boolean;
 }
+
+interface AlertConfigApi {
+  id: string;
+  name: string;
+  description?: string;
+  alertType: string;
+  conditions: AlertConfig['conditions'];
+  notificationChannels: string[];
+  isActive: boolean;
+}
+
+const toUiModel = (alert: AlertConfigApi): AlertConfig => ({
+  id: alert.id,
+  name: alert.name,
+  description: alert.description,
+  alert_type: alert.alertType,
+  conditions: alert.conditions,
+  notification_channels: alert.notificationChannels,
+  is_active: alert.isActive,
+});
 
 export const SlackIntegration = () => {
   const { user } = useAuth();
@@ -53,13 +73,13 @@ export const SlackIntegration = () => {
     queryKey: ['alert-configs', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('alerts_config')
-        .select('*')
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      return data as AlertConfig[];
+
+      try {
+        const data = await apiRequest<AlertConfigApi[]>('/alerts');
+        return data.map(toUiModel);
+      } catch {
+        return [];
+      }
     },
     enabled: !!user?.id,
   });
@@ -67,25 +87,22 @@ export const SlackIntegration = () => {
   const saveAlertMutation = useMutation({
     mutationFn: async (config: Partial<AlertConfig>) => {
       if (!user?.id) throw new Error('No user');
-      
-      const payload: any = {
+
+      const payload = {
         name: config.name || '',
         description: config.description,
-        alert_type: config.alert_type || 'friction',
+        alertType: config.alert_type || 'friction',
         conditions: config.conditions || {},
-        notification_channels: config.notification_channels || [],
-        is_active: config.is_active ?? false,
-        user_id: user.id,
+        notificationChannels: config.notification_channels || [],
+        isActive: config.is_active ?? false,
       };
 
-      const { data, error } = await supabase
-        .from('alerts_config')
-        .insert([payload])
-        .select()
-        .single();
+      const data = await apiRequest<AlertConfigApi>('/alerts', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alert-configs'] });

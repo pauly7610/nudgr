@@ -1,6 +1,32 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/apiClient";
+
+interface FileStoragePayload {
+  file: File;
+  sessionId?: string;
+  eventId?: string;
+  userId: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface RecordingSummary {
+  id: string;
+  session_id: string;
+  storage_path: string;
+  recording_start: string;
+  duration_seconds: number;
+  friction_events_count: number;
+  metadata?: Record<string, unknown> | null;
+}
+
+export interface ExportJob {
+  id: string;
+  export_type: string;
+  created_at: string;
+  status: string;
+  storage_path?: string | null;
+}
 
 export const useFileStorage = () => {
   const uploadRecording = useMutation({
@@ -13,7 +39,7 @@ export const useFileStorage = () => {
       file: File; 
       sessionId: string; 
       userId: string; 
-      metadata: any 
+      metadata: Record<string, unknown> 
     }) => {
       const formData = new FormData();
       formData.append('file', file);
@@ -21,12 +47,10 @@ export const useFileStorage = () => {
       formData.append('userId', userId);
       formData.append('metadata', JSON.stringify(metadata));
 
-      const { data, error } = await supabase.functions.invoke('upload-recording', {
+      return apiRequest<{ ok: boolean; message?: string; recordingUrl?: string }>('/api/upload-recording', {
+        method: 'POST',
         body: formData,
       });
-
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       toast({
@@ -58,12 +82,10 @@ export const useFileStorage = () => {
       if (eventId) formData.append('eventId', eventId);
       formData.append('userId', userId);
 
-      const { data, error } = await supabase.functions.invoke('upload-screenshot', {
+      return apiRequest<{ ok: boolean; message?: string; screenshotUrl?: string }>('/api/upload-screenshot', {
+        method: 'POST',
         body: formData,
       });
-
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       toast({
@@ -87,15 +109,13 @@ export const useFileStorage = () => {
       userId 
     }: { 
       reportType: string; 
-      filters: any; 
+      filters: Record<string, unknown>; 
       userId: string 
     }) => {
-      const { data, error } = await supabase.functions.invoke('export-pdf', {
-        body: { reportType, filters, userId },
+      return apiRequest<{ downloadUrl?: string; ok?: boolean }>('/api/export-pdf', {
+        method: 'POST',
+        body: JSON.stringify({ reportType, filters, userId }),
       });
-
-      if (error) throw error;
-      return data;
     },
     onSuccess: (data) => {
       toast({
@@ -121,13 +141,12 @@ export const useFileStorage = () => {
       queryKey: ['recordings', userId],
       queryFn: async () => {
         if (!userId) return [];
-        const { data, error } = await supabase
-          .from('session_recordings')
-          .select('*')
-          .order('recording_start', { ascending: false });
 
-        if (error) throw error;
-        return data;
+        try {
+          return await apiRequest<RecordingSummary[]>(`/recordings?userId=${encodeURIComponent(userId)}`);
+        } catch {
+          return [];
+        }
       },
     });
   };
@@ -137,13 +156,12 @@ export const useFileStorage = () => {
       queryKey: ['export-jobs', userId],
       queryFn: async () => {
         if (!userId) return [];
-        const { data, error } = await supabase
-          .from('export_jobs')
-          .select('*')
-          .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        return data;
+        try {
+          return await apiRequest<ExportJob[]>(`/export-jobs?userId=${encodeURIComponent(userId)}`);
+        } catch {
+          return [];
+        }
       },
     });
   };

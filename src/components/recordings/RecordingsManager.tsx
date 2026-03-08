@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Video, Play, Download, Loader2, Calendar, Clock, MapPin } from "lucide-react";
 import { format } from "date-fns";
-import { useFileStorage } from "@/hooks/useFileStorage";
+import { type RecordingSummary, useFileStorage } from "@/hooks/useFileStorage";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,7 +13,15 @@ export const RecordingsManager = () => {
   const { user } = useAuth();
   const { useRecordings } = useFileStorage();
   const { data: recordings, isLoading } = useRecordings(user?.id || '');
-  const [selectedRecording, setSelectedRecording] = useState<any>(null);
+  const [selectedRecording, setSelectedRecording] = useState<RecordingSummary | null>(null);
+
+  const getRecordingDownloadUrl = (path: string) => {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, '');
+    return `${baseUrl}/recordings/${encodeURIComponent(path.replace(/^\/+/, ''))}`;
+  };
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -76,7 +84,11 @@ export const RecordingsManager = () => {
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="h-3 w-3" />
                           <span className="truncate max-w-md">
-                            {(recording.metadata as any).pageUrl || 'Unknown page'}
+                            {(() => {
+                              const metadata = recording.metadata as Record<string, unknown>;
+                              const pageUrl = metadata.pageUrl;
+                              return typeof pageUrl === 'string' ? pageUrl : 'Unknown page';
+                            })()}
                           </span>
                         </div>
                       )}
@@ -96,7 +108,7 @@ export const RecordingsManager = () => {
                         variant="outline"
                         onClick={() => {
                           const link = document.createElement('a');
-                          link.href = `https://nykvaozegqidulsgqrfg.supabase.co/storage/v1/object/public/session-recordings/${recording.storage_path}`;
+                          link.href = getRecordingDownloadUrl(recording.storage_path);
                           link.download = `session-${recording.session_id}.json`;
                           link.click();
                         }}

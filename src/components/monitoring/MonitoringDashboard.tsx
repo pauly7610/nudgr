@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,12 +9,48 @@ import { Button } from '@/components/ui/button';
 import {
   AlertTriangle,
   Activity,
-  TrendingUp,
   CheckCircle,
   XCircle,
   RefreshCw,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+
+interface FrictionEvent {
+  id: string;
+  eventType: string;
+  createdAt: string;
+  severityScore: number;
+  metadata?: Record<string, unknown>;
+}
+
+interface PerformanceMetric {
+  id: string;
+  metricName: string;
+  metricValue: number;
+  createdAt: string;
+}
+
+interface ErrorLog {
+  id: string;
+  severity: string;
+  errorType: string;
+  errorMessage: string;
+  componentName?: string | null;
+  createdAt: string;
+}
+
+interface MetricsResponse {
+  events: FrictionEvent[];
+  performance: PerformanceMetric[];
+  errors: ErrorLog[];
+}
+
+interface ErrorStats {
+  total_errors: number;
+  critical_errors: number;
+  unresolved_errors: number;
+  error_rate: number;
+}
 
 export const MonitoringDashboard = () => {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
@@ -35,16 +71,22 @@ export const MonitoringDashboard = () => {
     queryKey: ['error-stats', timeRange],
     queryFn: async () => {
       const startDate = getTimeRangeDate().toISOString();
-      const endDate = new Date().toISOString();
 
-      const { data, error } = await supabase
-        .rpc('get_error_statistics', {
-          p_start_date: startDate,
-          p_end_date: endDate,
-        });
+      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const errorsInRange = data.errors.filter((error) => error.createdAt >= startDate);
+      const criticalErrors = errorsInRange.filter((error) => error.severity === 'critical').length;
+      const unresolvedErrors = errorsInRange.filter((error) => error.severity !== 'low').length;
 
-      if (error) throw error;
-      return data?.[0] || { total_errors: 0, critical_errors: 0, unresolved_errors: 0, error_rate: 0 };
+      const stats: ErrorStats = {
+        total_errors: errorsInRange.length,
+        critical_errors: criticalErrors,
+        unresolved_errors: unresolvedErrors,
+        error_rate: data.events.length > 0
+          ? (errorsInRange.length / data.events.length) * 100
+          : 0,
+      };
+
+      return stats;
     },
   });
 
@@ -54,15 +96,11 @@ export const MonitoringDashboard = () => {
     queryFn: async () => {
       const startDate = getTimeRangeDate().toISOString();
 
-      const { data, error } = await supabase
-        .from('error_logs')
-        .select('*')
-        .gte('created_at', startDate)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      return data;
+      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      return data.errors
+        .filter((error) => error.createdAt >= startDate)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 10);
     },
   });
 
@@ -72,23 +110,18 @@ export const MonitoringDashboard = () => {
     queryFn: async () => {
       const startDate = getTimeRangeDate().toISOString();
 
-      const { data, error } = await supabase
-        .from('performance_metrics')
-        .select('*')
-        .gte('created_at', startDate)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
+      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const filtered = data.performance.filter((metric) => metric.createdAt >= startDate);
       
       // Aggregate by metric name
-      const aggregated: Record<string, any[]> = {};
-      data?.forEach((metric: any) => {
-        if (!aggregated[metric.metric_name]) {
-          aggregated[metric.metric_name] = [];
+      const aggregated: Record<string, Array<{ timestamp: string; value: number }>> = {};
+      filtered.forEach((metric) => {
+        if (!aggregated[metric.metricName]) {
+          aggregated[metric.metricName] = [];
         }
-        aggregated[metric.metric_name].push({
-          timestamp: new Date(metric.created_at).toLocaleTimeString(),
-          value: Number(metric.metric_value),
+        aggregated[metric.metricName].push({
+          timestamp: new Date(metric.createdAt).toLocaleTimeString(),
+          value: Number(metric.metricValue),
         });
       });
 
@@ -102,17 +135,13 @@ export const MonitoringDashboard = () => {
     queryFn: async () => {
       const startDate = getTimeRangeDate().toISOString();
 
-      const { data, error } = await supabase
-        .from('analytics_events')
-        .select('event_name')
-        .gte('created_at', startDate);
-
-      if (error) throw error;
+      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const events = data.events.filter((event) => event.createdAt >= startDate);
 
       // Count events by name
       const eventCounts: Record<string, number> = {};
-      data?.forEach((event: any) => {
-        eventCounts[event.event_name] = (eventCounts[event.event_name] || 0) + 1;
+      events.forEach((event) => {
+        eventCounts[event.eventType] = (eventCounts[event.eventType] || 0) + 1;
       });
 
       return Object.entries(eventCounts).map(([name, count]) => ({
@@ -123,7 +152,7 @@ export const MonitoringDashboard = () => {
   });
 
   const getSeverityColor = (severity: string) => {
-    const colors = {
+    const colors: Record<string, string> = {
       low: 'bg-blue-500',
       medium: 'bg-yellow-500',
       high: 'bg-orange-500',
@@ -227,7 +256,7 @@ export const MonitoringDashboard = () => {
             <CardContent>
               <div className="space-y-3">
                 {recentErrors && recentErrors.length > 0 ? (
-                  recentErrors.map((error: any) => (
+                  recentErrors.map((error) => (
                     <Alert key={error.id}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -235,14 +264,14 @@ export const MonitoringDashboard = () => {
                             <Badge className={getSeverityColor(error.severity)}>
                               {error.severity}
                             </Badge>
-                            <span className="font-medium">{error.error_type}</span>
+                            <span className="font-medium">{error.errorType}</span>
                           </div>
                           <AlertDescription className="text-sm">
-                            {error.error_message}
+                            {error.errorMessage}
                           </AlertDescription>
                           <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                            <span>{error.component_name || 'Unknown'}</span>
-                            <span>{new Date(error.created_at).toLocaleString()}</span>
+                            <span>{error.componentName || 'Unknown'}</span>
+                            <span>{new Date(error.createdAt).toLocaleString()}</span>
                           </div>
                         </div>
                       </div>

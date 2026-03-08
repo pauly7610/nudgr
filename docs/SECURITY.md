@@ -17,8 +17,8 @@ Comprehensive security documentation for the Friction Analytics Platform.
 
 The platform implements multiple layers of security:
 
-1. **Authentication**: Supabase Auth with JWT tokens
-2. **Authorization**: Row Level Security (RLS) policies
+1. **Authentication**: Fastify JWT access + refresh token model
+2. **Authorization**: Route-level auth guards and scoped ownership checks
 3. **Input Validation**: Zod schema validation
 4. **XSS Prevention**: Automatic output escaping
 5. **CSRF Protection**: Token-based protection
@@ -60,16 +60,18 @@ if (!result.success) {
 - **Logout**: Clears all session data
 
 ```typescript
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest, setAccessToken } from '@/lib/apiClient';
 
 // Login
-const { data, error } = await supabase.auth.signInWithPassword({
-  email,
-  password,
+const session = await apiRequest('/auth/login', {
+  method: 'POST',
+  body: JSON.stringify({ email, password }),
 });
+setAccessToken(session.accessToken);
 
 // Logout
-await supabase.auth.signOut();
+await apiRequest('/auth/logout', { method: 'POST' });
+setAccessToken(null);
 ```
 
 ### Multi-Factor Authentication (MFA)
@@ -173,11 +175,8 @@ const form = useForm({
 // ❌ WRONG - Never concatenate user input in queries
 const query = `SELECT * FROM users WHERE email = '${userEmail}'`;
 
-// ✅ CORRECT - Use Supabase client methods
-const { data, error } = await supabase
-  .from('users')
-  .select('*')
-  .eq('email', userEmail);
+// ✅ CORRECT - Use parameterized ORM/query builder access
+const user = await prisma.user.findUnique({ where: { email: userEmail } });
 ```
 
 ### XSS Prevention
@@ -363,8 +362,8 @@ catch (error) {
 ### 3. Password Storage
 
 ```typescript
-// ✅ DO: Let Supabase handle password hashing
-await supabase.auth.signUp({ email, password });
+// ✅ DO: Use bcrypt/argon hashing on the backend
+const passwordHash = await bcrypt.hash(password, 12);
 
 // ❌ DON'T: Implement your own password hashing
 const hashed = sha256(password); // Insecure!
@@ -373,11 +372,11 @@ const hashed = sha256(password); // Insecure!
 ### 4. Session Management
 
 ```typescript
-// ✅ DO: Use Supabase session management
-const { data: { session } } = await supabase.auth.getSession();
+// ✅ DO: Use short-lived access tokens + refresh rotation
+const refreshed = await apiRequest('/auth/refresh', { method: 'POST' });
 
-// ❌ DON'T: Store tokens in localStorage
-localStorage.setItem('token', jwt); // Vulnerable to XSS
+// ❌ DON'T: Keep long-lived bearer tokens unrotated on the client
+localStorage.setItem('token', jwt); // Prefer rotated/short-lived strategy
 ```
 
 ### 5. Input Validation
@@ -425,10 +424,10 @@ HAVING COUNT(*) > 5;
 
 ```typescript
 // Immediately revoke compromised key
-await supabase
-  .from('api_keys')
-  .update({ is_active: false })
-  .eq('api_key', compromisedKey);
+await apiRequest(`/api-keys/${compromisedKeyId}`, {
+  method: 'PATCH',
+  body: JSON.stringify({ isActive: false }),
+});
 
 // Generate new key for user
 const newKey = generateAPIKey();
@@ -480,7 +479,7 @@ const newKey = generateAPIKey();
 ## Resources
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [Supabase Security Docs](https://supabase.com/docs/guides/auth/row-level-security)
+- [Fastify Security Best Practices](https://fastify.dev/docs/latest/Guides/Recommendations/)
 - [React Security Best Practices](https://snyk.io/blog/10-react-security-best-practices/)
 - [Web Security Checklist](https://www.w3.org/TR/security-checklist/)
 

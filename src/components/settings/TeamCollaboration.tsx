@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Users, Mail, UserPlus, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 
@@ -19,6 +19,22 @@ interface TeamMember {
   invited_at: string;
 }
 
+interface TeamMemberApi {
+  id: string;
+  memberEmail: string;
+  role: string;
+  status: string;
+  invitedAt: string;
+}
+
+const toUiModel = (member: TeamMemberApi): TeamMember => ({
+  id: member.id,
+  member_email: member.memberEmail,
+  role: member.role,
+  status: member.status,
+  invited_at: member.invitedAt,
+});
+
 export const TeamCollaboration = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -29,14 +45,13 @@ export const TeamCollaboration = () => {
     queryKey: ['team-members', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('team_owner_id', user.id)
-        .order('invited_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as TeamMember[];
+
+      try {
+        const data = await apiRequest<TeamMemberApi[]>('/team-members');
+        return data.map(toUiModel);
+      } catch {
+        return [];
+      }
     },
     enabled: !!user?.id,
   });
@@ -44,20 +59,16 @@ export const TeamCollaboration = () => {
   const inviteMember = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('Not authenticated');
-      
-      const { data, error } = await supabase
-        .from('team_members')
-        .insert([{
-          team_owner_id: user.id,
-          member_email: inviteEmail,
-          role: inviteRole,
-          status: 'pending',
-        }])
-        .select()
-        .single();
 
-      if (error) throw error;
-      return data;
+      const data = await apiRequest<TeamMemberApi>('/team-members', {
+        method: 'POST',
+        body: JSON.stringify({
+          memberEmail: inviteEmail,
+          role: inviteRole,
+        }),
+      });
+
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members'] });
@@ -72,12 +83,9 @@ export const TeamCollaboration = () => {
 
   const removeMember = useMutation({
     mutationFn: async (memberId: string) => {
-      const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('id', memberId);
-
-      if (error) throw error;
+      await apiRequest<{ ok: true }>(`/team-members/${memberId}`, {
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['team-members'] });

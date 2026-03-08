@@ -10,9 +10,15 @@
   // Configuration
   const script = document.currentScript;
   const API_KEY = script?.getAttribute('data-api-key') || '';
-  const ENDPOINT = script?.getAttribute('data-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/ingest-events';
-  const UPLOAD_ENDPOINT = script?.getAttribute('data-upload-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/upload-recording';
-  const SCREENSHOT_ENDPOINT = script?.getAttribute('data-screenshot-endpoint') || 'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/upload-screenshot';
+  const scriptSrc = script?.src || '';
+  const scriptOrigin = scriptSrc ? new URL(scriptSrc, window.location.href).origin : window.location.origin;
+  const endpointBase = (script?.getAttribute('data-endpoint-base') || `${scriptOrigin}/api`).replace(/\/$/, '');
+  const ENDPOINT = script?.getAttribute('data-endpoint') || `${endpointBase}/ingest-events`;
+  const SDK_SESSION_ENDPOINT = script?.getAttribute('data-session-endpoint') || `${endpointBase}/sdk/session`;
+  const UPLOAD_ENDPOINT = script?.getAttribute('data-upload-endpoint') || `${endpointBase}/upload-recording`;
+  const SCREENSHOT_ENDPOINT = script?.getAttribute('data-screenshot-endpoint') || `${endpointBase}/upload-screenshot`;
+  const SITE_USER_ID = script?.getAttribute('data-user-id') || 'anonymous';
+
   const BATCH_SIZE = parseInt(script?.getAttribute('data-batch-size') || '10');
   const BATCH_INTERVAL = parseInt(script?.getAttribute('data-batch-interval') || '5000');
   const ENABLE_RECORDING = script?.getAttribute('data-enable-recording') === 'true';
@@ -30,6 +36,8 @@
   const SESSION_ID = generateUUID();
   const eventQueue = [];
   let batchTimer;
+  let sdkSessionToken = null;
+  let sdkSessionPromise = null;
 
   // Session recording state
   let isRecording = false;
@@ -203,6 +211,75 @@
   function getTimeToInteractive() {
     const navEntry = performance.getEntriesByType('navigation')[0];
     return navEntry ? navEntry.domInteractive : 0;
+  }
+
+  function ensureSdkSessionToken() {
+    if (sdkSessionToken) {
+      return Promise.resolve(sdkSessionToken);
+    }
+
+    if (sdkSessionPromise) {
+      return sdkSessionPromise;
+    }
+
+    sdkSessionPromise = fetch(SDK_SESSION_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': API_KEY,
+      },
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        siteUserId: SITE_USER_ID,
+        pageUrl: window.location.href,
+        userAgent: navigator.userAgent,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Session bootstrap failed (${response.status})`);
+        }
+
+        return response.json();
+      })
+      .then((data) => {
+        if (!data?.sdkSessionToken) {
+          throw new Error('Missing sdkSessionToken in session bootstrap response');
+        }
+
+        sdkSessionToken = data.sdkSessionToken;
+        return sdkSessionToken;
+      })
+      .catch((error) => {
+        sdkSessionPromise = null;
+        console.error('[FrictionTracker] Failed to initialize SDK session:', error);
+        throw error;
+      });
+
+    return sdkSessionPromise;
+  }
+
+  function sendWithSdkSession(url, options) {
+    return ensureSdkSessionToken()
+      .then((token) => {
+        const mergedHeaders = {
+          ...(options?.headers || {}),
+          'x-api-key': API_KEY,
+          'x-sdk-session-token': token,
+        };
+
+        return fetch(url, {
+          ...options,
+          headers: mergedHeaders,
+        });
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Request failed (${response.status})`);
+        }
+
+        return response;
+      });
   }
 
   function trackFriction(data) {
@@ -393,7 +470,7 @@
     const formData = new FormData();
     formData.append('file', recordingBlob, `session-${SESSION_ID}.json`);
     formData.append('sessionId', SESSION_ID);
-    formData.append('userId', 'anonymous'); // Could be enhanced with actual user ID
+    formData.append('userId', SITE_USER_ID);
     formData.append('metadata', JSON.stringify({
       duration,
       pageUrl: window.location.href,
@@ -402,20 +479,17 @@
       recordingStartTime: new Date(recordingStartTime).toISOString(),
     }));
 
-    fetch(UPLOAD_ENDPOINT, {
+    sendWithSdkSession(UPLOAD_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'x-api-key': API_KEY,
-      },
       body: formData,
     })
-    .then(response => response.json())
-    .then(data => {
-      console.log('[FrictionTracker] Recording uploaded:', data);
-    })
-    .catch(error => {
-      console.error('[FrictionTracker] Failed to upload recording:', error);
-    });
+      .then(response => response.json())
+      .then(data => {
+        console.log('[FrictionTracker] Recording uploaded:', data);
+      })
+      .catch(error => {
+        console.error('[FrictionTracker] Failed to upload recording:', error);
+      });
 
     // Reset recording data
     recordingData = [];
@@ -439,18 +513,18 @@
     clearTimeout(batchTimer);
     batchTimer = null;
 
-    fetch(ENDPOINT, {
+    sendWithSdkSession(ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': API_KEY,
       },
       body: JSON.stringify({ events: batch }),
-    }).catch((error) => {
-      console.error('[FrictionTracker] Failed to send events:', error);
-      // Re-queue events on failure
-      eventQueue.unshift(...batch);
-    });
+    })
+      .catch((error) => {
+        console.error('[FrictionTracker] Failed to send events:', error);
+        // Re-queue events on failure
+        eventQueue.unshift(...batch);
+      });
   }
 
   // Send remaining events before page unload
@@ -496,23 +570,20 @@
         const formData = new FormData();
         formData.append('file', blob, `screenshot-${eventId}.png`);
         formData.append('eventId', eventId);
-        formData.append('userId', 'anonymous');
+        formData.append('userId', SITE_USER_ID);
 
         // Upload screenshot
-        fetch(SCREENSHOT_ENDPOINT, {
+        sendWithSdkSession(SCREENSHOT_ENDPOINT, {
           method: 'POST',
-          headers: {
-            'x-api-key': API_KEY,
-          },
           body: formData,
         })
-        .then(response => response.json())
-        .then(data => {
-          console.log('[FrictionTracker] Screenshot uploaded:', data);
-        })
-        .catch(error => {
-          console.error('[FrictionTracker] Failed to upload screenshot:', error);
-        });
+          .then(response => response.json())
+          .then(data => {
+            console.log('[FrictionTracker] Screenshot uploaded:', data);
+          })
+          .catch(error => {
+            console.error('[FrictionTracker] Failed to upload screenshot:', error);
+          });
       }, 'image/png');
     } catch (error) {
       console.error('[FrictionTracker] Screenshot capture failed:', error);
@@ -525,6 +596,10 @@
     elementSelector: 'body',
     interactionType: 'pageview',
     frictionScore: 0,
+  });
+
+  ensureSdkSessionToken().catch(() => {
+    // Non-fatal: ingestion retries will continue attempting bootstrap.
   });
 
   console.log('[FrictionTracker] Initialized with session:', SESSION_ID);

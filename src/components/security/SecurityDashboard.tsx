@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +22,18 @@ export const SecurityDashboard = () => {
   const { data: rlsStatus, refetch: refetchRLS } = useQuery({
     queryKey: ['rls-status'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('error_logs')
-        .select('id')
-        .limit(1);
-
-      return {
-        enabled: !error,
-        message: error ? 'RLS check failed' : 'RLS policies active',
-      };
+      try {
+        await apiRequest<{ ok: boolean; service: string; timestamp: string }>('/health');
+        return {
+          enabled: true,
+          message: 'Backend health check passed',
+        };
+      } catch {
+        return {
+          enabled: false,
+          message: 'Backend health check failed',
+        };
+      }
     },
   });
 
@@ -38,12 +41,12 @@ export const SecurityDashboard = () => {
   const { data: apiKeys } = useQuery({
     queryKey: ['api-keys-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('api_keys')
-        .select('*', { count: 'exact', head: true });
-
-      if (error) throw error;
-      return count || 0;
+      try {
+        const keys = await apiRequest<Array<{ id: string; isActive: boolean }>>('/api-keys');
+        return keys.filter((key) => key.isActive).length;
+      } catch {
+        return 0;
+      }
     },
   });
 
@@ -51,13 +54,20 @@ export const SecurityDashboard = () => {
   const { data: authStatus } = useQuery({
     queryKey: ['auth-status'],
     queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      
-      return {
-        authenticated: !!user,
-        mfaEnabled: false, // Placeholder for MFA check
-        sessionValid: !!user,
-      };
+      try {
+        const user = await apiRequest<{ id: string; email: string }>('/auth/me');
+        return {
+          authenticated: !!user.id,
+          mfaEnabled: false, // Placeholder for MFA check
+          sessionValid: !!user.id,
+        };
+      } catch {
+        return {
+          authenticated: false,
+          mfaEnabled: false, // Placeholder for MFA check
+          sessionValid: false,
+        };
+      }
     },
   });
 

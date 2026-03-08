@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
 
 export interface AlertConfig {
@@ -8,7 +8,7 @@ export interface AlertConfig {
   name: string;
   description: string | null;
   alert_type: 'friction_spike' | 'error_rate' | 'conversion_drop' | 'performance' | 'custom';
-  conditions: any;
+  conditions: Record<string, unknown>;
   notification_channels: string[];
   is_active: boolean;
   last_triggered_at: string | null;
@@ -16,17 +16,44 @@ export interface AlertConfig {
   updated_at: string;
 }
 
+interface AlertConfigApi {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  alertType: AlertConfig['alert_type'];
+  conditions: Record<string, unknown>;
+  notificationChannels: string[];
+  isActive: boolean;
+  lastTriggeredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const toUiModel = (alert: AlertConfigApi): AlertConfig => ({
+  id: alert.id,
+  user_id: alert.userId,
+  name: alert.name,
+  description: alert.description,
+  alert_type: alert.alertType,
+  conditions: alert.conditions,
+  notification_channels: alert.notificationChannels,
+  is_active: alert.isActive,
+  last_triggered_at: alert.lastTriggeredAt,
+  created_at: alert.createdAt,
+  updated_at: alert.updatedAt,
+});
+
 export const useAlerts = () => {
   return useQuery({
     queryKey: ['alerts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('alerts_config')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as AlertConfig[];
+      try {
+        const data = await apiRequest<AlertConfigApi[]>('/alerts');
+        return data.map(toUiModel);
+      } catch {
+        return [];
+      }
     },
   });
 };
@@ -37,25 +64,19 @@ export const useCreateAlert = () => {
 
   return useMutation({
     mutationFn: async (alert: Partial<AlertConfig>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('alerts_config')
-        .insert({
-          name: alert.name!,
+      const data = await apiRequest<AlertConfigApi>('/alerts', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: alert.name,
           description: alert.description,
-          alert_type: alert.alert_type!,
-          conditions: alert.conditions!,
-          notification_channels: alert.notification_channels || ['email'],
-          is_active: alert.is_active !== undefined ? alert.is_active : true,
-          user_id: user.id,
-        } as any)
-        .select()
-        .single();
+          alertType: alert.alert_type,
+          conditions: alert.conditions ?? {},
+          notificationChannels: alert.notification_channels || ['email'],
+          isActive: alert.is_active !== undefined ? alert.is_active : true,
+        }),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
@@ -80,15 +101,12 @@ export const useToggleAlert = () => {
 
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { data, error } = await supabase
-        .from('alerts_config')
-        .update({ is_active })
-        .eq('id', id)
-        .select()
-        .single();
+      const data = await apiRequest<AlertConfigApi>(`/alerts/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive: is_active }),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });

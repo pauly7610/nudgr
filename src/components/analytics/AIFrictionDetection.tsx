@@ -8,6 +8,10 @@ import { Progress } from '@/components/ui/progress';
 export const AIFrictionDetection = () => {
   const { detectFriction, isDetecting, detectionResult } = useFrictionDetection();
 
+  const highestScore = detectionResult?.frictionScores?.length
+    ? Math.max(...detectionResult.frictionScores.map((item) => item.avgSeverity * 10))
+    : 0;
+
   const getFrictionColor = (score: number) => {
     if (score >= 70) return 'text-red-600 dark:text-red-400';
     if (score >= 40) return 'text-yellow-600 dark:text-yellow-400';
@@ -73,24 +77,11 @@ export const AIFrictionDetection = () => {
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="text-2xl font-bold text-primary">
-                  {detectionResult.frictionScores?.[0]?.avgFrictionScore || 0}
+                  {highestScore.toFixed(1)}
                 </div>
                 <div className="text-sm text-muted-foreground">Highest Score</div>
               </div>
             </div>
-
-            {/* AI Analysis */}
-            {detectionResult.analysis && (
-              <div className="p-4 border rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2 mb-3">
-                  <Brain className="h-4 w-4 text-primary" />
-                  <h4 className="font-semibold">AI Insights</h4>
-                </div>
-                <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <p className="text-sm whitespace-pre-wrap">{detectionResult.analysis}</p>
-                </div>
-              </div>
-            )}
 
             {/* Top Friction Pages */}
             {detectionResult.frictionScores && detectionResult.frictionScores.length > 0 && (
@@ -99,24 +90,24 @@ export const AIFrictionDetection = () => {
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   Top Friction Pages
                 </h4>
-                {detectionResult.frictionScores.slice(0, 5).map((page: any, index: number) => (
-                  <div key={index} className="p-4 border rounded-lg space-y-2">
+                {detectionResult.frictionScores.slice(0, 5).map((page, index: number) => (
+                  <div key={`${page.pageUrl}-${index}`} className="p-4 border rounded-lg space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="font-medium text-sm truncate">{page.page}</div>
+                        <div className="font-medium text-sm truncate">{page.pageUrl}</div>
                         <div className="text-xs text-muted-foreground">
-                          {page.eventCount} events
+                          {page.totalEvents} events
                         </div>
                       </div>
                       <Badge
-                        className={getFrictionColor(page.avgFrictionScore)}
+                        className={getFrictionColor(page.avgSeverity * 10)}
                         variant="secondary"
                       >
-                        {page.avgFrictionScore}
+                        {(page.avgSeverity * 10).toFixed(1)}
                       </Badge>
                     </div>
                     <Progress 
-                      value={page.avgFrictionScore} 
+                      value={page.avgSeverity * 10} 
                       className="h-1.5"
                     />
                   </div>

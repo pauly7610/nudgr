@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, RotateCcw, FastForward, Rewind } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface SessionReplayPlayerProps {
   recordingPath: string;
@@ -13,7 +12,12 @@ interface SessionReplayPlayerProps {
 interface RecordingEvent {
   type: 'snapshot' | 'mutation' | 'mouse' | 'click' | 'scroll';
   timestamp: number;
-  [key: string]: any;
+  html?: string;
+  x?: number;
+  y?: number;
+  scrollX?: number;
+  scrollY?: number;
+  [key: string]: unknown;
 }
 
 export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayPlayerProps) => {
@@ -30,25 +34,46 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
   const playbackTimerRef = useRef<number | null>(null);
   const lastEventIndexRef = useRef(0);
 
-  useEffect(() => {
-    loadRecording();
-    return () => {
-      if (playbackTimerRef.current) {
-        cancelAnimationFrame(playbackTimerRef.current);
-      }
-    };
-  }, [recordingPath]);
+  const getRecordingUrls = (path: string): string[] => {
+    if (!path) return [];
 
-  const loadRecording = async () => {
+    if (/^https?:\/\//i.test(path)) {
+      return [path];
+    }
+
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, '');
+    const normalizedPath = path.replace(/^\/+/, '');
+
+    return [
+      `${baseUrl}/recordings/${encodeURIComponent(normalizedPath)}`,
+      `${baseUrl}/${normalizedPath}`,
+      `/${normalizedPath}`,
+    ];
+  };
+
+  const downloadRecordingText = async (path: string): Promise<string> => {
+    const candidateUrls = getRecordingUrls(path);
+
+    for (const url of candidateUrls) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          continue;
+        }
+
+        return await response.text();
+      } catch {
+        // try the next candidate URL
+      }
+    }
+
+    throw new Error('Unable to download recording data');
+  };
+
+  const loadRecording = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.storage
-        .from('session-recordings')
-        .download(recordingPath);
-
-      if (error) throw error;
-
-      const text = await data.text();
+      const text = await downloadRecordingText(recordingPath);
       const recordingData: RecordingEvent[] = JSON.parse(text);
       
       setEvents(recordingData);
@@ -69,12 +94,21 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
     } finally {
       setLoading(false);
     }
-  };
+  }, [recordingPath]);
+
+  useEffect(() => {
+    void loadRecording();
+    return () => {
+      if (playbackTimerRef.current) {
+        cancelAnimationFrame(playbackTimerRef.current);
+      }
+    };
+  }, [loadRecording]);
 
   const playRecording = () => {
     setIsPlaying(true);
-    let startTime = performance.now();
-    let pausedAt = currentTime;
+    const startTime = performance.now();
+    const pausedAt = currentTime;
 
     const tick = (timestamp: number) => {
       if (!isPlaying) return;
@@ -141,8 +175,8 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
     setCurrentTime(0);
     setIsPlaying(false);
     lastEventIndexRef.current = 0;
-    const snapshot = events.find(e => e.type === 'snapshot');
-    if (snapshot) {
+    const snapshot = events.find((e) => e.type === 'snapshot');
+    if (snapshot?.html) {
       setCurrentSnapshot(snapshot.html);
     }
   };

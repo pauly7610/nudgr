@@ -59,14 +59,14 @@
 └─────────────────────────────────────────────────────────────┘
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Lovable Cloud (Supabase Backend)                │
+│          Railway Backend (Fastify + PostgreSQL)             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │  PostgreSQL  │  │ Edge Functions│  │   Storage    │     │
-│  │   Database   │  │  (Serverless) │  │   (Files)    │     │
+│  │  PostgreSQL  │  │ Fastify APIs │  │  Ingestion    │     │
+│  │   Database   │  │ + JWT Auth   │  │  + Uploads    │     │
 │  └──────────────┘  └──────────────┘  └──────────────┘     │
 │                                                              │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  Row Level Security (RLS) + Authentication           │  │
+│  │  Railway Deployments + Observability + Security      │  │
 │  └──────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               ▼
@@ -81,7 +81,7 @@
 
 ### Key Technologies
 - **Frontend**: React 18, TypeScript, Tailwind CSS, shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Edge Functions)
+- **Backend**: Fastify + Prisma + Railway PostgreSQL
 - **AI**: Lovable AI (Gemini 2.5 Pro/Flash, GPT-5)
 - **State Management**: TanStack Query (React Query)
 - **Routing**: React Router v6
@@ -96,7 +96,7 @@ Before you begin, ensure you have:
 - **Node.js** >= 18.x ([Download](https://nodejs.org/))
 - **npm** >= 9.x (comes with Node.js) or **bun** >= 1.0
 - **Git** ([Download](https://git-scm.com/))
-- A **Lovable** account (for Cloud backend)
+- A local or hosted backend environment (Railway recommended)
 
 ### Quick Start
 
@@ -125,7 +125,7 @@ Before you begin, ensure you have:
    http://localhost:8080
    ```
 
-The app will automatically connect to the Lovable Cloud backend (no additional setup required).
+Set `VITE_API_BASE_URL` and start the backend service before using protected features.
 
 ## 📦 Installation
 
@@ -157,28 +157,26 @@ npm run preview
 
 ### Environment Variables
 
-The `.env` file is automatically managed by Lovable Cloud. Key variables include:
+Set frontend environment values to target your backend API:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
-VITE_SUPABASE_PROJECT_ID=your_project_id
+VITE_API_BASE_URL=http://localhost:4000
+VITE_REALTIME_WS_URL=ws://localhost:4000/ws/realtime-dashboard
 ```
 
-**⚠️ Never edit the `.env` file manually** - it's auto-generated and updated by the platform.
+Backend environment configuration lives in `backend/.env` (see `backend/.env.example`).
 
 ## ⚙️ Configuration
 
 ### Authentication Setup
 
-1. **Enable Email Confirmation (for production)**
-   - Go to Settings → Authentication in the Lovable Cloud dashboard
-   - Toggle email confirmation as needed
-   - For development, auto-confirm is enabled by default
+1. **Configure auth secrets**
+   - Set `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` in backend env
+   - Use strong random values per environment
 
-2. **Configure Redirect URLs**
-   - Add your production domain to allowed redirect URLs
-   - Include both `yourdomain.com` and `www.yourdomain.com`
+2. **Configure CORS and API URLs**
+   - Set `CORS_ORIGIN` in backend env
+   - Set `VITE_API_BASE_URL` in frontend env
 
 ### Subscription Configuration
 
@@ -257,31 +255,34 @@ See [API_DOCUMENTATION.md](./docs/API_DOCUMENTATION.md) for complete API referen
 
 **Authentication**
 ```bash
-curl -X POST https://your-domain.com/auth/v1/signup \
+curl -X POST https://your-domain.com/auth/signup \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"secure_password"}'
+  -d '{"email":"user@example.com","password":"secure_password","fullName":"Demo User"}'
 ```
 
 **Ingest Friction Events**
 ```bash
-curl -X POST https://your-domain.com/functions/v1/ingest-events \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+curl -X POST https://your-domain.com/api/ingest-events \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "events": [{
       "type": "click_rage",
-      "pageUrl": "/checkout",
-      "severity": 8,
-      "metadata": {"element": "#submit-button"}
+      "sessionId": "session-123",
+      "data": {
+        "eventType": "click_rage",
+        "pageUrl": "/checkout",
+        "severityScore": 8,
+        "elementSelector": "#submit-button"
+      }
     }]
   }'
 ```
 
 **Retrieve Analytics**
 ```bash
-curl https://your-domain.com/functions/v1/api-access \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "X-API-Key: YOUR_API_KEY"
+curl https://your-domain.com/metrics/recent \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ## 🧪 Testing
@@ -320,14 +321,11 @@ describe('MyComponent', () => {
 
 ## 🚢 Deployment
 
-### Deploy to Lovable Cloud (Recommended)
+### Deploy to Railway + Static Host
 
-1. Click **Publish** in the top-right corner
-2. Your app is automatically deployed with:
-   - Global CDN
-   - Automatic SSL
-   - Backend integration
-   - Environment variables
+1. Deploy backend service from `backend/` to Railway
+2. Provision Railway PostgreSQL and set backend environment variables
+3. Deploy frontend to your static host and set `VITE_API_BASE_URL`
 
 ### Custom Domain Setup
 

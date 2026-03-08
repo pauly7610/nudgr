@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Database, Zap, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 
 interface HealthStatus {
   database: 'healthy' | 'degraded' | 'down';
@@ -25,37 +25,24 @@ export const SystemHealth = () => {
   }, []);
 
   const checkHealth = async () => {
-    const newHealth: HealthStatus = {
-      database: 'healthy',
-      functions: 'healthy',
-      storage: 'healthy',
-    };
-
-    // Check database
     try {
-      const { error } = await supabase.from('profiles').select('id').limit(1);
-      newHealth.database = error ? 'degraded' : 'healthy';
+      await apiRequest<{ ok: boolean; service: string; timestamp: string }>('/health');
+
+      const newHealth: HealthStatus = {
+        database: 'healthy',
+        functions: 'healthy',
+        storage: 'healthy',
+      };
+
+      setHealth(newHealth);
     } catch {
-      newHealth.database = 'down';
+      setHealth({
+        database: 'down',
+        functions: 'degraded',
+        storage: 'degraded',
+      });
     }
 
-    // Check functions
-    try {
-      const { error } = await supabase.functions.invoke('api-access/stats');
-      newHealth.functions = error ? 'degraded' : 'healthy';
-    } catch {
-      newHealth.functions = 'degraded';
-    }
-
-    // Check storage
-    try {
-      const { error } = await supabase.storage.from('friction-screenshots').list('', { limit: 1 });
-      newHealth.storage = error ? 'degraded' : 'healthy';
-    } catch {
-      newHealth.storage = 'degraded';
-    }
-
-    setHealth(newHealth);
     setLastCheck(new Date());
   };
 

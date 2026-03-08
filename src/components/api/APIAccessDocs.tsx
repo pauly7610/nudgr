@@ -3,29 +3,43 @@ import { Button } from '@/components/ui/button';
 import { Code, ExternalLink } from 'lucide-react';
 
 export const APIAccessDocs = () => {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+
   const apiEndpoints = [
     {
       method: 'GET',
-      path: '/api/friction-events',
-      description: 'Retrieve friction events',
-      params: ['limit', 'offset', 'start_date', 'end_date'],
+      path: '/metrics/recent',
+      description: 'Retrieve recent friction, performance, and error events for the authenticated user',
+      params: [],
+    },
+    {
+      method: 'POST',
+      path: '/api/upload-recording',
+      description: 'Upload a session recording file (multipart/form-data)',
+      params: ['file', 'sessionId', 'userId', 'metadata'],
     },
     {
       method: 'GET',
-      path: '/api/session-recordings',
+      path: '/recordings?userId=<id>',
       description: 'Get session recordings list',
-      params: ['limit'],
+      params: ['userId'],
+    },
+    {
+      method: 'POST',
+      path: '/api/export-pdf',
+      description: 'Generate a PDF export and return a download URL',
+      params: ['reportType', 'filters', 'userId'],
     },
     {
       method: 'GET',
-      path: '/api/heatmaps',
-      description: 'Fetch heatmap data',
-      params: ['page_url'],
+      path: '/export-jobs?userId=<id>',
+      description: 'List PDF export jobs for the authenticated user',
+      params: ['userId'],
     },
     {
       method: 'GET',
-      path: '/api/stats',
-      description: 'Get summary statistics',
+      path: '/ws/realtime-dashboard?token=<jwt>',
+      description: 'WebSocket endpoint for realtime friction/anomaly updates',
       params: [],
     },
   ];
@@ -46,17 +60,17 @@ export const APIAccessDocs = () => {
           <div>
             <h3 className="font-semibold mb-2">Base URL</h3>
             <code className="block p-3 bg-muted rounded-lg text-sm">
-              https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/api-access
+              {apiBaseUrl}
             </code>
           </div>
 
           <div>
             <h3 className="font-semibold mb-2">Authentication</h3>
             <p className="text-sm text-muted-foreground mb-2">
-              Include your API key in the request header:
+              Include your JWT access token in the request header:
             </p>
             <code className="block p-3 bg-muted rounded-lg text-sm">
-              x-api-key: fk_your_api_key_here
+              Authorization: Bearer &lt;access_token&gt;
             </code>
           </div>
         </div>
@@ -86,8 +100,8 @@ export const APIAccessDocs = () => {
           <h3 className="font-semibold">Example Request</h3>
           <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
             <code>{`curl -X GET \\
-  'https://nykvaozegqidulsgqrfg.supabase.co/functions/v1/api-access/friction-events?limit=10' \\
-  -H 'x-api-key: fk_your_api_key_here'`}</code>
+  '${apiBaseUrl}/metrics/recent' \\
+  -H 'Authorization: Bearer <access_token>'`}</code>
           </pre>
         </div>
 
@@ -95,16 +109,15 @@ export const APIAccessDocs = () => {
           <h3 className="font-semibold">Example Response</h3>
           <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
             <code>{`{
-  "data": [
-    {
-      "id": "uuid",
-      "event_type": "rage_click",
-      "page_url": "https://example.com",
-      "severity_score": 8,
-      "created_at": "2025-01-01T12:00:00Z"
-    }
+  "events": [
+    { "id": "evt_123", "eventType": "rage_click", "severityScore": 8 }
   ],
-  "count": 10
+  "performance": [
+    { "id": "perf_123", "metricName": "LCP", "metricValue": 1800 }
+  ],
+  "errors": [
+    { "id": "err_123", "severity": "critical", "errorMessage": "Checkout timeout" }
+  ]
 }`}</code>
           </pre>
         </div>

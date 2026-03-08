@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
@@ -8,7 +8,7 @@ interface ErrorLogData {
   errorStack?: string;
   componentName?: string;
   severity: ErrorSeverity;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class ErrorTracker {
@@ -64,26 +64,25 @@ class ErrorTracker {
 
   public async logError(data: ErrorLogData): Promise<void> {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      
-      const { error } = await supabase.from('error_logs').insert({
-        user_id: user?.user?.id || this.userId,
-        error_type: data.errorType,
-        error_message: data.errorMessage,
-        error_stack: data.errorStack,
-        component_name: data.componentName,
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        severity: data.severity,
-        metadata: data.metadata || {},
+      await apiRequest<{ id: string; createdAt: string }>('/error-logs', {
+        method: 'POST',
+        body: JSON.stringify({
+          errorType: data.errorType,
+          errorMessage: data.errorMessage,
+          errorStack: data.errorStack,
+          componentName: data.componentName,
+          pageUrl: window.location.href,
+          userAgent: navigator.userAgent,
+          severity: data.severity,
+          metadata: {
+            ...(data.metadata || {}),
+            userId: this.userId,
+          },
+        }),
       });
 
-      if (error) {
-        console.error('Failed to log error:', error);
-      }
-
       // Also log to console in development
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.error('[ErrorTracker]', data);
       }
     } catch (e) {
@@ -108,7 +107,7 @@ class ErrorTracker {
   public captureMessage(
     message: string,
     severity: ErrorSeverity = 'low',
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     this.logError({
       errorType: 'Message',

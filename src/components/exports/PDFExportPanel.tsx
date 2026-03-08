@@ -23,6 +23,14 @@ export const PDFExportPanel = () => {
   const { exportPDF, useExportJobs } = useFileStorage();
   const { data: jobs, isLoading: jobsLoading } = useExportJobs(user?.id || '');
 
+  const getExportDownloadUrl = (path: string) => {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || window.location.origin).replace(/\/$/, '');
+    return `${baseUrl}/exports/${encodeURIComponent(path.replace(/^\/+/, ''))}`;
+  };
+
   const [reportType, setReportType] = useState<string>('executive-summary');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -156,7 +164,11 @@ export const PDFExportPanel = () => {
                       {job.status}
                     </span>
                     {job.status === 'completed' && job.storage_path && (
-                      <Button size="sm" variant="outline" onClick={() => window.open(`https://nykvaozegqidulsgqrfg.supabase.co/storage/v1/object/public/pdf-exports/${job.storage_path}`, '_blank')}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(getExportDownloadUrl(job.storage_path || ''), '_blank')}
+                      >
                         <FileDown className="h-4 w-4" />
                       </Button>
                     )}

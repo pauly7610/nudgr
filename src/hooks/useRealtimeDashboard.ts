@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
+import { getAccessToken } from '@/lib/apiClient';
 
 interface RealtimeMessage {
   type: string;
-  data?: any;
+  data?: unknown;
   timestamp?: string;
 }
 
@@ -14,10 +15,34 @@ export const useRealtimeDashboard = () => {
   const { toast } = useToast();
   const reconnectTimeoutRef = useRef<number | null>(null);
 
-  const connect = () => {
+  const getRealtimeUrl = useCallback(() => {
+    const token = getAccessToken();
+
+    const withToken = (url: string): string => {
+      if (!token) return url;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}token=${encodeURIComponent(token)}`;
+    };
+
+    if (import.meta.env.VITE_REALTIME_WS_URL) {
+      return withToken(import.meta.env.VITE_REALTIME_WS_URL);
+    }
+
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    if (apiBaseUrl) {
+      return withToken(apiBaseUrl
+        .replace(/^http:\/\//i, 'ws://')
+        .replace(/^https:\/\//i, 'wss://')
+        .replace(/\/$/, '') + '/ws/realtime-dashboard');
+    }
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return withToken(`${protocol}//${window.location.host}/ws/realtime-dashboard`);
+  }, []);
+
+  const connect = useCallback(() => {
     try {
-      // Use the full Supabase project URL for WebSocket
-      const wsUrl = `wss://nykvaozegqidulsgqrfg.supabase.co/functions/v1/realtime-dashboard`;
+      const wsUrl = getRealtimeUrl();
       
       console.log('Connecting to WebSocket:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
@@ -77,15 +102,15 @@ export const useRealtimeDashboard = () => {
     } catch (error) {
       console.error('Error creating WebSocket:', error);
     }
-  };
+  }, [getRealtimeUrl, toast]);
 
-  const disconnect = () => {
+  const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
     }
     wsRef.current?.close();
     setIsConnected(false);
-  };
+  }, []);
 
   const subscribe = (channel: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -96,7 +121,7 @@ export const useRealtimeDashboard = () => {
   useEffect(() => {
     connect();
     return () => disconnect();
-  }, []);
+  }, [connect, disconnect]);
 
   return {
     isConnected,

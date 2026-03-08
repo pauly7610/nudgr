@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest, setAccessToken } from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,16 @@ import { z } from 'zod';
 const emailSchema = z.string().email({ message: "Invalid email address" });
 const passwordSchema = z.string().min(6, { message: "Password must be at least 6 characters" });
 
+interface AuthResponse {
+  user: {
+    id: string;
+    email: string;
+    fullName?: string | null;
+  };
+  accessToken: string;
+  refreshToken: string;
+}
+
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,12 +33,14 @@ export default function Auth() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      try {
+        await apiRequest('/auth/me');
         navigate('/');
+      } catch {
+        // not authenticated yet
       }
     };
-    checkSession();
+    void checkSession();
   }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -58,30 +70,32 @@ export default function Auth() {
 
     setLoading(true);
     
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          full_name: fullName,
-        },
-      },
-    });
-
-    setLoading(false);
-
-    if (error) {
-      toast({
-        title: "Sign Up Failed",
-        description: error.message,
-        variant: "destructive",
+    try {
+      const response = await apiRequest<AuthResponse>('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+        }),
       });
-    } else {
+
+      setAccessToken(response.accessToken);
       toast({
         title: "Success!",
-        description: "Account created successfully. You can now sign in.",
+        description: "Account created successfully.",
       });
+
+      navigate('/');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Sign up failed';
+      toast({
+        title: "Sign Up Failed",
+        description: message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,43 +126,31 @@ export default function Auth() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const response = await apiRequest<AuthResponse>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
 
-    setLoading(false);
-
-    if (error) {
+      setAccessToken(response.accessToken);
+      navigate('/');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Sign in failed';
       toast({
         title: "Sign In Failed",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
-    } else {
-      navigate('/');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
+    toast({
+      title: 'Google sign-in not configured',
+      description: 'OAuth setup will be added during backend provider integration.',
     });
-
-    setLoading(false);
-
-    if (error) {
-      toast({
-        title: "Google Sign In Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
   };
 
   return (

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
 
 export interface DashboardConfig {
@@ -7,8 +7,8 @@ export interface DashboardConfig {
   user_id: string;
   name: string;
   description: string | null;
-  layout: any;
-  filters: any;
+  layout: Record<string, unknown> | unknown[];
+  filters: Record<string, unknown>;
   is_default: boolean;
   is_shared: boolean;
   shared_with_roles: string[];
@@ -16,18 +16,44 @@ export interface DashboardConfig {
   updated_at: string;
 }
 
+interface DashboardConfigApi {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  layout: Record<string, unknown> | unknown[];
+  filters: Record<string, unknown>;
+  isDefault: boolean;
+  isShared: boolean;
+  sharedWithRoles: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+const toUiModel = (config: DashboardConfigApi): DashboardConfig => ({
+  id: config.id,
+  user_id: config.userId,
+  name: config.name,
+  description: config.description,
+  layout: config.layout,
+  filters: config.filters,
+  is_default: config.isDefault,
+  is_shared: config.isShared,
+  shared_with_roles: config.sharedWithRoles,
+  created_at: config.createdAt,
+  updated_at: config.updatedAt,
+});
+
 export const useDashboardConfigs = () => {
   return useQuery({
     queryKey: ['dashboard-configs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dashboard_configs')
-        .select('*')
-        .order('is_default', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as DashboardConfig[];
+      try {
+        const data = await apiRequest<DashboardConfigApi[]>('/dashboard-configs');
+        return data.map(toUiModel);
+      } catch {
+        return [];
+      }
     },
   });
 };
@@ -38,26 +64,20 @@ export const useCreateDashboard = () => {
 
   return useMutation({
     mutationFn: async (config: Partial<DashboardConfig>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('dashboard_configs')
-        .insert({
-          name: config.name!,
+      const data = await apiRequest<DashboardConfigApi>('/dashboard-configs', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: config.name,
           description: config.description,
           layout: config.layout || [],
           filters: config.filters || {},
-          is_default: config.is_default || false,
-          is_shared: config.is_shared || false,
-          shared_with_roles: config.shared_with_roles || [],
-          user_id: user.id,
-        } as any)
-        .select()
-        .single();
+          isDefault: config.is_default || false,
+          isShared: config.is_shared || false,
+          sharedWithRoles: config.shared_with_roles || [],
+        }),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-configs'] });
@@ -82,15 +102,20 @@ export const useUpdateDashboard = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<DashboardConfig> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('dashboard_configs')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      const data = await apiRequest<DashboardConfigApi>(`/dashboard-configs/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          name: updates.name,
+          description: updates.description,
+          layout: updates.layout,
+          filters: updates.filters,
+          isDefault: updates.is_default,
+          isShared: updates.is_shared,
+          sharedWithRoles: updates.shared_with_roles,
+        }),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-configs'] });

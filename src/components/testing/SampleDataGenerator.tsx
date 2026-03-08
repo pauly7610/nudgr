@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Database, Loader2, CheckCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { toast } from '@/hooks/use-toast';
 
 export const SampleDataGenerator = () => {
@@ -16,8 +16,7 @@ export const SampleDataGenerator = () => {
   const generateSampleData = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const user = await apiRequest<{ id: string }>('/auth/me');
 
       switch (dataType) {
         case 'friction_events':
@@ -46,34 +45,56 @@ export const SampleDataGenerator = () => {
 
   const generateFrictionEvents = async (userId: string) => {
     const events = Array.from({ length: count }, (_, i) => ({
-      event_type: ['click', 'scroll', 'form_error', 'page_load'][Math.floor(Math.random() * 4)],
-      page_url: `/page-${Math.floor(Math.random() * 5) + 1}`,
-      element_selector: `#element-${Math.floor(Math.random() * 10) + 1}`,
-      severity_score: Math.floor(Math.random() * 100),
+      type: ['click', 'scroll', 'form_error', 'page_load'][Math.floor(Math.random() * 4)],
+      eventId: `sample-${i + 1}`,
+      timestamp: Date.now(),
       session_id: `session-${Math.floor(Math.random() * 20) + 1}`,
-      metadata: { sample: true, index: i, user_id: userId },
+      data: {
+        eventType: ['click', 'scroll', 'form_error', 'page_load'][Math.floor(Math.random() * 4)],
+        pageUrl: `/page-${Math.floor(Math.random() * 5) + 1}`,
+        elementSelector: `#element-${Math.floor(Math.random() * 10) + 1}`,
+        severityScore: Math.floor(Math.random() * 10),
+        sample: true,
+        index: i,
+        userId,
+      },
     }));
 
-    await supabase.from('friction_events').insert(events);
+    await apiRequest<{ ok: boolean; accepted: number }>('/api/ingest-events', {
+      method: 'POST',
+      body: JSON.stringify({ events: events.map((event) => ({
+        ...event,
+        sessionId: event.session_id,
+      })) }),
+    });
   };
 
   const generateHeatmapData = async () => {
     const pages = Array.from({ length: 5 }, (_, i) => `/page-${i + 1}`);
     const elements = Array.from({ length: 10 }, (_, i) => `#element-${i + 1}`);
     
-    const heatmaps = [];
+    const heatmaps: Array<Record<string, unknown>> = [];
     for (let i = 0; i < count; i++) {
       heatmaps.push({
-        page_url: pages[Math.floor(Math.random() * pages.length)],
-        element_selector: elements[Math.floor(Math.random() * elements.length)],
-        interaction_type: ['click', 'hover', 'scroll'][Math.floor(Math.random() * 3)],
-        friction_score: Math.floor(Math.random() * 100),
-        interaction_count: Math.floor(Math.random() * 1000) + 1,
-        date_bucket: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        type: 'heatmap_interaction',
+        sessionId: `session-${Math.floor(Math.random() * 20) + 1}`,
+        timestamp: Date.now(),
+        data: {
+          eventType: 'heatmap_interaction',
+          pageUrl: pages[Math.floor(Math.random() * pages.length)],
+          elementSelector: elements[Math.floor(Math.random() * elements.length)],
+          interactionType: ['click', 'hover', 'scroll'][Math.floor(Math.random() * 3)],
+          severityScore: Math.floor(Math.random() * 10),
+          interactionCount: Math.floor(Math.random() * 1000) + 1,
+          dateBucket: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        },
       });
     }
 
-    await supabase.from('heatmap_data').insert(heatmaps);
+    await apiRequest<{ ok: boolean; accepted: number }>('/api/ingest-events', {
+      method: 'POST',
+      body: JSON.stringify({ events: heatmaps }),
+    });
   };
 
   return (

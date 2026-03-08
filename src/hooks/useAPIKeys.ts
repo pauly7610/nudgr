@@ -1,29 +1,51 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/apiClient";
+
+interface ApiKeyResponse {
+  id: string;
+  keyName: string;
+  keyPrefix: string;
+  isActive: boolean;
+  allowedDomains: string[];
+  lastUsedAt?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  apiKey?: string;
+}
+
+interface ApiKeyUiModel {
+  id: string;
+  key_name: string;
+  api_key: string;
+  is_active: boolean;
+  allowed_domains: string[];
+  last_used_at: string | null;
+  created_at: string;
+}
+
+const toUiModel = (key: ApiKeyResponse): ApiKeyUiModel => {
+  const fallbackMaskedKey = `${key.keyPrefix}************************`;
+
+  return {
+    id: key.id,
+    key_name: key.keyName,
+    api_key: key.apiKey || fallbackMaskedKey,
+    is_active: key.isActive,
+    allowed_domains: key.allowedDomains,
+    last_used_at: key.lastUsedAt ?? null,
+    created_at: key.createdAt,
+  };
+};
 
 export const useAPIKeys = () => {
   const queryClient = useQueryClient();
 
-  const generateAPIKey = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let key = 'fk_';
-    for (let i = 0; i < 32; i++) {
-      key += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return key;
-  };
-
   const getAPIKeys = useQuery({
     queryKey: ['api-keys'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
+      const data = await apiRequest<ApiKeyResponse[]>('/api-keys');
+      return data.map(toUiModel);
     },
   });
 
@@ -35,24 +57,12 @@ export const useAPIKeys = () => {
       keyName: string; 
       allowedDomains: string[] 
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const data = await apiRequest<ApiKeyResponse>('/api-keys', {
+        method: 'POST',
+        body: JSON.stringify({ keyName, allowedDomains }),
+      });
 
-      const apiKey = generateAPIKey();
-
-      const { data, error } = await supabase
-        .from('api_keys')
-        .insert({
-          user_id: user.id,
-          key_name: keyName,
-          api_key: apiKey,
-          allowed_domains: allowedDomains,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
@@ -82,20 +92,17 @@ export const useAPIKeys = () => {
       allowedDomains?: string[]; 
       isActive?: boolean 
     }) => {
-      const updates: any = {};
-      if (keyName !== undefined) updates.key_name = keyName;
-      if (allowedDomains !== undefined) updates.allowed_domains = allowedDomains;
-      if (isActive !== undefined) updates.is_active = isActive;
+      const updates: Record<string, unknown> = {};
+      if (keyName !== undefined) updates.keyName = keyName;
+      if (allowedDomains !== undefined) updates.allowedDomains = allowedDomains;
+      if (isActive !== undefined) updates.isActive = isActive;
 
-      const { data, error } = await supabase
-        .from('api_keys')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      const data = await apiRequest<ApiKeyResponse>(`/api-keys/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
@@ -115,12 +122,9 @@ export const useAPIKeys = () => {
 
   const deleteAPIKey = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await apiRequest<{ ok: true }>(`/api-keys/${id}`, {
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });

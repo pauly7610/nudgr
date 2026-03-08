@@ -3,12 +3,41 @@ import React from 'react';
 import { Flow } from '../data/mockData';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { AlertCircle, Clock, RefreshCw, ExternalLink } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/apiClient';
 
 interface MarketingFunnelDiagnosticsProps {
   flow: Flow | null;
 }
 
+interface MarketingProviderSummary {
+  importedEvents: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  costMicros: number;
+}
+
+interface MarketingImportSummaryResponse {
+  summary: {
+    ga4: MarketingProviderSummary;
+    google_ads: MarketingProviderSummary;
+    meta_ads: MarketingProviderSummary;
+  };
+}
+
 export const MarketingFunnelDiagnostics: React.FC<MarketingFunnelDiagnosticsProps> = ({ flow }) => {
+  const { data: importSummary } = useQuery({
+    queryKey: ['marketing-import-summary'],
+    queryFn: async () => {
+      try {
+        return await apiRequest<MarketingImportSummaryResponse>('/marketing/import-summary');
+      } catch {
+        return null;
+      }
+    },
+  });
+
   if (!flow) {
     return null;
   }
@@ -81,6 +110,14 @@ export const MarketingFunnelDiagnostics: React.FC<MarketingFunnelDiagnosticsProp
   // We'll focus on the top drop-off point for detailed diagnostics
   const topDropOff = dropoutPoints[0];
   const {timeOnPageBeforeExit, failedAttempts, tabSwitchingFrequency, hasMarketingMismatch} = topDropOff.diagnostics;
+
+  const providerSummaries = importSummary
+    ? [
+        { label: 'GA4', value: importSummary.summary.ga4 },
+        { label: 'Google Ads', value: importSummary.summary.google_ads },
+        { label: 'Meta Ads', value: importSummary.summary.meta_ads },
+      ]
+    : [];
   
   return (
     <Card className="w-full">
@@ -90,6 +127,28 @@ export const MarketingFunnelDiagnostics: React.FC<MarketingFunnelDiagnosticsProp
       </CardHeader>
       <CardContent>
         <div className="mb-4">
+          {providerSummaries.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-2">Imported Marketing Data (Last 30 Days)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {providerSummaries.map((provider) => {
+                  const ctr = provider.value.impressions > 0
+                    ? (provider.value.clicks / provider.value.impressions) * 100
+                    : 0;
+
+                  return (
+                    <div key={provider.label} className="border rounded-md p-3 bg-muted/20">
+                      <div className="font-medium">{provider.label}</div>
+                      <div className="text-sm text-muted-foreground">Imported events: {provider.value.importedEvents}</div>
+                      <div className="text-sm text-muted-foreground">CTR: {ctr.toFixed(2)}%</div>
+                      <div className="text-sm text-muted-foreground">Conversions: {provider.value.conversions}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <h3 className="text-lg font-medium mb-1">
             Top Drop-off Point: {topDropOff.stepLabel}
           </h3>

@@ -9,43 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Settings } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { LogOut, Settings } from 'lucide-react';
 
 export const UserProfileButton = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  const profile = {
+    full_name: user?.fullName || 'User',
+    email: user?.email,
+    avatar_url: undefined,
+  };
 
-  const { data: userRole } = useQuery({
-    queryKey: ['userRole', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      return data?.role || 'viewer';
-    },
-    enabled: !!user?.id,
-  });
+  const userRole = 'viewer';
 
   const handleSignOut = async () => {
     await signOut();

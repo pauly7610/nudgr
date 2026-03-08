@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 
 interface PerformanceMetric {
   name: string;
@@ -10,15 +10,15 @@ interface PerformanceMetric {
 export const usePerformanceMonitor = () => {
   const logMetric = useCallback(async (metric: PerformanceMetric) => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-
-      await supabase.from('performance_metrics').insert({
-        user_id: user?.user?.id,
-        metric_name: metric.name,
-        metric_value: metric.value,
-        page_url: window.location.href,
-        user_agent: navigator.userAgent,
-        metadata: metric.metadata || {},
+      await apiRequest<{ id: string; createdAt: string }>('/performance-metrics', {
+        method: 'POST',
+        body: JSON.stringify({
+          metricName: metric.name,
+          metricValue: metric.value,
+          pageUrl: window.location.href,
+          userAgent: navigator.userAgent,
+          metadata: metric.metadata || {},
+        }),
       });
     } catch (error) {
       console.error('Failed to log performance metric:', error);

@@ -69,13 +69,11 @@ Target coverage: 80% for critical paths
 
 ## Mocking
 
-### Supabase Client
+### API Client
 ```typescript
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    auth: { getUser: vi.fn() },
-    from: vi.fn(),
-  },
+vi.mock('@/lib/apiClient', () => ({
+  apiRequest: vi.fn(),
+  setAccessToken: vi.fn(),
 }));
 ```
 
@@ -86,6 +84,6 @@ Use the provided wrapper in `test-utils.tsx` which includes QueryClientProvider.
 
 1. **Test user behavior, not implementation**
 2. **Use data-testid sparingly** - prefer accessible queries
-3. **Mock external dependencies** - API calls, Supabase, etc.
+3. **Mock external dependencies** - API calls, browser APIs, etc.
 4. **Keep tests focused** - one assertion per test when possible
 5. **Use descriptive test names** - clearly state what is being tested

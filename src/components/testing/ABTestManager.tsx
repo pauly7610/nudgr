@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, FlaskConical } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 
@@ -18,6 +18,33 @@ interface ABTest {
   variants: { id: string; name: string; weight: number }[];
   is_active: boolean;
 }
+
+interface ABTestApi {
+  id: string;
+  name: string;
+  description?: string;
+  variants: { id: string; name: string; weight: number }[];
+  isActive: boolean;
+}
+
+interface BayesianSummary {
+  abTestId: string;
+  winnerVariantId: string;
+  winnerProbability: number;
+  variants: {
+    id: string;
+    name: string;
+    posteriorMean: number;
+  }[];
+}
+
+const toUiModel = (test: ABTestApi): ABTest => ({
+  id: test.id,
+  name: test.name,
+  description: test.description,
+  variants: test.variants,
+  is_active: test.isActive,
+});
 
 export const ABTestManager = () => {
   const { user } = useAuth();
@@ -33,39 +60,55 @@ export const ABTestManager = () => {
     queryKey: ['ab-tests', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from('ab_tests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return (data || []).map(test => ({
-        ...test,
-        variants: test.variants as unknown as { id: string; name: string; weight: number }[]
-      })) as ABTest[];
+
+      try {
+        const data = await apiRequest<ABTestApi[]>('/ab-tests');
+        return data.map(toUiModel);
+      } catch {
+        return [];
+      }
     },
     enabled: !!user?.id,
+  });
+
+  const { data: bayesianSummaries } = useQuery({
+    queryKey: ['ab-tests-bayesian', tests?.map((test) => test.id).join(','), user?.id],
+    queryFn: async () => {
+      if (!tests || tests.length === 0) {
+        return {} as Record<string, BayesianSummary>;
+      }
+
+      const summaries = await Promise.all(
+        tests.map(async (test) => {
+          try {
+            const summary = await apiRequest<BayesianSummary>(`/ab-tests/${test.id}/bayesian-summary`);
+            return [test.id, summary] as const;
+          } catch {
+            return [test.id, null] as const;
+          }
+        })
+      );
+
+      return Object.fromEntries(summaries.filter((entry): entry is readonly [string, BayesianSummary] => Boolean(entry[1])));
+    },
+    enabled: Boolean(user?.id && tests && tests.length > 0),
   });
 
   const createTest = useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error('Not authenticated');
-      
-      const { data, error } = await supabase
-        .from('ab_tests')
-        .insert([{
-          user_id: user.id,
+
+      const data = await apiRequest<ABTestApi>('/ab-tests', {
+        method: 'POST',
+        body: JSON.stringify({
           name: testName,
           description: testDescription,
-          variants: variants,
-          is_active: true,
-        }])
-        .select()
-        .single();
+          variants,
+          isActive: true,
+        }),
+      });
 
-      if (error) throw error;
-      return data;
+      return toUiModel(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ab-tests'] });
@@ -84,12 +127,10 @@ export const ABTestManager = () => {
 
   const toggleTest = useMutation({
     mutationFn: async ({ testId, isActive }: { testId: string; isActive: boolean }) => {
-      const { error } = await supabase
-        .from('ab_tests')
-        .update({ is_active: isActive })
-        .eq('id', testId);
-
-      if (error) throw error;
+      await apiRequest<{ ok: true }>(`/ab-tests/${testId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive }),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ab-tests'] });
@@ -222,12 +263,29 @@ export const ABTestManager = () => {
                       <p className="text-sm text-muted-foreground">{test.description}</p>
                     )}
                     <div className="flex gap-2">
-                      {test.variants.map((v: any) => (
+                      {test.variants.map((v) => (
                         <Badge key={v.id} variant="outline">
                           {v.name}: {v.weight}%
                         </Badge>
                       ))}
                     </div>
+                    {bayesianSummaries?.[test.id] && (
+                      <div className="space-y-1 text-sm">
+                        <p className="text-muted-foreground">
+                          Bayesian winner probability:{' '}
+                          <span className="font-medium text-foreground">
+                            {Math.round(bayesianSummaries[test.id].winnerProbability * 100)}%
+                          </span>
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {bayesianSummaries[test.id].variants.map((variant) => (
+                            <Badge key={variant.id} variant={variant.id === bayesianSummaries[test.id].winnerVariantId ? 'default' : 'secondary'}>
+                              {variant.name}: {(variant.posteriorMean * 100).toFixed(1)}%
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <Button
                     variant="outline"

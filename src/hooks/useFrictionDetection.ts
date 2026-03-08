@@ -1,16 +1,49 @@
 import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { apiRequest } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
+
+interface FrictionEvent {
+  id: string;
+  eventType: string;
+  pageUrl: string;
+  severityScore: number;
+}
+
+interface MetricsResponse {
+  events: FrictionEvent[];
+}
+
+interface FrictionScore {
+  pageUrl: string;
+  avgSeverity: number;
+  totalEvents: number;
+}
 
 export const useFrictionDetection = () => {
   const { toast } = useToast();
 
   const detectFriction = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('detect-friction');
+      const data = await apiRequest<MetricsResponse>('/metrics/recent');
 
-      if (error) throw error;
-      return data;
+      const grouped = new Map<string, { totalSeverity: number; totalEvents: number }>();
+      for (const event of data.events) {
+        const bucket = grouped.get(event.pageUrl) ?? { totalSeverity: 0, totalEvents: 0 };
+        bucket.totalSeverity += event.severityScore;
+        bucket.totalEvents += 1;
+        grouped.set(event.pageUrl, bucket);
+      }
+
+      const frictionScores: FrictionScore[] = Array.from(grouped.entries()).map(([pageUrl, stats]) => ({
+        pageUrl,
+        avgSeverity: stats.totalEvents ? stats.totalSeverity / stats.totalEvents : 0,
+        totalEvents: stats.totalEvents,
+      }));
+
+      return {
+        totalEvents: data.events.length,
+        frictionScores,
+      };
     },
     onSuccess: (data) => {
       console.log('Friction detection complete:', data);
@@ -30,13 +63,18 @@ export const useFrictionDetection = () => {
   });
 
   const scoreFriction = useMutation({
-    mutationFn: async (events: any[]) => {
-      const { data, error } = await supabase.functions.invoke('score-friction', {
-        body: { events },
-      });
+    mutationFn: async (events: Array<{ severityScore?: number }>) => {
+      const severityScores = events.map((event) => event.severityScore ?? 0);
+      const highSeverityCount = severityScores.filter((score) => score >= 7).length;
+      const averageSeverity = severityScores.length
+        ? severityScores.reduce((sum, score) => sum + score, 0) / severityScores.length
+        : 0;
 
-      if (error) throw error;
-      return data;
+      return {
+        highSeverityCount,
+        averageSeverity,
+        totalEvents: events.length,
+      };
     },
     onSuccess: (data) => {
       console.log('Friction scoring complete:', data);
