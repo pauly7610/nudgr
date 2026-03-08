@@ -45,6 +45,24 @@ curl -X GET "https://your-domain.com/functions/v1/api-access" \
   -H "X-API-Key: YOUR_API_KEY"
 ```
 
+### Refresh Token Lifecycle & Security Metadata
+
+The backend stores refresh-token lifecycle data in analytics events (`eventName: auth_refresh_token`) to support rotation, revocation, replay detection, and security analytics.
+
+Stored `eventProperties` fields include:
+
+- `tokenId` - Unique refresh token identifier from JWT payload
+- `tokenHash` - SHA-256 hash of the refresh token (raw token is not stored)
+- `issuedAt` - Token issuance timestamp
+- `expiresAt` - Calculated expiry timestamp based on `JWT_REFRESH_TTL`
+- `revoked` - Boolean token revocation flag
+- `revokedAt` - Revocation timestamp (if revoked)
+- `revokedReason` - Revocation cause (`rotation`, `logout`, `expired`)
+- `replacedByTokenId` - New token id when rotation occurs
+- `reuseDetected`, `reuseDetectedAt`, `reuseReason` - Replay/reuse signal fields
+
+When reuse is detected for unknown hashes, the backend also records `eventName: auth_refresh_token_reuse`.
+
 ## Rate Limiting
 
 Rate limits are enforced per API key:
@@ -142,6 +160,37 @@ Send friction events from your application.
   ]
 }
 ```
+
+#### Get Auth Token Hygiene Summary
+
+Retrieve refresh-token security posture metrics for the authenticated user.
+
+**Endpoint:** `GET /auth/token-hygiene-summary`
+
+**Authentication:** Bearer access token required.
+
+**Response:**
+
+```json
+{
+  "windowDays": 30,
+  "since": "2026-03-07T00:00:00.000Z",
+  "summary": {
+    "issuedTokens": 18,
+    "activeTokens": 2,
+    "revokedTokens": 16,
+    "rotatedTokens": 12,
+    "expiredTokens": 3,
+    "logoutRevocations": 4,
+    "reuseDetections": 1
+  }
+}
+```
+
+**Notes:**
+
+- `reuseDetections` includes both explicit replay flags on token records and standalone `auth_refresh_token_reuse` events.
+- Intended for dashboard security monitoring and anomaly triage.
 
 ---
 
