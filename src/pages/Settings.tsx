@@ -11,6 +11,7 @@ import { SystemHealth } from '@/components/system/SystemHealth';
 import { WebhookTester } from '@/components/testing/WebhookTester';
 import { SDKDebugger } from '@/components/testing/SDKDebugger';
 import { DataRetentionPolicy } from '@/components/settings/DataRetentionPolicy';
+import { EventTaxonomyManager } from '@/components/settings/EventTaxonomyManager';
 import { SettingsImportExport } from '@/components/settings/SettingsImportExport';
 import { SampleDataGenerator } from '@/components/testing/SampleDataGenerator';
 import { UsageMetrics } from '@/components/subscription/UsageMetrics';
@@ -50,9 +51,13 @@ const Settings = () => {
         <Separator />
         
         <DataRetentionPolicy />
-        
+
         <Separator />
-        
+
+        <EventTaxonomyManager />
+
+        <Separator />
+
         <TeamCollaboration />
         
         <Separator />

@@ -6,7 +6,7 @@ import { S3Client } from "@aws-sdk/client-s3";
 import { prisma } from "./lib/prisma.js";
 
 const ensureTestEnv = (): void => {
-  process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
+  process.env.NODE_ENV = "test";
   process.env.PORT = process.env.PORT ?? "4000";
   process.env.DATABASE_URL = process.env.DATABASE_URL ?? "file:./test.db";
   process.env.REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
@@ -496,6 +496,7 @@ test("SDK session auth allows ingest and upload routes to pass auth layer", asyn
   const plainApiKey = "sdk_live_test_key";
   const userId = "sdk-user-1";
   const expectedKeyHash = hashToken(plainApiKey);
+  const createdEventBatches: unknown[] = [];
 
   const apiKeyDelegate = prisma.apiKey as unknown as {
     findFirst: (...args: unknown[]) => Promise<unknown>;
@@ -516,6 +517,7 @@ test("SDK session auth allows ingest and upload routes to pass auth layer", asyn
       return {
         id: "api-key-1",
         userId,
+        propertyId: "property-1",
         allowedDomains: ["app.example.com"]
       };
     }
@@ -524,6 +526,7 @@ test("SDK session auth allows ingest and upload routes to pass auth layer", asyn
   };
 
   frictionEventDelegate.createMany = async (args: unknown) => {
+    createdEventBatches.push(args);
     const typed = args as { data?: unknown[] };
     return {
       count: typed.data?.length ?? 0
@@ -563,10 +566,17 @@ test("SDK session auth allows ingest and upload routes to pass auth layer", asyn
             {
               type: "friction",
               sessionId: "sdk-session-123",
+              eventId: "event-123",
+              timestamp: 1_714_500_000_000,
+              schemaVersion: 2,
+              sdkVersion: "0.4.0",
               data: {
                 eventType: "rage_click",
                 pageUrl: "https://app.example.com/pricing",
-                severityScore: 8
+                severityScore: 8,
+                metadata: {
+                  email: "member@example.com"
+                }
               }
             }
           ]
@@ -574,6 +584,33 @@ test("SDK session auth allows ingest and upload routes to pass auth layer", asyn
       });
 
       assert.equal(ingest.statusCode, 202);
+      assert.deepEqual(ingest.json(), {
+        ok: true,
+        received: 1,
+        accepted: 1,
+        duplicates: 0
+      });
+      assert.equal(createdEventBatches.length, 1);
+      const createdBatch = createdEventBatches[0] as {
+        skipDuplicates?: boolean;
+        data?: Array<{
+          eventId?: string | null;
+          propertyId?: string | null;
+          source?: string;
+          schemaVersion?: number;
+          sdkVersion?: string | null;
+          urlHost?: string | null;
+          metadata?: { metadata?: { email?: string } };
+        }>;
+      };
+      assert.equal(createdBatch.skipDuplicates, true);
+      assert.equal(createdBatch.data?.[0]?.eventId, "event-123");
+      assert.equal(createdBatch.data?.[0]?.propertyId, "property-1");
+      assert.equal(createdBatch.data?.[0]?.source, "sdk_browser");
+      assert.equal(createdBatch.data?.[0]?.schemaVersion, 2);
+      assert.equal(createdBatch.data?.[0]?.sdkVersion, "0.4.0");
+      assert.equal(createdBatch.data?.[0]?.urlHost, "app.example.com");
+      assert.equal(createdBatch.data?.[0]?.metadata?.metadata?.email, "[redacted]");
 
       const recording = await app.inject({
         method: "POST",
@@ -600,6 +637,176 @@ test("SDK session auth allows ingest and upload routes to pass auth layer", asyn
   } finally {
     apiKeyDelegate.findFirst = originalApiKeyFindFirst;
     frictionEventDelegate.createMany = originalFrictionCreateMany;
+  }
+});
+
+test("SDK ingest dedupes event IDs and fans out performance and error records", async () => {
+  const plainApiKey = "sdk_live_quality_key";
+  const userId = "sdk-user-quality";
+  const expectedKeyHash = hashToken(plainApiKey);
+  const createdFrictionBatches: unknown[] = [];
+  const createdPerformanceBatches: unknown[] = [];
+  const createdErrorBatches: unknown[] = [];
+
+  const apiKeyDelegate = prisma.apiKey as unknown as {
+    findFirst: (...args: unknown[]) => Promise<unknown>;
+  };
+  const frictionEventDelegate = prisma.frictionEvent as unknown as {
+    createMany: (...args: unknown[]) => Promise<unknown>;
+  };
+  const performanceMetricDelegate = prisma.performanceMetric as unknown as {
+    createMany: (...args: unknown[]) => Promise<unknown>;
+  };
+  const errorLogDelegate = prisma.errorLog as unknown as {
+    createMany: (...args: unknown[]) => Promise<unknown>;
+  };
+
+  const originalApiKeyFindFirst = apiKeyDelegate.findFirst;
+  const originalFrictionCreateMany = frictionEventDelegate.createMany;
+  const originalPerformanceCreateMany = performanceMetricDelegate.createMany;
+  const originalErrorCreateMany = errorLogDelegate.createMany;
+
+  apiKeyDelegate.findFirst = async (args: unknown) => {
+    const typed = args as {
+      where?: { keyHash?: string; isActive?: boolean };
+    };
+
+    if (typed.where?.isActive && typed.where.keyHash === expectedKeyHash) {
+      return {
+        id: "api-key-quality-1",
+        userId,
+        propertyId: "property-quality-1",
+        allowedDomains: ["app.example.com"]
+      };
+    }
+
+    return null;
+  };
+
+  frictionEventDelegate.createMany = async (args: unknown) => {
+    createdFrictionBatches.push(args);
+    return { count: 1 };
+  };
+
+  performanceMetricDelegate.createMany = async (args: unknown) => {
+    createdPerformanceBatches.push(args);
+    const typed = args as { data?: unknown[] };
+    return { count: typed.data?.length ?? 0 };
+  };
+
+  errorLogDelegate.createMany = async (args: unknown) => {
+    createdErrorBatches.push(args);
+    const typed = args as { data?: unknown[] };
+    return { count: typed.data?.length ?? 0 };
+  };
+
+  try {
+    await withApp(async (app) => {
+      const session = await app.inject({
+        method: "POST",
+        url: "/api/sdk/session",
+        headers: {
+          "x-api-key": plainApiKey,
+          origin: "https://app.example.com"
+        },
+        payload: {
+          sessionId: "sdk-session-quality",
+          pageUrl: "https://app.example.com/dashboard"
+        }
+      });
+
+      assert.equal(session.statusCode, 201);
+      const sessionBody = session.json() as { sdkSessionToken: string };
+
+      const ingest = await app.inject({
+        method: "POST",
+        url: "/api/ingest-events",
+        headers: {
+          "x-api-key": plainApiKey,
+          "x-sdk-session-token": sessionBody.sdkSessionToken
+        },
+        payload: {
+          events: [
+            {
+              type: "performance",
+              sessionId: "sdk-session-quality",
+              eventId: "evt-performance-1",
+              timestamp: 1_714_500_001_000,
+              schemaVersion: 2,
+              sdkVersion: "0.4.0",
+              data: {
+                eventType: "performance",
+                pageUrl: "https://app.example.com/dashboard",
+                loadTime: 1200,
+                fcp: 340,
+                tti: 720
+              }
+            },
+            {
+              type: "javascript_error",
+              sessionId: "sdk-session-quality",
+              eventId: "evt-error-1",
+              timestamp: 1_714_500_002_000,
+              data: {
+                eventType: "javascript_error",
+                pageUrl: "https://app.example.com/dashboard",
+                severityScore: 9,
+                errorMessage: "Cannot read property token of undefined",
+                metadata: {
+                  stack: "Error: Cannot read property token"
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      assert.equal(ingest.statusCode, 202);
+      assert.deepEqual(ingest.json(), {
+        ok: true,
+        received: 2,
+        accepted: 1,
+        duplicates: 1
+      });
+      assert.equal(createdFrictionBatches.length, 1);
+      assert.equal(createdPerformanceBatches.length, 1);
+      assert.equal(createdErrorBatches.length, 1);
+
+      const performanceBatch = createdPerformanceBatches[0] as { data?: Array<{ metricName?: string; metricValue?: number }> };
+      assert.deepEqual(
+        performanceBatch.data?.map((metric) => metric.metricName).sort(),
+        ["first_contentful_paint", "page_load_time", "time_to_interactive"]
+      );
+
+      const errorBatch = createdErrorBatches[0] as { data?: Array<{ errorType?: string; severity?: string; metadata?: { errorMessage?: string } }> };
+      assert.equal(errorBatch.data?.[0]?.errorType, "javascript_error");
+      assert.equal(errorBatch.data?.[0]?.severity, "high");
+
+      const oversized = await app.inject({
+        method: "POST",
+        url: "/api/ingest-events",
+        headers: {
+          "x-api-key": plainApiKey,
+          "x-sdk-session-token": sessionBody.sdkSessionToken
+        },
+        payload: {
+          events: Array.from({ length: 101 }, (_, index) => ({
+            type: "click",
+            eventId: `oversized-${index}`,
+            data: {
+              pageUrl: "https://app.example.com/dashboard"
+            }
+          }))
+        }
+      });
+
+      assert.equal(oversized.statusCode, 400);
+    });
+  } finally {
+    apiKeyDelegate.findFirst = originalApiKeyFindFirst;
+    frictionEventDelegate.createMany = originalFrictionCreateMany;
+    performanceMetricDelegate.createMany = originalPerformanceCreateMany;
+    errorLogDelegate.createMany = originalErrorCreateMany;
   }
 });
 

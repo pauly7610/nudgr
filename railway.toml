@@ -1,0 +1,23 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "npm run railway:build"
+watchPatterns = [
+  "backend/**",
+  "public/**",
+  "src/**",
+  "index.html",
+  "package.json",
+  "package-lock.json",
+  "railway.toml",
+  "tailwind.config.ts",
+  "tsconfig*.json",
+  "vite.config.ts"
+]
+
+[deploy]
+preDeployCommand = "npm run railway:migrate"
+startCommand = "npm run railway:start"
+healthcheckPath = "/health/deps"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

@@ -319,10 +319,15 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
         take: 10_000,
         select: {
           id: true,
+          eventId: true,
           eventType: true,
           pageUrl: true,
           sessionId: true,
           severityScore: true,
+          eventTimestamp: true,
+          source: true,
+          schemaVersion: true,
+          sdkVersion: true,
           metadata: true,
           createdAt: true
         }
@@ -377,12 +382,32 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
     let pageViews = 0;
     let severityTotal = 0;
     let highFrictionEvents = 0;
+    let eventsWithIds = 0;
+    let eventsWithTimestamps = 0;
+    let sdkEvents = 0;
+    const sdkVersions = new Set<string>();
+    const schemaVersions = new Set<number>();
 
     for (const event of events) {
       const metadata = asObject(event.metadata);
       const pageUrl = event.pageUrl || "unknown";
       const sessionId = event.sessionId || "unknown-session";
       const isPageView = event.eventType === "page_view" || metadata.interactionType === "pageview";
+      if (event.eventId) {
+        eventsWithIds += 1;
+      }
+      if (event.eventTimestamp) {
+        eventsWithTimestamps += 1;
+      }
+      if (event.source === "sdk_browser") {
+        sdkEvents += 1;
+      }
+      if (event.sdkVersion) {
+        sdkVersions.add(event.sdkVersion);
+      }
+      if (event.schemaVersion) {
+        schemaVersions.add(event.schemaVersion);
+      }
 
       pages.add(pageUrl);
       sessions.add(sessionId);
@@ -583,6 +608,14 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
         averageSeverity: round(averageSeverity),
         frictionScore,
         averagePageLoadMs: averagePageLoadMs === null ? null : Math.round(averagePageLoadMs),
+        collectionQuality: {
+          eventIdCoverage: events.length > 0 ? round((eventsWithIds / events.length) * 100, 1) : 0,
+          timestampCoverage: events.length > 0 ? round((eventsWithTimestamps / events.length) * 100, 1) : 0,
+          sdkEventCoverage: events.length > 0 ? round((sdkEvents / events.length) * 100, 1) : 0,
+          duplicateProtectionReady: eventsWithIds > 0,
+          schemaVersions: [...schemaVersions].sort((a, b) => a - b),
+          sdkVersions: [...sdkVersions].sort()
+        },
         instrumentationCoverage: clamp(
           (events.length > 0 ? 35 : 0) +
             (sessions.size > 0 ? 20 : 0) +

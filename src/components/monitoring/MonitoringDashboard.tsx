@@ -12,8 +12,13 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
+  RadioTower,
+  GitBranch,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Progress } from '@/components/ui/progress';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { useAnalyticsOpportunities, useCollectionObservability } from '@/hooks/useGovernance';
 
 interface FrictionEvent {
   id: string;
@@ -54,6 +59,11 @@ interface ErrorStats {
 
 export const MonitoringDashboard = () => {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const propertyId = selectedProperty?.id ?? null;
+  const observabilityHours = timeRange === '1h' ? 1 : timeRange === '24h' ? 24 : timeRange === '7d' ? 168 : 168;
+  const { data: observability, refetch: refetchObservability } = useCollectionObservability(propertyId, observabilityHours);
+  const { data: opportunities } = useAnalyticsOpportunities(propertyId, timeRange === '30d' ? 30 : 7);
 
   const getTimeRangeDate = () => {
     const now = new Date();
@@ -181,11 +191,103 @@ export const MonitoringDashboard = () => {
               {range}
             </Button>
           ))}
-          <Button variant="outline" size="sm" onClick={() => refetchErrors()}>
+          <Button variant="outline" size="sm" onClick={() => { refetchErrors(); refetchObservability(); }}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <RadioTower className="h-5 w-5 text-primary" />
+                Collection Observability
+              </CardTitle>
+              <CardDescription>
+                Ingestion volume, duplicate protection, SDK versions, and queue delay for the active property view.
+              </CardDescription>
+            </div>
+            <Badge variant={observability?.health === 'healthy' ? 'default' : observability?.health === 'watch' ? 'secondary' : 'destructive'}>
+              {observability?.health?.replace('_', ' ') ?? 'checking'}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-muted-foreground">Pipeline score</div>
+              <div className="mt-2 text-3xl font-semibold">{observability?.score ?? 0}%</div>
+              <Progress value={observability?.score ?? 0} className="mt-3 h-2" />
+            </div>
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-muted-foreground">Events</div>
+              <div className="mt-2 text-3xl font-semibold">{observability?.totals.events.toLocaleString() ?? 0}</div>
+              <p className="mt-2 text-xs text-muted-foreground">{observability?.totals.performanceMetrics ?? 0} performance metrics</p>
+            </div>
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-muted-foreground">Event ID coverage</div>
+              <div className="mt-2 text-3xl font-semibold">{observability?.quality.eventIdCoverage ?? 0}%</div>
+              <p className="mt-2 text-xs text-muted-foreground">{observability?.quality.timestampCoverage ?? 0}% timestamp coverage</p>
+            </div>
+            <div className="rounded-md border p-4">
+              <div className="text-sm text-muted-foreground">Queue delay p95</div>
+              <div className="mt-2 text-3xl font-semibold">
+                {observability?.quality.queueDelayP95Ms === null || observability?.quality.queueDelayP95Ms === undefined
+                  ? 'n/a'
+                  : `${Math.round(observability.quality.queueDelayP95Ms / 1000)}s`}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">{observability?.unknownEvents.length ?? 0} unknown event types</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-md border p-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <GitBranch className="h-4 w-4" />
+                SDK Versions
+              </h3>
+              <div className="mt-3 space-y-2">
+                {(observability?.sdkVersions ?? []).length > 0 ? (
+                  observability?.sdkVersions.map((version) => (
+                    <div key={version.version} className="flex items-center justify-between text-sm">
+                      <span>{version.version}</span>
+                      <Badge variant="outline">{version.count}</Badge>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No SDK traffic in this window.</p>
+                )}
+              </div>
+            </div>
+            <div className="rounded-md border p-4">
+              <h3 className="text-sm font-semibold">Top opportunities</h3>
+              <div className="mt-3 space-y-2">
+                {(opportunities?.opportunities ?? []).slice(0, 4).map((opportunity) => (
+                  <div key={opportunity.id} className="rounded-md bg-muted/50 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="truncate font-medium">{opportunity.pageUrl}</span>
+                      <Badge variant="outline">{opportunity.impactScore}</Badge>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{opportunity.recommendation}</p>
+                  </div>
+                ))}
+                {(opportunities?.opportunities ?? []).length === 0 && (
+                  <p className="text-sm text-muted-foreground">No opportunity ranking yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {observability && observability.recommendations.length > 0 && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{observability.recommendations[0]}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-4">

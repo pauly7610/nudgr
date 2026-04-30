@@ -8,6 +8,7 @@ import {
   KeyRound,
   Loader2,
   RefreshCw,
+  AlertTriangle,
   Signal,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -32,8 +33,10 @@ import {
   type AnalyticsPropertyType,
 } from '@/hooks/useAnalyticsProperties';
 import { toast } from '@/hooks/use-toast';
-import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { ALL_PROPERTIES_ID, useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { useSetupCheck } from '@/hooks/useGovernance';
 
 interface InstallState {
   propertyId: string;
@@ -58,6 +61,9 @@ const buildInstallSnippet = (apiKey: string): string => {
   data-enable-recording="true"
   data-enable-screenshots="false"
   data-sample-rate="0.1"
+  data-redact-text="true"
+  data-respect-do-not-track="true"
+  data-max-queue-size="500"
 ></script>`;
 };
 
@@ -101,7 +107,7 @@ const InstallSnippetPanel = ({
     await navigator.clipboard.writeText(snippet);
     toast({
       title: 'Snippet copied',
-      description: 'Paste it before the closing head tag on the site.',
+      description: 'Paste it in the site HTML head or shared app shell, not in CSS or TS files.',
     });
   };
 
@@ -113,7 +119,7 @@ const InstallSnippetPanel = ({
           Install Snippet
         </CardTitle>
         <CardDescription>
-          Paste this once and Nudgr will start receiving page views, clicks, errors, friction signals, and sampled recordings.
+          Paste this once in the site or app shell and DreamFi will start receiving page views, clicks, errors, friction signals, and sampled recordings.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -130,6 +136,38 @@ const InstallSnippetPanel = ({
             <pre className="max-h-72 overflow-auto rounded-md bg-muted p-4 text-xs">
               <code>{snippet}</code>
             </pre>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-md border bg-muted/40 p-4">
+                <h3 className="text-sm font-semibold">Where this goes</h3>
+                <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <strong className="text-foreground">React / Vite:</strong> paste it in the root <code>index.html</code>,
+                    inside <code>{'<head>'}</code>, before <code>{'</head>'}</code>.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Next.js / Remix:</strong> add it to the shared root layout or document head
+                    so it renders on every tracked route.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Plain HTML / CMS:</strong> add it to the global header template. If there is
+                    no shared template, add it to each HTML page you want tracked.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Do not</strong> put it in <code>index.css</code>, <code>index.ts</code>,
+                    <code>main.tsx</code>, or an individual React component.
+                  </li>
+                </ul>
+              </div>
+              <div className="rounded-md border bg-muted/40 p-4">
+                <h3 className="text-sm font-semibold">Which screens to track</h3>
+                <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                  <li>Install once in a single-page app shell to cover all routed screens automatically.</li>
+                  <li>Add it to marketing pages, signup/login, onboarding, dashboard/home, activation, funding, rewards, and support flows.</li>
+                  <li>Use separate properties or keys for production, staging, and materially different apps or domains.</li>
+                  <li>Keep screenshots off for password, card, bank, SSN, and other sensitive-data screens until privacy review approves them.</li>
+                </ul>
+              </div>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={copySnippet}>
                 <Copy className="mr-2 h-4 w-4" />
@@ -150,6 +188,77 @@ const InstallSnippetPanel = ({
             </div>
           </>
         )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const SetupCheckPanel = ({ propertyId }: { propertyId: string | null }) => {
+  const { data: setup, isLoading, refetch, isFetching } = useSetupCheck(propertyId);
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Signal className="h-5 w-5 text-primary" />
+              Live Setup Checker
+            </CardTitle>
+            <CardDescription>
+              Confirms the snippet, SDK version, traffic, privacy settings, and event taxonomy are ready.
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={!propertyId || isFetching}>
+            {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Check
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!propertyId ? (
+          <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+            Select a property to run a production readiness check.
+          </div>
+        ) : isLoading ? (
+          <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Checking install...
+          </div>
+        ) : setup ? (
+          <>
+            <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
+              <div>
+                <div className="text-4xl font-semibold">{setup.score}%</div>
+                <Badge variant={setup.readyForProduction ? 'default' : 'secondary'}>
+                  {setup.readyForProduction ? 'Production ready' : 'Needs work'}
+                </Badge>
+              </div>
+              <div>
+                <Progress value={setup.score} className="h-2" />
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Last signal {setup.lastSignalAt ? new Date(setup.lastSignalAt).toLocaleString() : 'not seen yet'}
+                  {setup.sdkVersion ? ` - SDK ${setup.sdkVersion}` : ''}
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              {setup.checks.map((check) => (
+                <div key={check.id} className="rounded-md border p-3">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {check.status === 'pass' ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className={cn('h-4 w-4', check.status === 'fail' ? 'text-red-600' : 'text-amber-600')} />
+                    )}
+                    {check.label}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{check.detail}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -235,6 +344,7 @@ const Connect = () => {
   const [propertyType, setPropertyType] = useState<AnalyticsPropertyType>('website');
   const [environment, setEnvironment] = useState<AnalyticsPropertyEnvironment>('production');
   const [installState, setInstallState] = useState<InstallState | null>(null);
+  const setupPropertyId = installState?.propertyId ?? (selectedPropertyId !== ALL_PROPERTIES_ID ? selectedPropertyId : null);
 
   const connectedCount = useMemo(
     () => properties.filter((property) => property.status === 'connected').length,
@@ -406,6 +516,8 @@ const Connect = () => {
             isVerifying={verifyProperty.isPending}
           />
         </div>
+
+        <SetupCheckPanel propertyId={setupPropertyId} />
 
         <Card>
           <CardHeader>

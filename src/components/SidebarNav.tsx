@@ -12,10 +12,10 @@ export const SidebarNav: React.FC = () => {
     <Sidebar>
       <SidebarHeader className="flex items-center px-6 py-4">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-amplitude-blue flex items-center justify-center text-white font-bold text-xl">
-            A
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-dreamfi-purple text-xl font-bold text-dreamfi-gold">
+            D
           </div>
-          <span className="font-semibold text-lg">Amplitude</span>
+          <span className="text-lg font-semibold">DreamFi</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

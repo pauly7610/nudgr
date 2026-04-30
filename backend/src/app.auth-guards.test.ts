@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const ensureTestEnv = (): void => {
-  process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
+  process.env.NODE_ENV = "test";
   process.env.PORT = process.env.PORT ?? "4000";
   process.env.DATABASE_URL = process.env.DATABASE_URL ?? "file:./test.db";
   process.env.REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
@@ -166,6 +166,42 @@ test("GET /properties requires auth", async () => {
     const response = await app.inject({
       method: "GET",
       url: "/properties"
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("GET /collection/observability requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/collection/observability"
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("POST /event-definitions requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/event-definitions",
+      payload: {
+        eventName: "signup_started"
+      }
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("GET /security/posture requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/security/posture"
     });
 
     assert.equal(response.statusCode, 401);
