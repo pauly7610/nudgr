@@ -53,8 +53,7 @@ export const JourneyFrictionMap: React.FC<JourneyFrictionMapProps> = ({
     );
   }
 
-  // Get detailed journey for current flow
-  const detailedJourney = getMockDetailedJourney(flow.id)[flow.id] || [];
+  const detailedJourney = flow.details ?? getMockDetailedJourney(flow.id)[flow.id] ?? [];
 
   return (
     <div className="rounded-lg border bg-card overflow-hidden">

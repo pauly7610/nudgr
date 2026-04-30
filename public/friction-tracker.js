@@ -26,6 +26,7 @@
   const SCREENSHOT_ON_FRICTION = script?.getAttribute('data-screenshot-friction') === 'true';
   const RECORDING_MAX_DURATION = parseInt(script?.getAttribute('data-recording-duration') || '300000'); // 5 minutes
   const RECORDING_SAMPLE_RATE = parseFloat(script?.getAttribute('data-sample-rate') || '1.0'); // 100% of sessions
+  const HTML2CANVAS_SRC = script?.getAttribute('data-html2canvas-src') || 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
 
   if (!API_KEY) {
     console.error('[FrictionTracker] Missing API key');
@@ -111,9 +112,9 @@
     }
 
     // Dead click detection
-    const hadChange = hasPageChanged();
+    const pageStateBeforeClick = getPageStateFingerprint();
     setTimeout(() => {
-      if (!hasPageChanged() && hadChange === hasPageChanged()) {
+      if (pageStateBeforeClick === getPageStateFingerprint()) {
         trackFriction({
           eventType: 'dead_click',
           elementSelector: selector,
@@ -182,6 +183,19 @@
 
   // Helper functions
   function generateUUID() {
+    if (window.crypto?.randomUUID) {
+      return window.crypto.randomUUID();
+    }
+
+    if (window.crypto?.getRandomValues) {
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -199,8 +213,34 @@
     return element.tagName.toLowerCase();
   }
 
-  function hasPageChanged() {
-    return window.performance.now();
+  function getPageStateFingerprint() {
+    const body = document.body;
+    return [
+      window.location.href,
+      document.title,
+      body ? body.innerText.length : 0,
+      document.querySelectorAll('a,button,input,select,textarea,form').length,
+      document.activeElement ? getSelector(document.activeElement) : '',
+    ].join('|');
+  }
+
+  function getRedactedHtmlSnapshot() {
+    const clone = document.documentElement.cloneNode(true);
+
+    clone.querySelectorAll('script,noscript,style').forEach(node => node.remove());
+    clone.querySelectorAll('input,textarea,select').forEach(node => {
+      node.setAttribute('value', '[redacted]');
+      node.setAttribute('data-nudgr-redacted', 'true');
+      if ('textContent' in node) {
+        node.textContent = '[redacted]';
+      }
+    });
+    clone.querySelectorAll('[data-nudgr-redact],[data-private],[data-sensitive]').forEach(node => {
+      node.textContent = '[redacted]';
+      node.setAttribute('data-nudgr-redacted', 'true');
+    });
+
+    return clone.outerHTML.substring(0, 50000);
   }
 
   function getFirstContentfulPaint() {
@@ -271,6 +311,7 @@
         return fetch(url, {
           ...options,
           headers: mergedHeaders,
+          keepalive: options?.keepalive === true,
         });
       })
       .then((response) => {
@@ -442,7 +483,7 @@
         width: window.innerWidth,
         height: window.innerHeight,
       },
-      html: document.documentElement.outerHTML.substring(0, 50000), // Limit size
+      html: getRedactedHtmlSnapshot(),
     };
     recordingData.push(snapshot);
   }
@@ -506,7 +547,7 @@
     }
   }
 
-  function sendBatch() {
+  function sendBatch(options = {}) {
     if (eventQueue.length === 0) return;
 
     const batch = eventQueue.splice(0, BATCH_SIZE);
@@ -519,6 +560,7 @@
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ events: batch }),
+      keepalive: options.keepalive === true,
     })
       .catch((error) => {
         console.error('[FrictionTracker] Failed to send events:', error);
@@ -533,7 +575,7 @@
       stopRecording();
     }
     if (eventQueue.length > 0) {
-      sendBatch();
+      sendBatch({ keepalive: true });
     }
   });
 
@@ -543,8 +585,10 @@
       // Dynamically load html2canvas if not already loaded
       if (!window.html2canvas) {
         const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.src = HTML2CANVAS_SRC;
         script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.referrerPolicy = 'no-referrer';
         await new Promise((resolve, reject) => {
           script.onload = resolve;
           script.onerror = reject;

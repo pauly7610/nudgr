@@ -1,7 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
+import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
+import { AUTH_DISABLED_USER } from "../plugins/auth.js";
 
 const eventSchema = z.object({
   eventType: z.string().min(1),
@@ -30,7 +32,11 @@ const errorSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional()
 });
 
-const resolveUserIdFromAuthHeader = async (
+const recentMetricsQuerySchema = z.object({
+  propertyId: z.string().uuid().optional()
+});
+
+const resolveTelemetryUserId = async (
   app: {
     jwt: {
       verify: <T>(token: string) => Promise<T>;
@@ -49,6 +55,18 @@ const resolveUserIdFromAuthHeader = async (
   } catch {
     return null;
   }
+};
+
+const resolveUserIdFromAuthHeader = async (
+  app: {
+    jwt: {
+      verify: <T>(token: string) => Promise<T>;
+    };
+  },
+  authHeader: string | undefined
+): Promise<string | null> => {
+  const authenticatedUserId = await resolveTelemetryUserId(app, authHeader);
+  return authenticatedUserId ?? (env.DISABLE_AUTH ? AUTH_DISABLED_USER.sub : null);
 };
 
 export const eventRoutes: FastifyPluginAsync = async (app) => {
@@ -135,10 +153,39 @@ export const eventRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(401).send({ message: "Unauthorized" });
     }
 
+    const query = recentMetricsQuerySchema.safeParse(request.query);
+    if (!query.success) {
+      return reply.code(400).send({ message: "Invalid metrics query", issues: query.error.flatten() });
+    }
+
+    const propertyId = query.data.propertyId;
+    if (propertyId) {
+      const property = await prisma.analyticsProperty.findFirst({
+        where: { id: propertyId, userId },
+        select: { id: true }
+      });
+
+      if (!property) {
+        return reply.code(404).send({ message: "Property not found" });
+      }
+    }
+
     const [events, performance, errors] = await Promise.all([
-      prisma.frictionEvent.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 25 }),
-      prisma.performanceMetric.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 25 }),
-      prisma.errorLog.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take: 25 })
+      prisma.frictionEvent.findMany({
+        where: { userId, ...(propertyId ? { propertyId } : {}) },
+        orderBy: { createdAt: "desc" },
+        take: 100
+      }),
+      prisma.performanceMetric.findMany({
+        where: { userId, ...(propertyId ? { propertyId } : {}) },
+        orderBy: { createdAt: "desc" },
+        take: 100
+      }),
+      prisma.errorLog.findMany({
+        where: { userId, ...(propertyId ? { propertyId } : {}) },
+        orderBy: { createdAt: "desc" },
+        take: 100
+      })
     ]);
 
     return reply.send({ events, performance, errors });

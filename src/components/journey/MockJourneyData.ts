@@ -1,5 +1,7 @@
 
-export const getMockDetailedJourney = (flowId: string): Record<string, any[]> => {
+import type { DetailedStep } from '@/data/mockData';
+
+export const getMockDetailedJourney = (flowId: string): Record<string, DetailedStep[]> => {
   // Mock detailed journey data - in a real app this would come from backend
   return {
     'flow-1': [

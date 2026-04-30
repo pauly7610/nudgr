@@ -20,12 +20,17 @@ interface JourneyCreatorProps {
   onCreated: (flowId: string) => void;
 }
 
+interface JourneyStepInput {
+  label: string;
+  users: number;
+}
+
 export const JourneyCreator: React.FC<JourneyCreatorProps> = ({ onClose, onCreated }) => {
   const { createFlow } = useFrictionData();
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [steps, setSteps] = useState([
+  const [steps, setSteps] = useState<JourneyStepInput[]>([
     { label: 'Start', users: 1000 },
     { label: 'End', users: 500 }
   ]);
@@ -39,7 +44,11 @@ export const JourneyCreator: React.FC<JourneyCreatorProps> = ({ onClose, onCreat
     setSteps(steps.filter((_, i) => i !== index));
   };
   
-  const updateStep = (index: number, field: string, value: any) => {
+  const updateStep = <Key extends keyof JourneyStepInput>(
+    index: number,
+    field: Key,
+    value: JourneyStepInput[Key]
+  ) => {
     const newSteps = [...steps];
     newSteps[index] = { ...newSteps[index], [field]: value };
     setSteps(newSteps);

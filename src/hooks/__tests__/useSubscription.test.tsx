@@ -7,6 +7,8 @@ import { apiRequest } from '@/lib/apiClient';
 
 vi.mock('@/lib/apiClient', () => ({
   apiRequest: vi.fn(),
+  getAccessToken: vi.fn(() => 'test-access-token'),
+  getRefreshToken: vi.fn(() => null),
   setAccessToken: vi.fn(),
 }));
 

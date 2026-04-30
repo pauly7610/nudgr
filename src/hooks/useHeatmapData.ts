@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/apiClient';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
 
 export interface HeatmapPoint {
   id: string;
@@ -51,10 +52,17 @@ const toHeatmapPoint = (event: FrictionEvent): HeatmapPoint => {
 };
 
 export const useHeatmapData = (pageUrl?: string, dateRange?: { start: string; end: string }) => {
+  const { selectedProperty } = useAnalyticsPropertyContext();
+
   return useQuery({
-    queryKey: ['heatmap-data', pageUrl, dateRange],
+    queryKey: ['heatmap-data', pageUrl, dateRange, selectedProperty?.id ?? 'all'],
     queryFn: async () => {
-      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const params = new URLSearchParams();
+      if (selectedProperty?.id) {
+        params.set('propertyId', selectedProperty.id);
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const data = await apiRequest<MetricsResponse>(`/metrics/recent${suffix}`);
 
       return data.events
         .map(toHeatmapPoint)
@@ -71,10 +79,17 @@ export const useHeatmapData = (pageUrl?: string, dateRange?: { start: string; en
 };
 
 export const useTopFrictionElements = (limit: number = 10) => {
+  const { selectedProperty } = useAnalyticsPropertyContext();
+
   return useQuery({
-    queryKey: ['top-friction-elements', limit],
+    queryKey: ['top-friction-elements', limit, selectedProperty?.id ?? 'all'],
     queryFn: async () => {
-      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const params = new URLSearchParams();
+      if (selectedProperty?.id) {
+        params.set('propertyId', selectedProperty.id);
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const data = await apiRequest<MetricsResponse>(`/metrics/recent${suffix}`);
 
       return data.events
         .map(toHeatmapPoint)

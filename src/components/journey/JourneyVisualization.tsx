@@ -1,21 +1,30 @@
 
 import React, { useState } from 'react';
-import { Flow } from '../../data/mockData';
+import { DetailedStep, FrictionType } from '../../data/mockData';
 import { ArrowRight, HelpCircle, Info } from 'lucide-react';
 import { JourneyStep } from './JourneyStep';
-import { Select } from '../ui/select';
 import { Label } from '../ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 // Define flow dimension options
 type FlowDimension = 'pages' | 'events' | 'devices' | 'marketing';
 
+interface JourneyVisualizationStep {
+  label: string;
+  users: number;
+  dropOff?: number;
+  friction?: FrictionType[];
+  event?: string;
+  device?: string;
+  campaign?: string;
+}
+
 interface JourneyVisualizationProps {
-  steps: any[];
+  steps: JourneyVisualizationStep[];
   hasFiltersApplied: boolean;
   expandedStepIndex: number | null;
   setExpandedStepIndex: (index: number | null) => void;
-  detailedJourney: any[];
+  detailedJourney: DetailedStep[];
 }
 
 export const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
@@ -28,7 +37,7 @@ export const JourneyVisualization: React.FC<JourneyVisualizationProps> = ({
   const [flowDimension, setFlowDimension] = useState<FlowDimension>('pages');
   
   // Dynamically adjust visualization based on selected dimension
-  const getDimensionLabel = (step: any, dimension: FlowDimension) => {
+  const getDimensionLabel = (step: JourneyVisualizationStep, dimension: FlowDimension) => {
     switch(dimension) {
       case 'events':
         return step.event || step.label;

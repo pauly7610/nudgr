@@ -8,9 +8,10 @@ import { prisma } from "./lib/prisma.js";
 const ensureTestEnv = (): void => {
   process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
   process.env.PORT = process.env.PORT ?? "4000";
-  process.env.DATABASE_URL = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/nudgr";
+  process.env.DATABASE_URL = process.env.DATABASE_URL ?? "file:./test.db";
   process.env.REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
   process.env.CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:8080";
+  process.env.DISABLE_AUTH = "false";
   process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET ?? "test_access_secret_123456";
   process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ?? "test_refresh_secret_123456";
   process.env.JWT_ACCESS_TTL = process.env.JWT_ACCESS_TTL ?? "15m";

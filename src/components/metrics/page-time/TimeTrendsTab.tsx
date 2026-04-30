@@ -56,8 +56,8 @@ export const TimeTrendsTab: React.FC<TimeTrendsTabProps> = ({ timeData, timeTren
             domain={['auto', 'auto']}
           />
           <Tooltip 
-            formatter={(value: any, name: any) => {
-              if (name === 'avgTimeOnSite') return [formatTime(value), 'Page Time'];
+            formatter={(value: number | string, name: string) => {
+              if (name === 'avgTimeOnSite') return [formatTime(Number(value)), 'Page Time'];
               return [value, 'Pages/Session'];
             }}
             contentStyle={{ fontSize: 11 }}

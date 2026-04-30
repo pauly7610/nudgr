@@ -10,20 +10,32 @@ interface TopFrictionFunnelsProps {
   activeFlowId: string | null;
 }
 
+interface FunnelTooltipPayload {
+  value: number;
+  payload: {
+    avgTime: number;
+    name: string;
+  };
+}
+
+interface FunnelTooltipProps {
+  active?: boolean;
+  payload?: FunnelTooltipPayload[];
+}
+
 export const TopFrictionFunnels: React.FC<TopFrictionFunnelsProps> = ({ 
   flows, 
   onFlowClick,
   activeFlowId
 }) => {
   // Calculate drop-off rate and average time for each flow
-  const chartData = flows.map(flow => {
+  const chartData = flows.map((flow, index) => {
     const firstStep = flow.steps[0];
     const lastStep = flow.steps[flow.steps.length - 1];
-    const totalDropOff = firstStep.users - lastStep.users;
-    const dropOffRate = Math.round((totalDropOff / firstStep.users) * 100);
+    const totalDropOff = Math.max(0, firstStep.users - lastStep.users);
+    const dropOffRate = firstStep.users > 0 ? Math.round((totalDropOff / firstStep.users) * 100) : 0;
     
-    // Calculate estimated time (mock data)
-    const avgTimeInSeconds = 30 + Math.floor(Math.random() * 120) + dropOffRate * 2;
+    const avgTimeInSeconds = 45 + flow.steps.length * 22 + dropOffRate * 2 + index * 7;
     const minutes = Math.floor(avgTimeInSeconds / 60);
     const seconds = avgTimeInSeconds % 60;
     const timeFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -42,7 +54,7 @@ export const TopFrictionFunnels: React.FC<TopFrictionFunnelsProps> = ({
   chartData.sort((a, b) => b.dropOffRate - a.dropOffRate);
   
   // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: FunnelTooltipProps) => {
     if (active && payload && payload.length) {
       const minutes = Math.floor(payload[0].payload.avgTime / 60);
       const seconds = payload[0].payload.avgTime % 60;
@@ -80,49 +92,54 @@ export const TopFrictionFunnels: React.FC<TopFrictionFunnelsProps> = ({
             <span>Click on bars for journey details</span>
           </div>
         </div>
-        
-        <div style={{ height: '250px' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              barSize={35}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                unit="%" 
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 12 }}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                payload={[
-                  { value: 'Drop-off Rate', type: 'rect', color: '#7209b7' }
-                ]}
-              />
-              <Bar 
-                dataKey="dropOffRate" 
-                fill="#7209b7" 
-                radius={[4, 4, 0, 0]} 
-                onClick={(data) => onFlowClick(data.id)}
-                cursor="pointer"
-                className="hover:opacity-80 transition-opacity"
-                label={{
-                  position: 'top',
-                  formatter: (value: number) => `${value}%`,
-                  fontSize: 12
-                }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {chartData.length === 0 ? (
+          <div className="flex h-[250px] items-center justify-center rounded-md border border-dashed text-center text-sm text-muted-foreground">
+            Connect a property or generate local sample data to populate live journeys.
+          </div>
+        ) : (
+          <div style={{ height: '250px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                barSize={35}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis
+                  unit="%"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                  payload={[
+                    { value: 'Drop-off Rate', type: 'rect', color: '#7209b7' }
+                  ]}
+                />
+                <Bar
+                  dataKey="dropOffRate"
+                  fill="#7209b7"
+                  radius={[4, 4, 0, 0]}
+                  onClick={(data) => onFlowClick(data.id)}
+                  cursor="pointer"
+                  className="hover:opacity-80 transition-opacity"
+                  label={{
+                    position: 'top',
+                    formatter: (value: number) => `${value}%`,
+                    fontSize: 12
+                  }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
         
         <div className="mt-3 flex justify-between items-center text-xs text-muted-foreground">
           <span>Data from last 30 days</span>

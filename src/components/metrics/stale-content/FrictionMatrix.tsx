@@ -55,7 +55,7 @@ export const FrictionMatrix: React.FC<FrictionMatrixProps> = ({ matrixData }) =>
                 const behavior = getCurveBehavior(data.curveBehavior);
                 const action = getSuggestedAction({
                   name: data.name,
-                  type: data.type as any,
+                  type: data.type,
                   lastInteraction: data.lastInteraction,
                   viewsLast30Days: data.viewsLast30Days,
                   previousViews: data.previousViews,

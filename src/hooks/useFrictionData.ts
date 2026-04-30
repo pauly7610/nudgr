@@ -1,6 +1,15 @@
 
-import { useState, useEffect } from 'react';
-import { Alert, Flow, UserCohort, flowData, initialAlerts, userCohorts as initialUserCohorts, generateRandomAlert } from '../data/mockData';
+import { useEffect, useMemo, useState } from 'react';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { useProductAnalyticsSummary } from '@/hooks/useProductAnalytics';
+import {
+  Alert,
+  Flow,
+  UserCohort,
+  flowData as demoFlowData,
+  initialAlerts as demoAlerts,
+  userCohorts as demoUserCohorts,
+} from '../data/mockData';
 
 export interface FrictionDataState {
   flows: Flow[];
@@ -11,31 +20,55 @@ export interface FrictionDataState {
   activeAlert: Alert | null;
   setActiveAlert: (alert: Alert | null) => void;
   createFlow: (flowData: Omit<Flow, 'id'>) => string;
-  getMarketingContext: (flowId: string) => any | null;
+  getMarketingContext: (flowId: string) => Record<string, string> | null;
   getFrictionImpactScore: (flowId: string) => number;
   getTopFrictionElements: () => Array<{elementName: string; score: number; flowId: string}>;
 }
 
 export const useFrictionData = (): FrictionDataState => {
-  const [flows, setFlows] = useState<Flow[]>(flowData);
-  const [alerts, setAlerts] = useState<Alert[]>(initialAlerts);
-  const [userCohorts, setUserCohorts] = useState<UserCohort[]>(initialUserCohorts);
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const { data: analyticsSummary } = useProductAnalyticsSummary(30, selectedProperty?.id ?? null);
+  const [customFlows, setCustomFlows] = useState<Flow[]>([]);
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<Alert | null>(null);
+  const demoDataEnabled = import.meta.env.VITE_DEMO_DATA === 'true';
 
-  // Simulate real-time alert generation - slowed down
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newAlert = generateRandomAlert();
-      setAlerts(prev => [newAlert, ...prev.slice(0, 49)]); // Keep max 50 alerts
-    }, 60000 + Math.random() * 60000); // Random interval between 60-120 seconds (increased from 15-45 seconds)
-    
-    return () => clearInterval(interval);
-  }, []);
+  const liveFlows = useMemo<Flow[]>(() => {
+    return analyticsSummary?.journeys ?? [];
+  }, [analyticsSummary?.journeys]);
 
-  // Add extra marketing cohorts to the initial set
-  useEffect(() => {
-    const marketingCohorts: UserCohort[] = [
+  const flows = useMemo<Flow[]>(() => {
+    const baseFlows = liveFlows.length > 0
+      ? liveFlows
+      : demoDataEnabled
+        ? demoFlowData
+        : [];
+
+    return [...baseFlows, ...customFlows];
+  }, [customFlows, demoDataEnabled, liveFlows]);
+
+  const alerts = useMemo<Alert[]>(() => {
+    if (analyticsSummary?.alerts?.length) {
+      return analyticsSummary.alerts.map((alert) => ({
+        ...alert,
+        timestamp: new Date(alert.timestamp),
+      }));
+    }
+
+    return demoDataEnabled ? demoAlerts : [];
+  }, [analyticsSummary?.alerts, demoDataEnabled]);
+
+  const userCohorts = useMemo<UserCohort[]>(() => {
+    if (analyticsSummary?.cohorts?.length) {
+      return analyticsSummary.cohorts;
+    }
+
+    if (!demoDataEnabled) {
+      return [];
+    }
+
+    return [
+      ...demoUserCohorts,
       {
         id: "cohort-4",
         name: "Google Ads - Search",
@@ -58,19 +91,30 @@ export const useFrictionData = (): FrictionDataState => {
         change: 2.7
       }
     ];
-    
-    setUserCohorts([...initialUserCohorts, ...marketingCohorts]);
-  }, []);
+  }, [analyticsSummary?.cohorts, demoDataEnabled]);
+
+  useEffect(() => {
+    if (flows.length === 0) {
+      if (activeFlowId !== null) {
+        setActiveFlowId(null);
+      }
+      return;
+    }
+
+    if (!activeFlowId || !flows.some((flow) => flow.id === activeFlowId)) {
+      setActiveFlowId(flows[0].id);
+    }
+  }, [activeFlowId, flows]);
   
   // Function to create a new flow
-  const createFlow = (flowData: Omit<Flow, 'id'>) => {
+  const createFlow = (newFlowData: Omit<Flow, 'id'>) => {
     const newId = `flow-${Date.now()}`;
     const newFlow: Flow = {
       id: newId,
-      ...flowData
+      ...newFlowData
     };
     
-    setFlows(prevFlows => [...prevFlows, newFlow]);
+    setCustomFlows(prevFlows => [...prevFlows, newFlow]);
     return newId;
   };
 

@@ -17,6 +17,9 @@ import { SmartTestPlanner } from './testing/SmartTestPlanner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useDashboardWidgets } from '@/hooks/useDashboardWidgets';
 import { useTokenHygieneSummary } from '@/hooks/useTokenHygieneSummary';
+import { useProductAnalyticsSummary } from '@/hooks/useProductAnalytics';
+import { ProductAnalyticsPulse } from './ProductAnalyticsPulse';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
 
 export const FrictionDashboard: React.FC = () => {
   const {
@@ -28,7 +31,10 @@ export const FrictionDashboard: React.FC = () => {
     activeAlert,
     setActiveAlert
   } = useFrictionData();
+  const { selectedProperty } = useAnalyticsPropertyContext();
   const { data: tokenHygieneSummary, isLoading: isTokenHygieneLoading } = useTokenHygieneSummary();
+  const selectedAnalyticsPropertyId = selectedProperty?.id ?? null;
+  const { data: analyticsSummary, isLoading: isAnalyticsLoading } = useProductAnalyticsSummary(30, selectedAnalyticsPropertyId);
   const enabledWidgets = useDashboardWidgets();
   
   const [latestAlert, setLatestAlert] = useState<Alert | null>(null);
@@ -38,12 +44,12 @@ export const FrictionDashboard: React.FC = () => {
   const totalVisitors = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
   
   // Calculate average drop-off rate
-  const avgDropOffRate = flows.reduce((acc, flow) => {
+  const avgDropOffRate = flows.length > 0 ? flows.reduce((acc, flow) => {
     const firstStep = flow.steps[0];
     const lastStep = flow.steps[flow.steps.length - 1];
-    const dropOffRate = (firstStep.users - lastStep.users) / firstStep.users;
+    const dropOffRate = firstStep.users > 0 ? (firstStep.users - lastStep.users) / firstStep.users : 0;
     return acc + dropOffRate;
-  }, 0) / flows.length * 100;
+  }, 0) / flows.length * 100 : 0;
   
   // Calculate friction index (total friction events / total visitors)
   const totalFrictionEvents = flows.reduce((acc, flow) => {
@@ -52,7 +58,10 @@ export const FrictionDashboard: React.FC = () => {
     }, 0);
   }, 0);
   
-  const frictionIndex = (totalFrictionEvents / flows.length) * 10;
+  const frictionIndex = flows.length > 0 ? (totalFrictionEvents / flows.length) * 10 : 0;
+  const productSessions = analyticsSummary?.summary.sessions ?? totalVisitors;
+  const productEvents = analyticsSummary?.summary.events ?? totalFrictionEvents;
+  const productFrictionScore = analyticsSummary?.summary.frictionScore ?? Math.max(0, Math.round(100 - frictionIndex));
   const tokenSummary = tokenHygieneSummary?.summary;
   const showAuthTokenHygieneWidget = enabledWidgets.some((widget) => widget.id === 'auth-token-hygiene');
   
@@ -99,37 +108,39 @@ export const FrictionDashboard: React.FC = () => {
       )}
       
       <DashboardHeader 
-        title="Friction Dashboard" 
-        description="Monitor and analyze visitor friction points"
+        title="Friction Dashboard"
+        description={`Monitor and analyze visitor friction points${selectedProperty ? ` for ${selectedProperty.name}` : ''}`}
       />
       
       <div className="container py-4 space-y-6">
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatsCard 
-            title="Total Visitors Tracked"
-            value={totalVisitors.toLocaleString()}
-            description="Across all funnels"
+            title="Product Sessions"
+            value={productSessions.toLocaleString()}
+            description={analyticsSummary ? `${analyticsSummary.summary.uniquePages} surfaces observed` : 'Across demo funnels'}
             change={4.2}
             icon={<Users className="h-5 w-5 text-primary" />}
           />
           
           <StatsCard 
-            title="Average Drop-off Rate"
-            value={`${Math.round(avgDropOffRate)}%`}
-            description="From first to last step"
+            title="Event Volume"
+            value={productEvents.toLocaleString()}
+            description={analyticsSummary ? `${analyticsSummary.summary.highFrictionEvents} high-friction signals` : `${Math.round(avgDropOffRate)}% demo drop-off`}
             change={-2.8}
             icon={<BarChart2 className="h-5 w-5 text-primary" />}
           />
           
           <StatsCard 
-            title="Friction Index"
-            value={frictionIndex.toFixed(1)}
-            description="Overall experience score"
+            title="Friction Score"
+            value={productFrictionScore}
+            description={analyticsSummary ? 'Higher is healthier' : 'Demo-derived score'}
             change={1.5}
             icon={<Zap className="h-5 w-5 text-primary" />}
           />
         </div>
+
+        <ProductAnalyticsPulse analytics={analyticsSummary} isLoading={isAnalyticsLoading} />
 
         {showAuthTokenHygieneWidget && (
           <Card>

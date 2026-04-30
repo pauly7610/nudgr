@@ -4,9 +4,10 @@ import test from "node:test";
 const ensureTestEnv = (): void => {
   process.env.NODE_ENV = process.env.NODE_ENV ?? "test";
   process.env.PORT = process.env.PORT ?? "4000";
-  process.env.DATABASE_URL = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/nudgr";
+  process.env.DATABASE_URL = process.env.DATABASE_URL ?? "file:./test.db";
   process.env.REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
   process.env.CORS_ORIGIN = process.env.CORS_ORIGIN ?? "http://localhost:8080";
+  process.env.DISABLE_AUTH = "false";
   process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET ?? "test_access_secret_123456";
   process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ?? "test_refresh_secret_123456";
   process.env.JWT_ACCESS_TTL = process.env.JWT_ACCESS_TTL ?? "15m";
@@ -16,6 +17,9 @@ const ensureTestEnv = (): void => {
   process.env.S3_BUCKET = process.env.S3_BUCKET ?? "nudgr-assets";
   process.env.S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID ?? "test-key";
   process.env.S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY ?? "test-secret";
+  process.env.GOOGLE_OAUTH_CLIENT_ID = "";
+  process.env.GOOGLE_OAUTH_CLIENT_SECRET = "";
+  process.env.GOOGLE_OAUTH_REDIRECT_URI = "";
 };
 
 const withApp = async (
@@ -80,6 +84,17 @@ test("POST /api/sdk/session requires API key", async () => {
   });
 });
 
+test("GET /auth/google reports missing provider config", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/auth/google"
+    });
+
+    assert.equal(response.statusCode, 503);
+  });
+});
+
 test("POST /ai/analyze requires auth", async () => {
   await withApp(async (app) => {
     const response = await app.inject({
@@ -129,6 +144,28 @@ test("GET /marketing/import-summary requires auth", async () => {
     const response = await app.inject({
       method: "GET",
       url: "/marketing/import-summary"
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("GET /analytics/summary requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/analytics/summary"
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("GET /properties requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/properties"
     });
 
     assert.equal(response.statusCode, 401);

@@ -12,6 +12,9 @@ interface AlertsFeedProps {
 
 export const AlertsFeed: React.FC<AlertsFeedProps> = ({ alerts, onAlertClick }) => {
   const [viewMode, setViewMode] = useState<'standard' | 'statistical'>('standard');
+  const handleViewModeChange = (value: string) => {
+    setViewMode(value === 'statistical' ? 'statistical' : 'standard');
+  };
   
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
@@ -20,7 +23,7 @@ export const AlertsFeed: React.FC<AlertsFeedProps> = ({ alerts, onAlertClick }) 
         <span className="text-xs bg-green-100 text-green-700 rounded-full px-2 py-0.5">Live</span>
       </div>
       
-      <Tabs defaultValue="standard" onValueChange={(value) => setViewMode(value as any)}>
+      <Tabs defaultValue="standard" value={viewMode} onValueChange={handleViewModeChange}>
         <div className="px-4 pt-3">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="standard">Standard</TabsTrigger>

@@ -11,6 +11,7 @@ export interface Flow {
   id: string;
   flow: string;
   steps: Step[];
+  details?: DetailedStep[];
 }
 
 export interface Alert {

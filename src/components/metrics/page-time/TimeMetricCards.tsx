@@ -9,25 +9,35 @@ interface MetricCardProps {
   trendValue: number;
 }
 
-export const TimeMetricCards: React.FC = () => {
+interface TimeMetricCardsProps {
+  averageSessionDuration: string;
+  pagesPerSession: string;
+  averageTimePerPage: string;
+}
+
+export const TimeMetricCards: React.FC<TimeMetricCardsProps> = ({
+  averageSessionDuration,
+  pagesPerSession,
+  averageTimePerPage,
+}) => {
   const metrics: MetricCardProps[] = [
     {
       title: "Average Session Duration",
-      value: "3:45",
+      value: averageSessionDuration,
       trend: "up",
-      trendValue: 12
+      trendValue: 0
     },
     {
       title: "Pages per Session",
-      value: "3.8",
+      value: pagesPerSession,
       trend: "up",
-      trendValue: 5
+      trendValue: 0
     },
     {
       title: "Avg. Time per Page",
-      value: "0:59",
+      value: averageTimePerPage,
       trend: "down",
-      trendValue: 3
+      trendValue: 0
     }
   ];
   

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiRequest, setAccessToken } from '@/lib/apiClient';
+import { apiRequest, getAccessToken, getApiBaseUrl, getRefreshToken, setAuthTokens } from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,14 @@ interface AuthResponse {
   refreshToken: string;
 }
 
+const sanitizeReturnTo = (value: string | null): string => {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) {
+    return '/';
+  }
+
+  return value;
+};
+
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -33,6 +41,34 @@ export default function Auth() {
 
   useEffect(() => {
     const checkSession = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      const oauthError = hashParams.get('oauthError');
+      if (oauthError) {
+        window.history.replaceState(null, '', '/auth');
+        toast({
+          title: 'Google sign-in failed',
+          description: oauthError,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const oauthAccessToken = hashParams.get('accessToken');
+      const oauthRefreshToken = hashParams.get('refreshToken');
+      if (oauthAccessToken && oauthRefreshToken) {
+        setAuthTokens({
+          accessToken: oauthAccessToken,
+          refreshToken: oauthRefreshToken,
+        });
+        window.history.replaceState(null, '', '/auth');
+        navigate(sanitizeReturnTo(hashParams.get('returnTo')));
+        return;
+      }
+
+      if (!getAccessToken() && !getRefreshToken()) {
+        return;
+      }
+
       try {
         await apiRequest('/auth/me');
         navigate('/');
@@ -41,7 +77,7 @@ export default function Auth() {
       }
     };
     void checkSession();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +116,10 @@ export default function Auth() {
         }),
       });
 
-      setAccessToken(response.accessToken);
+      setAuthTokens({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+      });
       toast({
         title: "Success!",
         description: "Account created successfully.",
@@ -132,7 +171,10 @@ export default function Auth() {
         body: JSON.stringify({ email, password }),
       });
 
-      setAccessToken(response.accessToken);
+      setAuthTokens({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+      });
       navigate('/');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Sign in failed';
@@ -147,10 +189,12 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
-    toast({
-      title: 'Google sign-in not configured',
-      description: 'OAuth setup will be added during backend provider integration.',
-    });
+    setLoading(true);
+    const currentParams = new URLSearchParams(window.location.search);
+    const returnTo = sanitizeReturnTo(currentParams.get('returnTo'));
+    const oauthUrl = new URL('/auth/google', getApiBaseUrl());
+    oauthUrl.searchParams.set('returnTo', returnTo);
+    window.location.assign(oauthUrl.toString());
   };
 
   return (

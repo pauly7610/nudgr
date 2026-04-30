@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { apiRequest, setAccessToken } from '@/lib/apiClient';
+import { apiRequest, clearAuthTokens, getAccessToken, getRefreshToken } from '@/lib/apiClient';
+import { demoAuthUser, isAuthDisabled } from '@/lib/authMode';
 
 interface AuthUser {
   id: string;
@@ -12,14 +13,30 @@ interface AuthSession {
 }
 
 export const useAuth = () => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<AuthSession | null>(null);
-  const [loading, setLoading] = useState(true);
+  const authDisabled = isAuthDisabled();
+  const [user, setUser] = useState<AuthUser | null>(authDisabled ? demoAuthUser : null);
+  const [session, setSession] = useState<AuthSession | null>(authDisabled ? { accessToken: 'auth-disabled' } : null);
+  const [loading, setLoading] = useState(!authDisabled);
 
   useEffect(() => {
+    if (authDisabled) {
+      setUser(demoAuthUser);
+      setSession({ accessToken: 'auth-disabled' });
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
 
     const loadCurrentUser = async () => {
+      if (!getAccessToken() && !getRefreshToken()) {
+        if (!isMounted) return;
+        setUser(null);
+        setSession(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         const me = await apiRequest<{
           id: string;
@@ -50,7 +67,7 @@ export const useAuth = () => {
     void loadCurrentUser();
 
     const onStorage = (event: StorageEvent) => {
-      if (event.key === 'nudgr_access_token') {
+      if (event.key === 'nudgr_access_token' || event.key === 'nudgr_refresh_token') {
         if (!event.newValue) {
           setUser(null);
           setSession(null);
@@ -69,15 +86,29 @@ export const useAuth = () => {
       isMounted = false;
       window.removeEventListener('storage', onStorage);
     };
-  }, []);
+  }, [authDisabled]);
 
   const signOut = async () => {
+    if (authDisabled) {
+      clearAuthTokens();
+      setUser(demoAuthUser);
+      setSession({ accessToken: 'auth-disabled' });
+      setLoading(false);
+      return;
+    }
+
+    const refreshToken = getRefreshToken();
+
     try {
-      await apiRequest<{ ok: true }>('/auth/logout', { method: 'POST' });
+      await apiRequest<{ ok: true }>('/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify(refreshToken ? { refreshToken } : {}),
+        skipAuthRefresh: true,
+      });
     } catch {
       // ignore network failures and clear local token anyway
     } finally {
-      setAccessToken(null);
+      clearAuthTokens();
       setUser(null);
       setSession(null);
       setLoading(false);

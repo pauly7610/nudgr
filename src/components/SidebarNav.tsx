@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter } from '@/components/ui/sidebar';
-import { BarChart2, Activity, Map, Settings, Users, Home, Library, Plug, BookOpen, Shield, ShieldCheck } from 'lucide-react';
+import { Activity, AppWindow, Map, Settings, Users, Home, Library, Plug, BookOpen, Shield, ShieldCheck } from 'lucide-react';
 import { UserProfileButton } from './UserProfileButton';
 
 export const SidebarNav: React.FC = () => {
@@ -28,6 +28,14 @@ export const SidebarNav: React.FC = () => {
                   <Link to="/" className="flex items-center">
                     <Home className="mr-3 h-4 w-4" />
                     <span>Home</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className={location.pathname === '/connect' ? 'bg-sidebar-accent' : ''}>
+                  <Link to="/connect" className="flex items-center">
+                    <AppWindow className="mr-3 h-4 w-4" />
+                    <span>Sites & Apps</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

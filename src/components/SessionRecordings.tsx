@@ -2,56 +2,37 @@ import React, { useState } from 'react';
 import { Flow } from '../data/mockData';
 import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { Play, Calendar, User, Eye, AlertCircle, Clock } from 'lucide-react';
+import { Calendar, Eye, AlertCircle, Clock, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { FeatureGate } from '@/components/subscription/FeatureGate';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { useSessionRecordings, type SessionRecordingSummary } from '@/hooks/useSessionRecordings';
+import { SessionReplayPlayer } from '@/components/recordings/SessionReplayPlayer';
 
 interface JourneySessionProps {
   flow: Flow | null;
 }
 
-interface SessionRecording {
-  id: string;
-  userId: string;
-  username: string;
-  date: Date;
-  duration: number;
-  frictionPoints: number;
-  completed: boolean;
-}
-
 export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
-  const [selectedSession, setSelectedSession] = useState<SessionRecording | null>(null);
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const { data: sessions = [], isLoading } = useSessionRecordings(selectedProperty?.id ?? null);
+  const [selectedSession, setSelectedSession] = useState<SessionRecordingSummary | null>(null);
   
   if (!flow) return null;
-  
-  // Generate mock session recordings
-  const generateSessions = () => {
-    const sessions: SessionRecording[] = [];
-    
-    for (let i = 0; i < 8; i++) {
-      const completed = Math.random() > 0.4;
-      
-      sessions.push({
-        id: `session-${i+1}`,
-        userId: `user-${Math.floor(Math.random() * 100000)}`,
-        username: `User ${Math.floor(Math.random() * 100000)}`,
-        date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        duration: Math.floor(Math.random() * 600) + 30,
-        frictionPoints: completed ? Math.floor(Math.random() * 3) : Math.floor(Math.random() * 5) + 3,
-        completed: completed
-      });
+
+  const formatDuration = (seconds: number | null) => {
+    if (seconds === null) {
+      return 'Unknown';
     }
-    
-    return sessions;
-  };
-  
-  const sessions = generateSessions();
-  
-  const formatDuration = (seconds: number) => {
+
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const getMetadataString = (session: SessionRecordingSummary, key: string, fallback: string) => {
+    const value = session.metadata?.[key];
+    return typeof value === 'string' && value.length > 0 ? value : fallback;
   };
   
   return (
@@ -72,28 +53,22 @@ export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
         {selectedSession ? (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h4 className="font-medium">Viewing Session: {selectedSession.username}</h4>
+              <h4 className="font-medium">Viewing Session: {selectedSession.session_id}</h4>
               <Button variant="ghost" onClick={() => setSelectedSession(null)}>
                 Back to List
               </Button>
             </div>
             
-            <div className="border rounded-lg p-1">
-              <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                <div className="text-center">
-                  <Play className="h-12 w-12 mx-auto text-muted-foreground/50" />
-                  <p className="mt-4 text-muted-foreground">Session playback would appear here</p>
-                  <p className="text-sm text-muted-foreground mt-1">This is a placeholder for the actual recording player</p>
-                </div>
-              </div>
-            </div>
+            <SessionReplayPlayer
+              recordingPath={selectedSession.storage_path}
+              sessionId={selectedSession.session_id}
+            />
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="border rounded-md p-4">
-                <div className="text-sm text-muted-foreground mb-1">User</div>
-                <div className="font-medium flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {selectedSession.username}
+                <div className="text-sm text-muted-foreground mb-1">Session</div>
+                <div className="font-medium truncate">
+                  {selectedSession.session_id}
                 </div>
               </div>
               
@@ -101,7 +76,7 @@ export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
                 <div className="text-sm text-muted-foreground mb-1">Date</div>
                 <div className="font-medium flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {selectedSession.date.toLocaleDateString()}
+                  {new Date(selectedSession.recording_start).toLocaleDateString()}
                 </div>
               </div>
               
@@ -109,52 +84,63 @@ export const SessionRecordings: React.FC<JourneySessionProps> = ({ flow }) => {
                 <div className="text-sm text-muted-foreground mb-1">Duration</div>
                 <div className="font-medium flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  {formatDuration(selectedSession.duration)}
+                  {formatDuration(selectedSession.duration_seconds)}
                 </div>
               </div>
               
               <div className="border rounded-md p-4">
-                <div className="text-sm text-muted-foreground mb-1">Completion</div>
-                <div className={`font-medium flex items-center gap-1 ${selectedSession.completed ? 'text-green-600' : 'text-red-600'}`}>
-                  {selectedSession.completed ? 'Completed' : 'Abandoned'}
+                <div className="text-sm text-muted-foreground mb-1">Friction Events</div>
+                <div className={`font-medium ${selectedSession.friction_events_count > 2 ? 'text-red-600' : 'text-green-600'}`}>
+                  {selectedSession.friction_events_count}
                 </div>
               </div>
             </div>
             
-            <Alert variant={selectedSession.frictionPoints > 2 ? "destructive" : "default"}>
+            <Alert variant={selectedSession.friction_events_count > 2 ? "destructive" : "default"}>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Friction Detected</AlertTitle>
               <AlertDescription>
-                This session contained {selectedSession.frictionPoints} friction points that may indicate user struggles.
+                This session contained {selectedSession.friction_events_count} friction points that may indicate user struggles.
               </AlertDescription>
             </Alert>
+          </div>
+        ) : isLoading ? (
+          <div className="flex items-center justify-center gap-3 py-12 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading session recordings...
+          </div>
+        ) : sessions.length === 0 ? (
+          <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+            No recordings have been uploaded yet. Enable sampled recordings in the install snippet, then open the connected site.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {sessions.map((session) => (
               <Card key={session.id} className="overflow-hidden">
                 <CardHeader className="p-4">
-                  <CardTitle className="text-base">{session.username}</CardTitle>
+                  <CardTitle className="truncate text-base">
+                    {getMetadataString(session, 'siteUserId', session.session_id)}
+                  </CardTitle>
                   <CardDescription className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {session.date.toLocaleDateString()}
+                    {new Date(session.recording_start).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Duration:</span>
-                    <span>{formatDuration(session.duration)}</span>
+                    <span>{formatDuration(session.duration_seconds)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Friction Points:</span>
-                    <span className={session.frictionPoints > 2 ? 'text-red-600' : ''}>
-                      {session.frictionPoints}
+                    <span className={session.friction_events_count > 2 ? 'text-red-600' : ''}>
+                      {session.friction_events_count}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Status:</span>
-                    <span className={session.completed ? 'text-green-600' : 'text-red-600'}>
-                      {session.completed ? 'Completed' : 'Abandoned'}
+                    <span className="text-muted-foreground">Size:</span>
+                    <span>
+                      {session.file_size_bytes ? `${Math.round(Number(session.file_size_bytes) / 1024)} KB` : 'Unknown'}
                     </span>
                   </div>
                 </CardContent>

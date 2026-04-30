@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/apiClient';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
 
 export interface FormAnalytic {
   id: string;
@@ -57,10 +58,17 @@ const toFormAnalytic = (event: FrictionEvent): FormAnalytic => {
 };
 
 export const useFormAnalytics = (pageUrl?: string) => {
+  const { selectedProperty } = useAnalyticsPropertyContext();
+
   return useQuery({
-    queryKey: ['form-analytics', pageUrl],
+    queryKey: ['form-analytics', pageUrl, selectedProperty?.id ?? 'all'],
     queryFn: async () => {
-      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const params = new URLSearchParams();
+      if (selectedProperty?.id) {
+        params.set('propertyId', selectedProperty.id);
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const data = await apiRequest<MetricsResponse>(`/metrics/recent${suffix}`);
 
       return data.events
         .map(toFormAnalytic)
@@ -71,10 +79,17 @@ export const useFormAnalytics = (pageUrl?: string) => {
 };
 
 export const useTopFormErrors = (limit: number = 10) => {
+  const { selectedProperty } = useAnalyticsPropertyContext();
+
   return useQuery({
-    queryKey: ['top-form-errors', limit],
+    queryKey: ['top-form-errors', limit, selectedProperty?.id ?? 'all'],
     queryFn: async () => {
-      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const params = new URLSearchParams();
+      if (selectedProperty?.id) {
+        params.set('propertyId', selectedProperty.id);
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const data = await apiRequest<MetricsResponse>(`/metrics/recent${suffix}`);
 
       return data.events
         .map(toFormAnalytic)

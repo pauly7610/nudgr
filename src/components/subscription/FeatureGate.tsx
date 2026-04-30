@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { useSubscription, Feature, SubscriptionTier } from '@/hooks/useSubscription';
+import { FEATURE_ACCESS, useSubscription, type Feature, type SubscriptionTier } from '@/hooks/useSubscription';
 import { UpgradePrompt } from './UpgradePrompt';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -12,8 +12,7 @@ interface FeatureGateProps {
 }
 
 const getRequiredTier = (feature: Feature): SubscriptionTier => {
-  const { FEATURE_ACCESS } = require('@/hooks/useSubscription');
-  const tiers = FEATURE_ACCESS[feature];
+  const tiers = FEATURE_ACCESS[feature] as readonly SubscriptionTier[];
   
   if (tiers.includes('free')) return 'free';
   if (tiers.includes('professional')) return 'professional';
