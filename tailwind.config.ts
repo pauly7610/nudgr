@@ -67,13 +67,15 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				amplitude: {
-					blue: '#4361ee',
-					purple: '#7209b7',
-					lightblue: '#4cc9f0',
-					darkblue: '#3a0ca3',
-					gray: '#8E9196',
-					lightgray: '#f8f9fa',
+				dreamfi: {
+					ink: '#0e0219',
+					plum: '#340863',
+					purple: '#5e0eb2',
+					lavender: '#ebe6f0',
+					'lilac': '#cfb8e5',
+					gold: '#ecb602',
+					teal: '#064357',
+					orange: '#f4820a',
 				}
 			},
 			borderRadius: {

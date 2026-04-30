@@ -120,12 +120,12 @@ export const TopFrictionFunnels: React.FC<TopFrictionFunnelsProps> = ({
                 <Tooltip content={<CustomTooltip />} />
                 <Legend
                   payload={[
-                    { value: 'Drop-off Rate', type: 'rect', color: '#7209b7' }
+                    { value: 'Drop-off Rate', type: 'rect', color: '#5e0eb2' }
                   ]}
                 />
                 <Bar
                   dataKey="dropOffRate"
-                  fill="#7209b7"
+                  fill="#5e0eb2"
                   radius={[4, 4, 0, 0]}
                   onClick={(data) => onFlowClick(data.id)}
                   cursor="pointer"
