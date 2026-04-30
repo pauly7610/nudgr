@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
+import { prismaJsonPath } from "../lib/jsonPath.js";
 import { downloadObject, uploadObject } from "../lib/storage.js";
 import { renderExportPdf } from "../lib/pdfExport.js";
 
@@ -613,7 +614,7 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
         OR: [
           {
             metadata: {
-              path: "$.userId",
+              path: prismaJsonPath("userId"),
               equals: userId
             }
           },

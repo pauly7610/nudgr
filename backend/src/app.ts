@@ -3,6 +3,10 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import sensible from "@fastify/sensible";
+import fastifyStatic from "@fastify/static";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { env } from "./config/env.js";
 import { healthRoutes } from "./routes/health.js";
 import { authRoutes } from "./routes/auth.js";
@@ -17,6 +21,11 @@ import { realtimeRoutes } from "./routes/realtime.js";
 import { analyticsRoutes } from "./routes/analytics.js";
 import { propertyRoutes } from "./routes/properties.js";
 import { authPlugin } from "./plugins/auth.js";
+
+const getFrontendDistPath = (): string => {
+  const compiledBackendDir = dirname(fileURLToPath(import.meta.url));
+  return join(compiledBackendDir, "..", "..", "dist");
+};
 
 export const buildApp = (): FastifyInstance => {
   const app = Fastify({
@@ -53,6 +62,23 @@ export const buildApp = (): FastifyInstance => {
   void app.register(propertyRoutes);
   void app.register(analyticsRoutes);
   void app.register(realtimeRoutes);
+
+  const frontendDistPath = getFrontendDistPath();
+  if (env.NODE_ENV === "production" && existsSync(frontendDistPath)) {
+    void app.register(fastifyStatic, {
+      root: frontendDistPath,
+      prefix: "/"
+    });
+
+    app.setNotFoundHandler((request, reply) => {
+      const acceptsHtml = request.headers.accept?.includes("text/html") ?? false;
+      if (request.method === "GET" && acceptsHtml) {
+        return reply.sendFile("index.html");
+      }
+
+      return reply.code(404).send({ message: "Not Found" });
+    });
+  }
 
   return app;
 };

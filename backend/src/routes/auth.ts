@@ -5,6 +5,7 @@ import type { InputJsonValue } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
+import { prismaJsonPath } from "../lib/jsonPath.js";
 
 const signupSchema = z.object({
   email: z.string().email(),
@@ -586,7 +587,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           userId: payload.sub,
           eventName: "auth_refresh_token",
           eventProperties: {
-            path: "$.tokenHash",
+            path: prismaJsonPath("tokenHash"),
             equals: tokenHash
           }
         },
@@ -720,7 +721,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
             userId: payload.sub,
             eventName: "auth_refresh_token",
             eventProperties: {
-              path: "$.tokenHash",
+              path: prismaJsonPath("tokenHash"),
               equals: tokenHash
             }
           },

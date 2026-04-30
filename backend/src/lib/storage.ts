@@ -5,8 +5,7 @@ import { env } from "../config/env.js";
 
 const LOCAL_STORAGE_ROOT = path.resolve(process.cwd(), "storage");
 const useLocalObjectStorage =
-  env.NODE_ENV === "development" &&
-  env.DISABLE_AUTH &&
+  process.env.NODE_ENV !== "test" &&
   (env.S3_ENDPOINT === "https://example.com" ||
     env.S3_ENDPOINT === "https://your-s3-endpoint" ||
     env.S3_ACCESS_KEY_ID === "local-dev-key");

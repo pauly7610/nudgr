@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "railway:build": "npm ci --prefix backend && npm run build && npm run railway:build --prefix backend",
+    "railway:migrate": "npm run railway:migrate --prefix backend",
+    "railway:start": "npm run railway:start --prefix backend",
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
