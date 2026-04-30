@@ -2,40 +2,49 @@
 import React, { useState } from 'react';
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { StatsCard } from '@/components/StatsCard';
-import { useFrictionData } from '@/hooks/useFrictionData';
-import { Activity, TrendingDown, TrendingUp, Users } from 'lucide-react';
+import { TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketingMetrics } from '@/components/metrics/MarketingMetrics';
 import { StaleContentAnalysis } from '@/components/metrics/StaleContentAnalysis';
 import { PageTimeAnalytics } from '@/components/metrics/PageTimeAnalytics';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { useProductAnalyticsSummary } from '@/hooks/useProductAnalytics';
+
+const daysForRange = (range: string): number => {
+  switch (range) {
+    case 'today':
+      return 1;
+    case '90days':
+      return 90;
+    case '30days':
+      return 30;
+    default:
+      return 7;
+  }
+};
 
 const Metrics = () => {
-  const { flows } = useFrictionData();
   const [timeRange, setTimeRange] = useState('7days');
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const days = daysForRange(timeRange);
+  const { data: analyticsSummary } = useProductAnalyticsSummary(days, selectedProperty?.id ?? null);
   
-  // Calculate metrics
-  const totalVisitors = flows.reduce((acc, flow) => acc + flow.steps[0].users, 0);
-  
-  const avgDropOffRate = flows.reduce((acc, flow) => {
-    const firstStep = flow.steps[0];
-    const lastStep = flow.steps[flow.steps.length - 1];
-    const dropOffRate = (firstStep.users - lastStep.users) / firstStep.users;
-    return acc + dropOffRate;
-  }, 0) / flows.length * 100;
-  
-  const conversionRate = 100 - avgDropOffRate;
-  
-  // Generate mock trend data
-  const trendData = [
-    { day: 'Mon', visitors: Math.floor(totalVisitors * 0.85), conversion: conversionRate - 3, dropoff: avgDropOffRate + 3 },
-    { day: 'Tue', visitors: Math.floor(totalVisitors * 0.9), conversion: conversionRate - 2, dropoff: avgDropOffRate + 2 },
-    { day: 'Wed', visitors: Math.floor(totalVisitors * 0.95), conversion: conversionRate - 1, dropoff: avgDropOffRate + 1 },
-    { day: 'Thu', visitors: totalVisitors, conversion: conversionRate, dropoff: avgDropOffRate },
-    { day: 'Fri', visitors: Math.floor(totalVisitors * 1.05), conversion: conversionRate + 1, dropoff: avgDropOffRate - 1 },
-    { day: 'Sat', visitors: Math.floor(totalVisitors * 0.85), conversion: conversionRate - 0.5, dropoff: avgDropOffRate + 0.5 },
-    { day: 'Sun', visitors: Math.floor(totalVisitors * 0.8), conversion: conversionRate - 1.5, dropoff: avgDropOffRate + 1.5 },
-  ];
+  const totalVisitors = analyticsSummary?.summary.sessions ?? 0;
+  const conversionRate = analyticsSummary?.summary.frictionScore ?? 0;
+  const avgDropOffRate = analyticsSummary ? Math.max(0, 100 - analyticsSummary.summary.frictionScore) : 0;
+  const trendData = analyticsSummary?.trend.map((entry) => {
+    const totalSignals = entry.events + entry.errors;
+    const frictionSignals = entry.highFrictionEvents + entry.errors;
+    const dropoff = totalSignals > 0 ? Math.round((frictionSignals / totalSignals) * 100) : 0;
+
+    return {
+      day: new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(new Date(`${entry.date}T00:00:00Z`)),
+      visitors: entry.events,
+      conversion: Math.max(0, 100 - dropoff),
+      dropoff,
+    };
+  }) ?? [];
   
   return (
     <>

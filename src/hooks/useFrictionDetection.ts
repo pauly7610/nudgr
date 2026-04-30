@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
 
 interface FrictionEvent {
   id: string;
@@ -21,10 +22,16 @@ interface FrictionScore {
 
 export const useFrictionDetection = () => {
   const { toast } = useToast();
+  const { selectedProperty } = useAnalyticsPropertyContext();
 
   const detectFriction = useMutation({
     mutationFn: async () => {
-      const data = await apiRequest<MetricsResponse>('/metrics/recent');
+      const params = new URLSearchParams();
+      if (selectedProperty?.id) {
+        params.set('propertyId', selectedProperty.id);
+      }
+      const suffix = params.toString() ? `?${params.toString()}` : '';
+      const data = await apiRequest<MetricsResponse>(`/metrics/recent${suffix}`);
 
       const grouped = new Map<string, { totalSeverity: number; totalEvents: number }>();
       for (const event of data.events) {

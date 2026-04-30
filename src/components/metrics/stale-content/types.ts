@@ -22,7 +22,7 @@ export interface MatrixDataItem {
   viewsLast30Days: number;
   previousViews: number;
   change: number;
-  type: string;
+  type: StaleContentItem['type'];
   category: 'stale' | 'watch' | 'reevaluate';
   curveBehavior?: CurveBehavior;
   viewHistory: number[];

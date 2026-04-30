@@ -23,7 +23,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
+const MockIntersectionObserver = class {
   constructor() {}
   disconnect() {}
   observe() {}
@@ -31,12 +31,16 @@ global.IntersectionObserver = class IntersectionObserver {
     return [];
   }
   unobserve() {}
-} as any;
+} as unknown as typeof IntersectionObserver;
+
+global.IntersectionObserver = MockIntersectionObserver;
 
 // Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
+const MockResizeObserver = class {
   constructor() {}
   disconnect() {}
   observe() {}
   unobserve() {}
-} as any;
+} as unknown as typeof ResizeObserver;
+
+global.ResizeObserver = MockResizeObserver;

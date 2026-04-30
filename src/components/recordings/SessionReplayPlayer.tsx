@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, RotateCcw, FastForward, Rewind } from 'lucide-react';
+import { getAccessToken } from '@/lib/apiClient';
 
 interface SessionReplayPlayerProps {
   recordingPath: string;
@@ -34,7 +35,7 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
   const playbackTimerRef = useRef<number | null>(null);
   const lastEventIndexRef = useRef(0);
 
-  const getRecordingUrls = (path: string): string[] => {
+  const getRecordingUrls = useCallback((path: string): string[] => {
     if (!path) return [];
 
     if (/^https?:\/\//i.test(path)) {
@@ -49,14 +50,20 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
       `${baseUrl}/${normalizedPath}`,
       `/${normalizedPath}`,
     ];
-  };
+  }, []);
 
-  const downloadRecordingText = async (path: string): Promise<string> => {
+  const downloadRecordingText = useCallback(async (path: string): Promise<string> => {
     const candidateUrls = getRecordingUrls(path);
 
     for (const url of candidateUrls) {
       try {
-        const response = await fetch(url);
+        const headers = new Headers();
+        const token = getAccessToken();
+        if (token) {
+          headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        const response = await fetch(url, { headers });
         if (!response.ok) {
           continue;
         }
@@ -68,7 +75,7 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
     }
 
     throw new Error('Unable to download recording data');
-  };
+  }, [getRecordingUrls]);
 
   const loadRecording = useCallback(async () => {
     try {
@@ -94,7 +101,7 @@ export const SessionReplayPlayer = ({ recordingPath, sessionId }: SessionReplayP
     } finally {
       setLoading(false);
     }
-  }, [recordingPath]);
+  }, [downloadRecordingText, recordingPath]);
 
   useEffect(() => {
     void loadRecording();

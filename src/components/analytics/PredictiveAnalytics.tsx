@@ -1,7 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
 import { FeatureGate } from '@/components/subscription/FeatureGate';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { useProductAnalyticsSummary } from '@/hooks/useProductAnalytics';
 
 interface Prediction {
   type: 'friction_increase' | 'conversion_drop' | 'performance_issue' | 'improvement';
@@ -11,31 +13,11 @@ interface Prediction {
   timeframe: string;
 }
 
-const mockPredictions: Prediction[] = [
-  {
-    type: 'friction_increase',
-    confidence: 87,
-    description: 'Checkout form likely to experience increased friction in next 24h',
-    impact: 'high',
-    timeframe: '24 hours',
-  },
-  {
-    type: 'conversion_drop',
-    confidence: 72,
-    description: 'Mobile conversion rate may drop by 15% this week',
-    impact: 'medium',
-    timeframe: '7 days',
-  },
-  {
-    type: 'improvement',
-    confidence: 65,
-    description: 'Landing page optimization showing positive trends',
-    impact: 'low',
-    timeframe: '3 days',
-  },
-];
-
 export const PredictiveAnalytics = () => {
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const { data: analyticsSummary, isLoading } = useProductAnalyticsSummary(30, selectedProperty?.id ?? null);
+  const predictions: Prediction[] = analyticsSummary?.predictions ?? [];
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'friction_increase':
@@ -79,8 +61,20 @@ export const PredictiveAnalytics = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {isLoading && (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            Building predictions from live behavior...
+          </div>
+        )}
+
+        {!isLoading && predictions.length === 0 && (
+          <div className="py-8 text-center text-sm text-muted-foreground">
+            No prediction is strong enough yet. Collect more traffic or generate local sample events to unlock forecasts.
+          </div>
+        )}
+
         <div className="space-y-4">
-          {mockPredictions.map((prediction, index) => (
+          {predictions.map((prediction, index) => (
             <div key={index} className="p-4 border rounded-lg space-y-3">
               <div className="flex items-start gap-3">
                 {getIcon(prediction.type)}

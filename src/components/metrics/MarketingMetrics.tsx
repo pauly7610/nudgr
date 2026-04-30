@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChartBarIcon } from 'lucide-react';
 import { PageTimeAnalytics } from './PageTimeAnalytics';
-import { MarketingMetricsProps, SegmentType } from './marketing/types';
+import { MarketingMetricItem, MarketingMetricsProps, SegmentType } from './marketing/types';
 import { 
   dailyMarketingData, 
   weeklyMarketingData, 
@@ -40,14 +40,16 @@ export const MarketingMetrics: React.FC<MarketingMetricsProps> = ({ className })
 
   const currentData = getDataForTimeRange();
 
+  type SegmentMetrics = Pick<MarketingMetricItem, 'impressions' | 'clicks' | 'views' | 'conversions'>;
+
   // Calculate metrics
   const aggregateMetrics = currentData.reduce((acc, day) => {
-    let dataToUse = day;
+    let dataToUse: SegmentMetrics = day;
     
     if (segmentType === 'authenticated') {
-      dataToUse = day.authenticated as any;
+      dataToUse = day.authenticated ?? day;
     } else if (segmentType === 'nonAuthenticated') {
-      dataToUse = day.nonAuthenticated as any;
+      dataToUse = day.nonAuthenticated ?? day;
     }
     
     return {

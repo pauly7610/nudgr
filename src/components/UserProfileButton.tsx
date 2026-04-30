@@ -10,10 +10,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LogOut, Settings } from 'lucide-react';
+import { isAuthDisabled } from '@/lib/authMode';
 
 export const UserProfileButton = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const authDisabled = isAuthDisabled();
 
   const profile = {
     full_name: user?.fullName || 'User',
@@ -25,7 +27,7 @@ export const UserProfileButton = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/auth');
+    navigate(authDisabled ? '/' : '/auth');
   };
 
   const getInitials = (name?: string | null) => {
@@ -67,7 +69,7 @@ export const UserProfileButton = () => {
             <p className="text-sm font-medium leading-none">{profile?.full_name || 'User'}</p>
             <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${getRoleBadgeColor(userRole)}`}>
-              {userRole || 'viewer'}
+              {authDisabled ? 'demo mode' : userRole || 'viewer'}
             </span>
           </div>
         </DropdownMenuLabel>
@@ -76,11 +78,15 @@ export const UserProfileButton = () => {
           <Settings className="mr-2 h-4 w-4" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
-        </DropdownMenuItem>
+        {!authDisabled && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

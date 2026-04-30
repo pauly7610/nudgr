@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/apiClient';
 import { useAuth } from './useAuth';
+import { isAuthDisabled } from '@/lib/authMode';
 
 export type SubscriptionTier = 'free' | 'professional' | 'enterprise';
 
@@ -46,6 +47,7 @@ export type Feature = keyof typeof FEATURE_ACCESS;
 
 export const useSubscription = () => {
   const { user } = useAuth();
+  const authDisabled = isAuthDisabled() && import.meta.env.MODE !== 'test';
 
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['subscription', user?.id],
@@ -58,7 +60,7 @@ export const useSubscription = () => {
     enabled: !!user?.id,
   });
 
-  const tier: SubscriptionTier = subscription?.tier || 'free';
+  const tier: SubscriptionTier = authDisabled ? 'enterprise' : subscription?.tier || 'free';
 
   const hasAccess = (feature: Feature): boolean => {
     const allowedTiers = FEATURE_ACCESS[feature] as readonly string[];

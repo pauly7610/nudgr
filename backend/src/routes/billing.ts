@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
+import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
 
 const getUserId = (request: { user?: unknown }): string | null => {
@@ -11,6 +12,24 @@ export const billingRoutes: FastifyPluginAsync = async (app) => {
     const userId = getUserId(request);
     if (!userId) {
       return reply.code(401).send({ message: "Unauthorized" });
+    }
+
+    if (env.DISABLE_AUTH) {
+      return reply.send({
+        subscription: {
+          id: "local-demo-subscription",
+          userId,
+          tier: "enterprise",
+          status: "active",
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      });
     }
 
     const subscription = await prisma.subscription.findFirst({

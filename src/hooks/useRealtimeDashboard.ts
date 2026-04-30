@@ -44,11 +44,15 @@ export const useRealtimeDashboard = () => {
     try {
       const wsUrl = getRealtimeUrl();
       
-      console.log('Connecting to WebSocket:', wsUrl);
+      if (import.meta.env.VITE_DEBUG_TELEMETRY === 'true') {
+        console.debug('Connecting to WebSocket:', wsUrl);
+      }
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
-        console.log('WebSocket connected');
+        if (import.meta.env.VITE_DEBUG_TELEMETRY === 'true') {
+          console.debug('WebSocket connected');
+        }
         setIsConnected(true);
         
         // Send ping every 30 seconds to keep connection alive
@@ -64,7 +68,9 @@ export const useRealtimeDashboard = () => {
       wsRef.current.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('Received message:', message);
+          if (import.meta.env.VITE_DEBUG_TELEMETRY === 'true') {
+            console.debug('Received message:', message);
+          }
           
           setMessages((prev) => [...prev.slice(-49), message]); // Keep last 50 messages
 
@@ -90,12 +96,16 @@ export const useRealtimeDashboard = () => {
       };
 
       wsRef.current.onclose = () => {
-        console.log('WebSocket closed');
+        if (import.meta.env.VITE_DEBUG_TELEMETRY === 'true') {
+          console.debug('WebSocket closed');
+        }
         setIsConnected(false);
         
         // Attempt to reconnect after 5 seconds
         reconnectTimeoutRef.current = window.setTimeout(() => {
-          console.log('Attempting to reconnect...');
+          if (import.meta.env.VITE_DEBUG_TELEMETRY === 'true') {
+            console.debug('Attempting to reconnect...');
+          }
           connect();
         }, 5000);
       };

@@ -1,5 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
+import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
+import { AUTH_DISABLED_USER } from "../plugins/auth.js";
 
 interface DashboardRealtimeMessage {
   type: string;
@@ -22,7 +24,7 @@ export const realtimeRoutes: FastifyPluginAsync = async (app) => {
       const requestUrl = new URL(request.raw.url ?? "/ws/realtime-dashboard", "http://localhost");
       const token = requestUrl.searchParams.get("token");
 
-      if (!token) {
+      if (!token && !env.DISABLE_AUTH) {
         sendMessage(socket, {
           type: "error",
           timestamp: new Date().toISOString(),
@@ -33,17 +35,21 @@ export const realtimeRoutes: FastifyPluginAsync = async (app) => {
       }
 
       let userId: string | null = null;
-      try {
-        const payload = await app.jwt.verify<{ sub?: string }>(token);
-        userId = payload.sub ?? null;
-      } catch {
-        sendMessage(socket, {
-          type: "error",
-          timestamp: new Date().toISOString(),
-          data: { message: "Invalid websocket token" }
-        });
-        socket.close(4401, "Unauthorized");
-        return;
+      if (env.DISABLE_AUTH && !token) {
+        userId = AUTH_DISABLED_USER.sub;
+      } else {
+        try {
+          const payload = await app.jwt.verify<{ sub?: string }>(token ?? "");
+          userId = payload.sub ?? null;
+        } catch {
+          sendMessage(socket, {
+            type: "error",
+            timestamp: new Date().toISOString(),
+            data: { message: "Invalid websocket token" }
+          });
+          socket.close(4401, "Unauthorized");
+          return;
+        }
       }
 
       if (!userId) {

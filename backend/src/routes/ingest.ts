@@ -5,6 +5,7 @@ import { z } from "zod";
 import { env } from "../config/env.js";
 import { prisma } from "../lib/prisma.js";
 import { uploadObject } from "../lib/storage.js";
+import { AUTH_DISABLED_USER } from "../plugins/auth.js";
 
 const ingestEventSchema = z.object({
   type: z.string(),
@@ -81,6 +82,12 @@ const hostMatchesAllowedDomain = (host: string, allowedDomain: string): boolean 
   return host === normalizedCandidate;
 };
 
+const asStringArray = (raw: unknown): string[] => {
+  return Array.isArray(raw)
+    ? raw.filter((value): value is string => typeof value === "string")
+    : [];
+};
+
 const isAllowedOrigin = (params: {
   allowedDomains: string[];
   originHeader?: string;
@@ -110,6 +117,7 @@ const findActiveApiKey = async (plainApiKey: string) => {
     select: {
       id: true,
       userId: true,
+      propertyId: true,
       allowedDomains: true
     }
   });
@@ -124,6 +132,7 @@ type ResolvedIngestIdentity =
       authType: "sdk";
       userId: string;
       apiKeyId: string;
+      propertyId: string | null;
       sessionId: string;
     };
 
@@ -159,18 +168,29 @@ const resolveIdentity = async (
   const sdkSessionToken = getHeaderValue(headers["x-sdk-session-token"]);
 
   if (!apiKey || !sdkSessionToken) {
-    return null;
+    return env.DISABLE_AUTH
+      ? {
+          authType: "jwt",
+          userId: AUTH_DISABLED_USER.sub
+        }
+      : null;
   }
 
   const activeKey = await findActiveApiKey(apiKey);
   if (!activeKey) {
-    return null;
+    return env.DISABLE_AUTH
+      ? {
+          authType: "jwt",
+          userId: AUTH_DISABLED_USER.sub
+        }
+      : null;
   }
 
   try {
     const payload = await app.jwt.verify<{
       type?: string;
       apiKeyId?: string;
+      propertyId?: string | null;
       sessionId?: string;
     }>(sdkSessionToken);
 
@@ -182,11 +202,24 @@ const resolveIdentity = async (
       authType: "sdk",
       userId: activeKey.userId,
       apiKeyId: activeKey.id,
+      propertyId: activeKey.propertyId,
       sessionId: payload.sessionId
     };
   } catch {
     return null;
   }
+};
+
+const isForbiddenJwtUpload = (identity: ResolvedIngestIdentity, requestedUserId: string): boolean => {
+  if (identity.authType !== "jwt") {
+    return false;
+  }
+
+  if (env.DISABLE_AUTH) {
+    return Boolean(requestedUserId && requestedUserId !== identity.userId);
+  }
+
+  return !requestedUserId || requestedUserId !== identity.userId;
 };
 
 export const ingestRoutes: FastifyPluginAsync = async (app) => {
@@ -212,7 +245,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
     const originHeader = getHeaderValue(request.headers.origin);
     const refererHeader = getHeaderValue(request.headers.referer);
     if (!isAllowedOrigin({
-      allowedDomains: activeKey.allowedDomains,
+      allowedDomains: asStringArray(activeKey.allowedDomains),
       originHeader,
       refererHeader
     })) {
@@ -223,6 +256,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
       {
         type: "sdk_session",
         apiKeyId: activeKey.id,
+        propertyId: activeKey.propertyId,
         sessionId: parseResult.data.sessionId,
         siteUserId: parseResult.data.siteUserId
       },
@@ -231,8 +265,27 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
       }
     );
 
+    const seenAt = new Date();
+    try {
+      await Promise.all([
+        prisma.apiKey.updateMany({
+          where: { id: activeKey.id },
+          data: { lastUsedAt: seenAt }
+        }),
+        activeKey.propertyId
+          ? prisma.analyticsProperty.updateMany({
+              where: { id: activeKey.propertyId },
+              data: { lastSeenAt: seenAt }
+            })
+          : Promise.resolve()
+      ]);
+    } catch (error) {
+      request.log.warn({ err: error, apiKeyId: activeKey.id }, "Failed to mark SDK key as seen");
+    }
+
     return reply.code(201).send({
       ok: true,
+      propertyId: activeKey.propertyId,
       sdkSessionToken,
       expiresInSeconds: 12 * 60 * 60
     });
@@ -257,6 +310,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
 
       return {
         userId: identity.userId,
+        propertyId: identity.authType === "sdk" ? identity.propertyId : null,
         eventType: String(data.eventType ?? event.type),
         pageUrl: String(data.pageUrl ?? "unknown"),
         sessionId: event.sessionId ?? (identity.authType === "sdk" ? identity.sessionId : "unknown"),
@@ -265,7 +319,9 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
           eventId: event.eventId,
           timestamp: event.timestamp,
           ingestAuthType: identity.authType,
-          ...(identity.authType === "sdk" ? { ingestApiKeyId: identity.apiKeyId } : {}),
+          ...(identity.authType === "sdk"
+            ? { ingestApiKeyId: identity.apiKeyId, ingestPropertyId: identity.propertyId }
+            : {}),
           ...data
         }
       };
@@ -274,6 +330,17 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
     await prisma.frictionEvent.createMany({
       data: records
     });
+
+    if (identity.authType === "sdk" && identity.propertyId) {
+      try {
+        await prisma.analyticsProperty.update({
+          where: { id: identity.propertyId },
+          data: { lastSeenAt: new Date() }
+        });
+      } catch (error) {
+        request.log.warn({ err: error, propertyId: identity.propertyId }, "Failed to update property activity");
+      }
+    }
 
     return reply.code(202).send({
       ok: true,
@@ -294,7 +361,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const requestedUserId = String(getFieldValue(filePart.fields as Record<string, unknown>, "userId") ?? "");
-    if (identity.authType === "jwt" && (!requestedUserId || requestedUserId !== identity.userId)) {
+    if (isForbiddenJwtUpload(identity, requestedUserId)) {
       return reply.code(403).send({ message: "Forbidden" });
     }
 
@@ -337,6 +404,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
     await prisma.sessionRecording.create({
       data: {
         sessionId,
+        propertyId: identity.authType === "sdk" ? identity.propertyId : null,
         storagePath,
         durationSeconds: Number(metadata.durationSeconds ?? 0),
         fileSizeBytes: BigInt(buffer.byteLength),
@@ -352,7 +420,9 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
           retentionDays: env.SESSION_RECORDING_RETENTION_DAYS,
           retentionExpiresAt,
           ingestAuthType: identity.authType,
-          ...(identity.authType === "sdk" ? { ingestApiKeyId: identity.apiKeyId } : {}),
+          ...(identity.authType === "sdk"
+            ? { ingestApiKeyId: identity.apiKeyId, ingestPropertyId: identity.propertyId }
+            : {}),
           originalFilename: filePart.filename,
           contentType: filePart.mimetype || "application/octet-stream"
         } as InputJsonValue
@@ -377,7 +447,7 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const requestedUserId = String(getFieldValue(filePart.fields as Record<string, unknown>, "userId") ?? "");
-    if (identity.authType === "jwt" && (!requestedUserId || requestedUserId !== identity.userId)) {
+    if (isForbiddenJwtUpload(identity, requestedUserId)) {
       return reply.code(403).send({ message: "Forbidden" });
     }
 

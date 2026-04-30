@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -9,6 +9,7 @@ import Metrics from './pages/Metrics';
 import Library from './pages/Library';
 import Settings from './pages/Settings';
 import Integrations from './pages/Integrations';
+import Connect from './pages/Connect';
 import UserCohorts from './pages/UserCohorts';
 import Auth from './pages/Auth';
 import NotFound from './pages/NotFound';
@@ -21,17 +22,19 @@ import { useAnalytics } from './hooks/useAnalytics';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 import { MonitoringDashboard } from './components/monitoring/MonitoringDashboard';
 import { SecurityDashboard } from './components/security/SecurityDashboard';
+import { isAuthDisabled } from './lib/authMode';
 
 function App() {
   useAnalytics();
   usePerformanceMonitor();
+  const authDisabled = isAuthDisabled();
   
   return (
     <ErrorBoundary>
       <CommandPalette />
       <OnboardingGuide />
       <Routes>
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth" element={authDisabled ? <Navigate to="/" replace /> : <Auth />} />
 
         <Route
           path="/"
@@ -51,6 +54,7 @@ function App() {
           <Route path="library/journey-mapping" element={<Library />} />
           <Route path="library/technical" element={<Library />} />
           <Route path="documentation" element={<Documentation />} />
+          <Route path="connect" element={<Connect />} />
           <Route path="settings" element={<Settings />} />
           <Route path="integrations" element={<Integrations />} />
           <Route path="user-cohorts" element={<UserCohorts />} />

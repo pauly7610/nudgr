@@ -8,8 +8,11 @@ describe('utils', () => {
     });
 
     it('handles conditional classes', () => {
-      expect(cn('base', true && 'conditional')).toBe('base conditional');
-      expect(cn('base', false && 'conditional')).toBe('base');
+      const enabled = true;
+      const disabled = false;
+
+      expect(cn('base', enabled && 'conditional')).toBe('base conditional');
+      expect(cn('base', disabled && 'conditional')).toBe('base');
     });
 
     it('handles undefined and null', () => {

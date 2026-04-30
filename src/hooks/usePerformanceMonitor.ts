@@ -1,14 +1,46 @@
 import { useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { apiRequest } from '@/lib/apiClient';
 
 interface PerformanceMetric {
   name: string;
   value: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
+interface LargestContentfulPaintEntry extends PerformanceEntry {
+  renderTime?: number;
+  loadTime?: number;
+}
+
+interface FirstInputPerformanceEntry extends PerformanceEntry {
+  processingStart: number;
+}
+
+interface LayoutShiftPerformanceEntry extends PerformanceEntry {
+  hadRecentInput?: boolean;
+  value?: number;
+}
+
+const shouldSkipTelemetry = (path: string): boolean => {
+  return path === '/auth' || path.startsWith('/auth/');
+};
+
+const logTelemetryError = (error: unknown): void => {
+  if (import.meta.env.VITE_DEBUG_TELEMETRY === 'true') {
+    console.debug('Performance telemetry skipped or failed:', error);
+  }
+};
+
 export const usePerformanceMonitor = () => {
+  const location = useLocation();
+  const telemetryEnabled = !shouldSkipTelemetry(location.pathname);
+
   const logMetric = useCallback(async (metric: PerformanceMetric) => {
+    if (!telemetryEnabled) {
+      return;
+    }
+
     try {
       await apiRequest<{ id: string; createdAt: string }>('/performance-metrics', {
         method: 'POST',
@@ -21,12 +53,13 @@ export const usePerformanceMonitor = () => {
         }),
       });
     } catch (error) {
-      console.error('Failed to log performance metric:', error);
+      logTelemetryError(error);
     }
-  }, []);
+  }, [telemetryEnabled]);
 
   // Monitor page load performance
   useEffect(() => {
+    if (!telemetryEnabled) return;
     if (typeof window === 'undefined' || !window.performance) return;
 
     const logPagePerformance = () => {
@@ -61,10 +94,13 @@ export const usePerformanceMonitor = () => {
           // Largest Contentful Paint (LCP)
           const lcpObserver = new PerformanceObserver((list) => {
             const entries = list.getEntries();
-            const lastEntry = entries[entries.length - 1] as any;
+            const lastEntry = entries[entries.length - 1] as LargestContentfulPaintEntry | undefined;
+            if (!lastEntry) {
+              return;
+            }
             logMetric({
               name: 'largest_contentful_paint',
-              value: lastEntry.renderTime || lastEntry.loadTime,
+              value: lastEntry.renderTime || lastEntry.loadTime || lastEntry.startTime,
             });
           });
           
@@ -77,10 +113,11 @@ export const usePerformanceMonitor = () => {
           // First Input Delay (FID)
           const fidObserver = new PerformanceObserver((list) => {
             const entries = list.getEntries();
-            entries.forEach((entry: any) => {
+            entries.forEach((entry) => {
+              const firstInputEntry = entry as FirstInputPerformanceEntry;
               logMetric({
                 name: 'first_input_delay',
-                value: entry.processingStart - entry.startTime,
+                value: firstInputEntry.processingStart - firstInputEntry.startTime,
               });
             });
           });
@@ -94,9 +131,10 @@ export const usePerformanceMonitor = () => {
           // Cumulative Layout Shift (CLS)
           let clsScore = 0;
           const clsObserver = new PerformanceObserver((list) => {
-            list.getEntries().forEach((entry: any) => {
-              if (!entry.hadRecentInput) {
-                clsScore += entry.value;
+            list.getEntries().forEach((entry) => {
+              const layoutShiftEntry = entry as LayoutShiftPerformanceEntry;
+              if (!layoutShiftEntry.hadRecentInput) {
+                clsScore += layoutShiftEntry.value ?? 0;
               }
             });
             logMetric({
@@ -112,7 +150,7 @@ export const usePerformanceMonitor = () => {
           }
         }
       } catch (error) {
-        console.error('Failed to log page performance:', error);
+        logTelemetryError(error);
       }
     };
 
@@ -123,7 +161,7 @@ export const usePerformanceMonitor = () => {
       window.addEventListener('load', logPagePerformance);
       return () => window.removeEventListener('load', logPagePerformance);
     }
-  }, [logMetric]);
+  }, [logMetric, telemetryEnabled]);
 
   // Monitor component render time
   const measureRenderTime = useCallback((componentName: string, startTime: number) => {

@@ -16,13 +16,23 @@ interface PageTimeByPageTabProps {
   formatTime: (seconds: number) => string;
 }
 
+interface BarLabelProps {
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+  value?: number;
+}
+
 export const PageTimeByPageTab: React.FC<PageTimeByPageTabProps> = ({ pageTimeData, formatTime }) => {
-  const renderCustomizedLabel = (props: any) => {
-    const { x, y, width, height, value } = props;
+  const renderCustomizedLabel = ({ x = 0, y = 0, width = 0, value = 0 }: BarLabelProps) => {
+    const numericX = Number(x);
+    const numericY = Number(y);
+    const numericWidth = Number(width);
+
     return (
-      <text 
-        x={x + width / 2} 
-        y={y - 5} 
+      <text
+        x={numericX + numericWidth / 2}
+        y={numericY - 5}
         fill="#666"
         textAnchor="middle"
         dominantBaseline="middle"

@@ -3,6 +3,11 @@ import { render as rtlRender, RenderOptions, renderHook } from '@testing-library
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  ALL_PROPERTIES_ID,
+  AnalyticsPropertyContext,
+  type AnalyticsPropertyContextValue,
+} from '@/contexts/AnalyticsPropertyContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,11 +22,21 @@ interface AllTheProvidersProps {
 }
 
 const AllTheProviders = ({ children }: AllTheProvidersProps) => {
+  const analyticsPropertyContext: AnalyticsPropertyContextValue = {
+    properties: [],
+    selectedPropertyId: ALL_PROPERTIES_ID,
+    selectedProperty: null,
+    isLoading: false,
+    setSelectedPropertyId: () => undefined,
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      <AnalyticsPropertyContext.Provider value={analyticsPropertyContext}>
+        <BrowserRouter>
+          {children}
+        </BrowserRouter>
+      </AnalyticsPropertyContext.Provider>
     </QueryClientProvider>
   );
 };

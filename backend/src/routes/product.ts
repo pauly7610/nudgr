@@ -89,6 +89,10 @@ const idParamSchema = z.object({
   id: z.string().min(1)
 });
 
+const recordingsQuerySchema = z.object({
+  propertyId: z.string().uuid().optional()
+});
+
 const decodeStorageKey = (rawPath: string): string => decodeURIComponent(rawPath).replace(/^\/+/, "");
 
 const isStoragePathOwnedByUser = (storagePath: string, userId: string): boolean => {
@@ -586,12 +590,30 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(401).send({ message: "Unauthorized" });
     }
 
+    const query = recordingsQuerySchema.safeParse(request.query);
+    if (!query.success) {
+      return reply.code(400).send({ message: "Invalid recordings query", issues: query.error.flatten() });
+    }
+
+    const propertyId = query.data.propertyId;
+    if (propertyId) {
+      const property = await prisma.analyticsProperty.findFirst({
+        where: { id: propertyId, userId },
+        select: { id: true }
+      });
+
+      if (!property) {
+        return reply.code(404).send({ message: "Property not found" });
+      }
+    }
+
     const recordings = await prisma.sessionRecording.findMany({
       where: {
+        ...(propertyId ? { propertyId } : {}),
         OR: [
           {
             metadata: {
-              path: ["userId"],
+              path: "$.userId",
               equals: userId
             }
           },
@@ -608,9 +630,12 @@ export const productRoutes: FastifyPluginAsync = async (app) => {
     return reply.send(recordings.map((recording: (typeof recordings)[number]) => ({
       id: recording.id,
       session_id: recording.sessionId,
+      property_id: recording.propertyId,
       storage_path: recording.storagePath,
       recording_start: recording.recordingStart.toISOString(),
+      recording_end: recording.recordingEnd?.toISOString() ?? null,
       duration_seconds: recording.durationSeconds,
+      file_size_bytes: recording.fileSizeBytes?.toString() ?? null,
       friction_events_count: recording.frictionEventsCount,
       metadata: recording.metadata
     })));

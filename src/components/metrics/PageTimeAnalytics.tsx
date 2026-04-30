@@ -7,29 +7,25 @@ import { TimeTrendsTab } from './page-time/TimeTrendsTab';
 import { EngagementFlowTab } from './page-time/EngagementFlowTab';
 import { TimeMetricCards } from './page-time/TimeMetricCards';
 import { Separator } from '@/components/ui/separator';
+import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { useProductAnalyticsSummary } from '@/hooks/useProductAnalytics';
 
 export const PageTimeAnalytics: React.FC = () => {
-  // Mock data for page time analytics
-  const pageTimeData = [
-    { page: 'Home', avgTime: 45, bounceRate: 32 },
-    { page: 'Product Listing', avgTime: 95, bounceRate: 22 },
-    { page: 'Product Detail', avgTime: 128, bounceRate: 18 },
-    { page: 'Shopping Cart', avgTime: 62, bounceRate: 42 },
-    { page: 'Checkout', avgTime: 210, bounceRate: 38 },
-    { page: 'Account', avgTime: 73, bounceRate: 12 },
-    { page: 'Help Center', avgTime: 156, bounceRate: 25 },
-  ];
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const { data: analyticsSummary } = useProductAnalyticsSummary(30, selectedProperty?.id ?? null);
+  const pageTimeData = analyticsSummary?.topPages.map((page) => ({
+    page: page.pageUrl,
+    avgTime: analyticsSummary.summary.averagePageLoadMs
+      ? Math.max(1, Math.round(analyticsSummary.summary.averagePageLoadMs / 1000))
+      : Math.max(5, page.events * 8),
+    bounceRate: page.events > 0 ? Math.round((page.highFrictionEvents / page.events) * 100) : 0,
+  })) ?? [];
 
-  // Mock data for time trend
-  const timeTrendData = [
-    { date: 'May 12', avgTimeOnSite: 180, pagesPerSession: 3.2 },
-    { date: 'May 13', avgTimeOnSite: 195, pagesPerSession: 3.4 },
-    { date: 'May 14', avgTimeOnSite: 175, pagesPerSession: 3.1 },
-    { date: 'May 15', avgTimeOnSite: 210, pagesPerSession: 3.8 },
-    { date: 'May 16', avgTimeOnSite: 230, pagesPerSession: 4.2 },
-    { date: 'May 17', avgTimeOnSite: 215, pagesPerSession: 3.9 },
-    { date: 'May 18', avgTimeOnSite: 205, pagesPerSession: 3.7 },
-  ];
+  const timeTrendData = analyticsSummary?.trend.map((entry) => ({
+    date: new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(`${entry.date}T00:00:00Z`)),
+    avgTimeOnSite: Math.max(0, entry.events * 8 + entry.errors * 12),
+    pagesPerSession: entry.events > 0 ? Math.max(1, Number((entry.events / Math.max(1, analyticsSummary.summary.sessions)).toFixed(1))) : 0,
+  })) ?? [];
 
   // Format seconds to min:sec
   const formatTime = (seconds: number) => {
@@ -37,6 +33,17 @@ export const PageTimeAnalytics: React.FC = () => {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+  const totalEvents = analyticsSummary?.summary.events ?? 0;
+  const sessions = analyticsSummary?.summary.sessions ?? 0;
+  const averageTimePerPageSeconds = pageTimeData.length > 0
+    ? Math.round(pageTimeData.reduce((sum, page) => sum + page.avgTime, 0) / pageTimeData.length)
+    : 0;
+  const averageSessionDurationSeconds = sessions > 0
+    ? Math.max(averageTimePerPageSeconds, Math.round((totalEvents / sessions) * averageTimePerPageSeconds))
+    : 0;
+  const pagesPerSession = sessions > 0
+    ? ((analyticsSummary?.summary.uniquePages ?? 0) / sessions).toFixed(1)
+    : '0.0';
 
   return (
     <div className="space-y-4">
@@ -71,7 +78,11 @@ export const PageTimeAnalytics: React.FC = () => {
           </TabsContent>
         </Tabs>
         
-        <TimeMetricCards />
+        <TimeMetricCards
+          averageSessionDuration={formatTime(averageSessionDurationSeconds)}
+          pagesPerSession={pagesPerSession}
+          averageTimePerPage={formatTime(averageTimePerPageSeconds)}
+        />
       </div>
       
       <Separator className="my-4" />

@@ -14,6 +14,8 @@ import { aiRoutes } from "./routes/ai.js";
 import { marketingRoutes } from "./routes/marketing.js";
 import { productRoutes } from "./routes/product.js";
 import { realtimeRoutes } from "./routes/realtime.js";
+import { analyticsRoutes } from "./routes/analytics.js";
+import { propertyRoutes } from "./routes/properties.js";
 import { authPlugin } from "./plugins/auth.js";
 
 export const buildApp = (): FastifyInstance => {
@@ -35,7 +37,7 @@ export const buildApp = (): FastifyInstance => {
   });
   void app.register(websocket);
   void app.register(cors, {
-    origin: env.CORS_ORIGIN,
+    origin: true,
     credentials: true
   });
   void app.register(authPlugin);
@@ -48,6 +50,8 @@ export const buildApp = (): FastifyInstance => {
   void app.register(aiRoutes);
   void app.register(marketingRoutes);
   void app.register(productRoutes);
+  void app.register(propertyRoutes);
+  void app.register(analyticsRoutes);
   void app.register(realtimeRoutes);
 
   return app;

@@ -25,4 +25,9 @@ dist-ssr
 .env
 .venv
 *.timestamp-*.mjs
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+backend/storage/
 

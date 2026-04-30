@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { FeatureGate } from '@/components/subscription/FeatureGate';
 
 interface AIInsightsPanelProps {
-  frictionData: any;
+  frictionData: Record<string, unknown>;
   analysisType?: 'journey' | 'cohort' | 'element' | 'general';
   title?: string;
 }
