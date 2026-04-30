@@ -101,7 +101,7 @@ const InstallSnippetPanel = ({
     await navigator.clipboard.writeText(snippet);
     toast({
       title: 'Snippet copied',
-      description: 'Paste it before the closing head tag on the site.',
+      description: 'Paste it in the site HTML head or shared app shell, not in CSS or TS files.',
     });
   };
 
@@ -113,7 +113,7 @@ const InstallSnippetPanel = ({
           Install Snippet
         </CardTitle>
         <CardDescription>
-          Paste this once and Nudgr will start receiving page views, clicks, errors, friction signals, and sampled recordings.
+          Paste this once in the site or app shell and DreamFi will start receiving page views, clicks, errors, friction signals, and sampled recordings.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -130,6 +130,38 @@ const InstallSnippetPanel = ({
             <pre className="max-h-72 overflow-auto rounded-md bg-muted p-4 text-xs">
               <code>{snippet}</code>
             </pre>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-md border bg-muted/40 p-4">
+                <h3 className="text-sm font-semibold">Where this goes</h3>
+                <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    <strong className="text-foreground">React / Vite:</strong> paste it in the root <code>index.html</code>,
+                    inside <code>{'<head>'}</code>, before <code>{'</head>'}</code>.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Next.js / Remix:</strong> add it to the shared root layout or document head
+                    so it renders on every tracked route.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Plain HTML / CMS:</strong> add it to the global header template. If there is
+                    no shared template, add it to each HTML page you want tracked.
+                  </li>
+                  <li>
+                    <strong className="text-foreground">Do not</strong> put it in <code>index.css</code>, <code>index.ts</code>,
+                    <code>main.tsx</code>, or an individual React component.
+                  </li>
+                </ul>
+              </div>
+              <div className="rounded-md border bg-muted/40 p-4">
+                <h3 className="text-sm font-semibold">Which screens to track</h3>
+                <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                  <li>Install once in a single-page app shell to cover all routed screens automatically.</li>
+                  <li>Add it to marketing pages, signup/login, onboarding, dashboard/home, activation, funding, rewards, and support flows.</li>
+                  <li>Use separate properties or keys for production, staging, and materially different apps or domains.</li>
+                  <li>Keep screenshots off for password, card, bank, SSN, and other sensitive-data screens until privacy review approves them.</li>
+                </ul>
+              </div>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={copySnippet}>
                 <Copy className="mr-2 h-4 w-4" />

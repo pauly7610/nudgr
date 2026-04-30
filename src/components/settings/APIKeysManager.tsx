@@ -226,7 +226,7 @@ export const APIKeysManager = () => {
             Installation Instructions
           </h4>
           <p className="text-sm text-muted-foreground">
-            Add this script to your customer's website to start tracking:
+            Add this script to the tracked website's shared HTML head. For React/Vite, paste it in the root index.html before the closing head tag. Do not put it in index.css, index.ts, main.tsx, or a component file.
           </p>
           <pre className="bg-background p-3 rounded text-xs overflow-x-auto">
             {`<script 
@@ -236,6 +236,9 @@ export const APIKeysManager = () => {
   data-batch-interval="5000"
 ></script>`}
           </pre>
+          <p className="text-xs text-muted-foreground">
+            Install it once in a single-page app shell to cover all routed screens. Use separate keys or properties for production, staging, and separate domains.
+          </p>
         </div>
       </CardContent>
     </Card>
