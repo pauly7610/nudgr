@@ -149,18 +149,29 @@ model FrictionEvent {
   id            String   @id @default(uuid())
   userId        String?
   propertyId    String?
+  eventId       String?
   eventType     String
   pageUrl       String
   sessionId     String
   severityScore Int      @default(0)
+  eventTimestamp DateTime?
+  receivedAt    DateTime @default(now())
+  source        String?
+  schemaVersion Int      @default(1)
+  sdkVersion    String?
+  urlHost       String?
+  urlPath       String?
   metadata      Json?
   createdAt     DateTime @default(now())
 
   property AnalyticsProperty? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
+  @@unique([propertyId, eventId])
   @@index([eventType, createdAt])
   @@index([userId, createdAt])
   @@index([propertyId, createdAt])
+  @@index([propertyId, eventTimestamp])
+  @@index([propertyId, eventId])
 }
 
 model PerformanceMetric {

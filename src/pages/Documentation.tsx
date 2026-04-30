@@ -11,6 +11,9 @@ const productionSnippet = `<script
   data-enable-recording="true"
   data-enable-screenshots="false"
   data-sample-rate="0.1"
+  data-redact-text="true"
+  data-respect-do-not-track="true"
+  data-max-queue-size="500"
 ></script>`;
 
 const viteExample = `<!doctype html>
@@ -213,6 +216,11 @@ const Documentation = () => {
                     ['data-enable-recording', 'Enable sampled session recording. Default: false.'],
                     ['data-enable-screenshots', 'Capture screenshots on friction events. Default: false.'],
                     ['data-sample-rate', 'Recording sample rate from 0.0 to 1.0. Use 0.1 for 10%.'],
+                    ['data-redact-text', 'Redact DOM text in recordings and screenshots. Default: true.'],
+                    ['data-respect-do-not-track', 'Honor browser Do Not Track signals. Default: true.'],
+                    ['data-max-queue-size', 'Maximum events kept in the offline retry queue. Default: 500.'],
+                    ['data-capture-query-string', 'Include sanitized query strings in page URLs. Default: false.'],
+                    ['data-require-consent', 'Wait for DreamFiAnalytics.grantConsent() before collection. Default: false.'],
                     ['data-recording-duration', 'Maximum recording duration in milliseconds. Default: 300000.'],
                     ['data-batch-size', 'Events per network batch. Default: 10.'],
                     ['data-batch-interval', 'Maximum wait between event uploads in milliseconds. Default: 5000.'],
@@ -258,6 +266,8 @@ const Documentation = () => {
   data-enable-recording="true"
   data-enable-screenshots="false"
   data-sample-rate="0.1"
+  data-redact-text="true"
+  data-respect-do-not-track="true"
   data-batch-size="20"
   data-batch-interval="10000"
 ></script>`}</code>

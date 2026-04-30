@@ -7,16 +7,23 @@ import { prisma } from "../lib/prisma.js";
 import { uploadObject } from "../lib/storage.js";
 import { AUTH_DISABLED_USER } from "../plugins/auth.js";
 
+const MAX_INGEST_BATCH_SIZE = 100;
+const INGEST_RATE_LIMIT_WINDOW_MS = 60_000;
+const INGEST_RATE_LIMIT_MAX_REQUESTS = 120;
+const SENSITIVE_KEY_RE = /(password|passwd|secret|token|jwt|session|cookie|auth|card|cc|cvv|cvc|ssn|social|dob|birth|bank|routing|account|pin|otp|mfa|email|phone|address|name)/i;
+
 const ingestEventSchema = z.object({
-  type: z.string(),
-  sessionId: z.string().optional(),
-  timestamp: z.number().optional(),
-  eventId: z.string().optional(),
+  type: z.string().trim().min(1).max(80),
+  sessionId: z.string().trim().min(1).max(160).optional(),
+  timestamp: z.number().int().positive().optional(),
+  eventId: z.string().trim().min(1).max(160).optional(),
+  schemaVersion: z.coerce.number().int().min(1).max(10).default(1),
+  sdkVersion: z.string().trim().max(40).optional(),
   data: z.record(z.string(), z.unknown()).optional()
 });
 
 const ingestPayloadSchema = z.object({
-  events: z.array(ingestEventSchema).min(1)
+  events: z.array(ingestEventSchema).min(1).max(MAX_INGEST_BATCH_SIZE)
 });
 
 const sdkSessionSchema = z.object({
@@ -86,6 +93,92 @@ const asStringArray = (raw: unknown): string[] => {
   return Array.isArray(raw)
     ? raw.filter((value): value is string => typeof value === "string")
     : [];
+};
+
+const asRecord = (raw: unknown): Record<string, unknown> => {
+  return raw && typeof raw === "object" && !Array.isArray(raw)
+    ? raw as Record<string, unknown>
+    : {};
+};
+
+const clampInt = (value: unknown, min: number, max: number): number => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return min;
+  }
+
+  return Math.min(max, Math.max(min, Math.round(parsed)));
+};
+
+const truncate = (value: unknown, maxLength: number): string => {
+  if (value === undefined || value === null) {
+    return "";
+  }
+
+  return String(value)
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[redacted-email]")
+    .replace(/\b(?:\d[ -]*?){13,19}\b/g, "[redacted-card]")
+    .replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[redacted-ssn]")
+    .slice(0, maxLength);
+};
+
+const sanitizeMetadata = (value: unknown, depth = 0): unknown => {
+  if (depth > 4) {
+    return "[truncated]";
+  }
+
+  if (value === undefined) {
+    return null;
+  }
+
+  if (value === null || typeof value === "boolean" || typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return truncate(value, 1000);
+  }
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map((item) => sanitizeMetadata(item, depth + 1));
+  }
+
+  if (typeof value === "object") {
+    const output: Record<string, unknown> = {};
+    for (const [key, nestedValue] of Object.entries(value).slice(0, 100)) {
+      output[truncate(key, 80)] = SENSITIVE_KEY_RE.test(key)
+        ? "[redacted]"
+        : sanitizeMetadata(nestedValue, depth + 1);
+    }
+    return output;
+  }
+
+  return truncate(String(value), 1000);
+};
+
+const eventDateFromTimestamp = (timestamp: number | undefined): Date | null => {
+  if (!timestamp) {
+    return null;
+  }
+
+  const milliseconds = timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
+  const date = new Date(milliseconds);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const urlParts = (rawPageUrl: string): { urlHost: string | null; urlPath: string | null } => {
+  try {
+    const parsed = new URL(rawPageUrl);
+    return {
+      urlHost: parsed.hostname,
+      urlPath: `${parsed.pathname}${parsed.search}`
+    };
+  } catch {
+    return {
+      urlHost: null,
+      urlPath: null
+    };
+  }
 };
 
 const isAllowedOrigin = (params: {
@@ -202,12 +295,68 @@ const resolveIdentity = async (
       authType: "sdk",
       userId: activeKey.userId,
       apiKeyId: activeKey.id,
-      propertyId: activeKey.propertyId,
+      propertyId: activeKey.propertyId ?? null,
       sessionId: payload.sessionId
     };
   } catch {
     return null;
   }
+};
+
+const enforceSdkRateLimit = async (identity: ResolvedIngestIdentity): Promise<boolean> => {
+  if (identity.authType !== "sdk" || env.NODE_ENV === "test") {
+    return true;
+  }
+
+  const identifier = `sdk:${identity.apiKeyId}`;
+  const endpoint = "ingest-events";
+  const now = new Date();
+  const existing = await prisma.rateLimit.findUnique({
+    where: {
+      identifier_endpoint: {
+        identifier,
+        endpoint
+      }
+    }
+  });
+
+  if (!existing) {
+    await prisma.rateLimit.create({
+      data: {
+        identifier,
+        endpoint,
+        requestCount: 1,
+        windowStart: now
+      }
+    });
+    return true;
+  }
+
+  const windowAgeMs = now.getTime() - existing.windowStart.getTime();
+  if (windowAgeMs > INGEST_RATE_LIMIT_WINDOW_MS) {
+    await prisma.rateLimit.update({
+      where: { id: existing.id },
+      data: {
+        requestCount: 1,
+        windowStart: now
+      }
+    });
+    return true;
+  }
+
+  if (existing.requestCount >= INGEST_RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+
+  await prisma.rateLimit.update({
+    where: { id: existing.id },
+    data: {
+      requestCount: {
+        increment: 1
+      }
+    }
+  });
+  return true;
 };
 
 const isForbiddenJwtUpload = (identity: ResolvedIngestIdentity, requestedUserId: string): boolean => {
@@ -297,6 +446,14 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(401).send({ message: "Unauthorized ingest request" });
     }
 
+    const withinRateLimit = await enforceSdkRateLimit(identity);
+    if (!withinRateLimit) {
+      return reply
+        .header("Retry-After", Math.ceil(INGEST_RATE_LIMIT_WINDOW_MS / 1000))
+        .code(429)
+        .send({ message: "Ingest rate limit exceeded" });
+    }
+
     const parseResult = ingestPayloadSchema.safeParse(request.body);
     if (!parseResult.success) {
       return reply.code(400).send({
@@ -305,35 +462,136 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
       });
     }
 
-    const records = parseResult.data.events.map((event) => {
-      const data = event.data ?? {};
+    const frictionRecords = [];
+    const performanceRecords = [];
+    const errorRecords = [];
 
-      return {
+    for (const event of parseResult.data.events) {
+      const data = asRecord(sanitizeMetadata(event.data ?? {}));
+      const eventType = truncate(data.eventType ?? event.type, 80) || "unknown";
+      const pageUrl = truncate(data.pageUrl ?? "unknown", 1000) || "unknown";
+      const eventTimestamp = eventDateFromTimestamp(event.timestamp);
+      const receivedAt = new Date();
+      const severityScore = clampInt(data.severityScore, 0, 10);
+      const schemaVersion = clampInt(data.schemaVersion ?? event.schemaVersion, 1, 10);
+      const sdkVersion = truncate(data.sdkVersion ?? event.sdkVersion ?? "", 40) || null;
+      const parts = urlParts(pageUrl);
+      const baseMetadata = {
+        eventId: event.eventId ?? null,
+        timestamp: event.timestamp,
+        eventTimestamp: eventTimestamp?.toISOString() ?? null,
+        receivedAt: receivedAt.toISOString(),
+        schemaVersion,
+        sdkVersion,
+        ingestAuthType: identity.authType,
+        ...(identity.authType === "sdk"
+          ? { ingestApiKeyId: identity.apiKeyId, ingestPropertyId: identity.propertyId }
+          : {}),
+        ...data
+      };
+
+      frictionRecords.push({
         userId: identity.userId,
         propertyId: identity.authType === "sdk" ? identity.propertyId : null,
-        eventType: String(data.eventType ?? event.type),
-        pageUrl: String(data.pageUrl ?? "unknown"),
+        eventId: event.eventId ?? null,
+        eventType,
+        pageUrl,
         sessionId: event.sessionId ?? (identity.authType === "sdk" ? identity.sessionId : "unknown"),
-        severityScore: Number(data.severityScore ?? 0),
-        metadata: {
-          eventId: event.eventId,
-          timestamp: event.timestamp,
-          ingestAuthType: identity.authType,
-          ...(identity.authType === "sdk"
-            ? { ingestApiKeyId: identity.apiKeyId, ingestPropertyId: identity.propertyId }
-            : {}),
-          ...data
-        }
-      };
-    });
+        severityScore,
+        eventTimestamp,
+        receivedAt,
+        createdAt: eventTimestamp ?? receivedAt,
+        source: identity.authType === "sdk" ? "sdk_browser" : "server",
+        schemaVersion,
+        sdkVersion,
+        urlHost: parts.urlHost,
+        urlPath: parts.urlPath,
+        metadata: baseMetadata as InputJsonValue
+      });
 
-    await prisma.frictionEvent.createMany({
-      data: records
-    });
+      if (eventType === "performance" || data.loadTime !== undefined || data.fcp !== undefined || data.tti !== undefined) {
+        const metricBase = {
+          userId: identity.userId,
+          propertyId: identity.authType === "sdk" ? identity.propertyId : null,
+          pageUrl,
+          userAgent: truncate(asRecord(data.metadata).userAgent, 512) || null,
+          metadata: baseMetadata as InputJsonValue,
+          createdAt: eventTimestamp ?? receivedAt
+        };
+
+        const loadTime = Number(data.loadTime);
+        if (Number.isFinite(loadTime)) {
+          performanceRecords.push({
+            ...metricBase,
+            metricName: "page_load_time",
+            metricValue: loadTime
+          });
+        }
+
+        const fcp = Number(data.fcp);
+        if (Number.isFinite(fcp)) {
+          performanceRecords.push({
+            ...metricBase,
+            metricName: "first_contentful_paint",
+            metricValue: fcp
+          });
+        }
+
+        const tti = Number(data.tti);
+        if (Number.isFinite(tti)) {
+          performanceRecords.push({
+            ...metricBase,
+            metricName: "time_to_interactive",
+            metricValue: tti
+          });
+        }
+      }
+
+      if (eventType.includes("error") || eventType.includes("rejection") || data.errorMessage !== undefined) {
+        const metadata = asRecord(data.metadata);
+        errorRecords.push({
+          userId: identity.userId,
+          propertyId: identity.authType === "sdk" ? identity.propertyId : null,
+          errorType: eventType,
+          errorMessage: truncate(data.errorMessage ?? eventType, 1000),
+          errorStack: truncate(metadata.stack, 4000) || null,
+          componentName: truncate(data.componentName, 255) || null,
+          pageUrl,
+          userAgent: truncate(metadata.userAgent, 512) || null,
+          severity: severityScore >= 8 ? "high" : severityScore >= 5 ? "medium" : "low",
+          metadata: baseMetadata as InputJsonValue,
+          createdAt: eventTimestamp ?? receivedAt
+        });
+      }
+    }
+
+    const shouldUseSkipDuplicates = env.NODE_ENV === "test" || !env.DATABASE_URL.startsWith("file:");
+    const frictionCreateArgs = (shouldUseSkipDuplicates
+      ? {
+          data: frictionRecords,
+          skipDuplicates: true
+        }
+      : {
+          data: frictionRecords
+        }) as Parameters<typeof prisma.frictionEvent.createMany>[0];
+
+    const [createdFriction] = await Promise.all([
+      prisma.frictionEvent.createMany(frictionCreateArgs),
+      performanceRecords.length > 0
+        ? prisma.performanceMetric.createMany({
+            data: performanceRecords
+          })
+        : Promise.resolve({ count: 0 }),
+      errorRecords.length > 0
+        ? prisma.errorLog.createMany({
+            data: errorRecords
+          })
+        : Promise.resolve({ count: 0 })
+    ]);
 
     if (identity.authType === "sdk" && identity.propertyId) {
       try {
-        await prisma.analyticsProperty.update({
+        await prisma.analyticsProperty.updateMany({
           where: { id: identity.propertyId },
           data: { lastSeenAt: new Date() }
         });
@@ -344,7 +602,9 @@ export const ingestRoutes: FastifyPluginAsync = async (app) => {
 
     return reply.code(202).send({
       ok: true,
-      accepted: records.length
+      received: frictionRecords.length,
+      accepted: createdFriction.count,
+      duplicates: Math.max(0, frictionRecords.length - createdFriction.count)
     });
   });
 

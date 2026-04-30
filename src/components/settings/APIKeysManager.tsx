@@ -234,6 +234,8 @@ export const APIKeysManager = () => {
   data-api-key="YOUR_API_KEY"
   data-batch-size="10"
   data-batch-interval="5000"
+  data-redact-text="true"
+  data-respect-do-not-track="true"
 ></script>`}
           </pre>
           <p className="text-xs text-muted-foreground">

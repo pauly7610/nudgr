@@ -58,6 +58,9 @@ const buildInstallSnippet = (apiKey: string): string => {
   data-enable-recording="true"
   data-enable-screenshots="false"
   data-sample-rate="0.1"
+  data-redact-text="true"
+  data-respect-do-not-track="true"
+  data-max-queue-size="500"
 ></script>`;
 };
 
