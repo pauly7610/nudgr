@@ -64,7 +64,7 @@ export const APIKeysManager = () => {
   };
 
   const maskKey = (key: string) => {
-    return key.substring(0, 7) + '•'.repeat(25) + key.substring(key.length - 4);
+    return key.substring(0, 7) + '*'.repeat(25) + key.substring(key.length - 4);
   };
 
   return (

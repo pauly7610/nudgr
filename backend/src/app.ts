@@ -20,6 +20,7 @@ import { productRoutes } from "./routes/product.js";
 import { realtimeRoutes } from "./routes/realtime.js";
 import { analyticsRoutes } from "./routes/analytics.js";
 import { propertyRoutes } from "./routes/properties.js";
+import { governanceRoutes } from "./routes/governance.js";
 import { authPlugin } from "./plugins/auth.js";
 
 const getFrontendDistPath = (): string => {
@@ -61,6 +62,7 @@ export const buildApp = (): FastifyInstance => {
   void app.register(productRoutes);
   void app.register(propertyRoutes);
   void app.register(analyticsRoutes);
+  void app.register(governanceRoutes);
   void app.register(realtimeRoutes);
 
   const frontendDistPath = getFrontendDistPath();

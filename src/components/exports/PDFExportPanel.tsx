@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { FileDown, Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { FileDown, Calendar as CalendarIcon, Loader2, Database, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useFileStorage } from "@/hooks/useFileStorage";
 import { useAuth } from "@/hooks/useAuth";
+import { Input } from "@/components/ui/input";
+import { useAnalyticsPropertyContext } from "@/contexts/AnalyticsPropertyContext";
+import { useCreateExportDestination, useExportCsv, useExportDestinations } from "@/hooks/useGovernance";
 
 const REPORT_TEMPLATES = [
   { id: 'executive-summary', name: 'Executive Summary', sections: ['overview', 'top_friction', 'trends'] },
@@ -22,6 +25,10 @@ export const PDFExportPanel = () => {
   const { user } = useAuth();
   const { exportPDF, useExportJobs } = useFileStorage();
   const { data: jobs, isLoading: jobsLoading } = useExportJobs(user?.id || '');
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const { data: destinations = [] } = useExportDestinations();
+  const createDestination = useCreateExportDestination();
+  const exportCsv = useExportCsv();
 
   const getExportDownloadUrl = (path: string) => {
     if (!path) return '';
@@ -35,6 +42,10 @@ export const PDFExportPanel = () => {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [includeScreenshots, setIncludeScreenshots] = useState(true);
+  const [csvType, setCsvType] = useState<'events' | 'errors' | 'performance' | 'taxonomy'>('events');
+  const [destinationName, setDestinationName] = useState('');
+  const [destinationType, setDestinationType] = useState<'webhook' | 's3' | 'warehouse' | 'email'>('webhook');
+  const [destinationTarget, setDestinationTarget] = useState('');
 
   const handleExport = () => {
     if (!user) return;
@@ -48,6 +59,34 @@ export const PDFExportPanel = () => {
       },
       userId: user.id,
     });
+  };
+
+  const handleCsvExport = () => {
+    exportCsv.mutate({
+      exportType: csvType,
+      propertyId: selectedProperty?.id ?? null,
+      days: 30,
+    });
+  };
+
+  const handleDestinationCreate = () => {
+    if (!destinationName.trim()) return;
+
+    createDestination.mutate(
+      {
+        name: destinationName,
+        destinationType,
+        cadence: 'weekly',
+        config: { target: destinationTarget },
+        isActive: true,
+      },
+      {
+        onSuccess: () => {
+          setDestinationName('');
+          setDestinationTarget('');
+        },
+      }
+    );
   };
 
   return (
@@ -138,6 +177,87 @@ export const PDFExportPanel = () => {
               </>
             )}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="h-5 w-5" />
+            Data Exports
+          </CardTitle>
+          <CardDescription>
+            Generate CSV datasets now or configure scheduled destinations for warehouse and BI workflows.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+            <div className="space-y-2">
+              <Label>CSV dataset</Label>
+              <Select value={csvType} onValueChange={(value) => setCsvType(value as typeof csvType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="events">Events</SelectItem>
+                  <SelectItem value="errors">Errors</SelectItem>
+                  <SelectItem value="performance">Performance</SelectItem>
+                  <SelectItem value="taxonomy">Event taxonomy</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleCsvExport} disabled={exportCsv.isPending}>
+              {exportCsv.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileDown className="mr-2 h-4 w-4" />}
+              Export CSV
+            </Button>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[1fr_0.8fr_1fr_auto] lg:items-end">
+            <div className="space-y-2">
+              <Label htmlFor="destination-name">Destination name</Label>
+              <Input id="destination-name" value={destinationName} onChange={(event) => setDestinationName(event.target.value)} placeholder="Analytics warehouse" />
+            </div>
+            <div className="space-y-2">
+              <Label>Type</Label>
+              <Select value={destinationType} onValueChange={(value) => setDestinationType(value as typeof destinationType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="webhook">Webhook</SelectItem>
+                  <SelectItem value="s3">S3</SelectItem>
+                  <SelectItem value="warehouse">Warehouse</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="destination-target">Target</Label>
+              <Input id="destination-target" value={destinationTarget} onChange={(event) => setDestinationTarget(event.target.value)} placeholder="https://hooks.example.com/dreamfi" />
+            </div>
+            <Button variant="outline" onClick={handleDestinationCreate} disabled={createDestination.isPending}>
+              {createDestination.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+              Save
+            </Button>
+          </div>
+
+          <div className="rounded-md border">
+            {destinations.length === 0 ? (
+              <div className="p-4 text-sm text-muted-foreground">No scheduled destinations yet.</div>
+            ) : (
+              destinations.map((destination) => (
+                <div key={destination.id} className="flex items-center justify-between border-b p-3 text-sm last:border-b-0">
+                  <div>
+                    <div className="font-medium">{destination.name}</div>
+                    <div className="text-xs text-muted-foreground">{destination.destinationType} - {destination.cadence}</div>
+                  </div>
+                  <span className={cn("rounded px-2 py-1 text-xs", destination.isActive ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground")}>
+                    {destination.isActive ? 'active' : 'paused'}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
 

@@ -27,6 +27,10 @@ model User {
   ownedTeamMembers TeamMember[]      @relation("TeamOwnerMembers")
   memberTeams      TeamMember[]      @relation("TeamUserMembership")
   exportJobs       ExportJob[]
+  exportDestinations ExportDestination[]
+  privacySettings PrivacySetting[]
+  eventDefinitions EventDefinition[]
+  auditLogs        AuditLog[]
   analyticsEvents  AnalyticsEvent[]
 }
 
@@ -72,6 +76,8 @@ model AnalyticsProperty {
   performanceMetrics PerformanceMetric[]
   errorLogs          ErrorLog[]
   sessionRecordings  SessionRecording[]
+  privacySettings    PrivacySetting[]
+  eventDefinitions   EventDefinition[]
 
   @@index([userId, createdAt])
   @@index([userId, environment])
@@ -172,6 +178,91 @@ model FrictionEvent {
   @@index([propertyId, createdAt])
   @@index([propertyId, eventTimestamp])
   @@index([propertyId, eventId])
+}
+
+model PrivacySetting {
+  id                  String   @id @default(uuid())
+  userId              String
+  propertyId          String?
+  retentionDays       Int      @default(90)
+  autoCleanup         Boolean  @default(true)
+  archiveBeforeDelete Boolean  @default(false)
+  redactText          Boolean  @default(true)
+  respectDoNotTrack   Boolean  @default(true)
+  requireConsent      Boolean  @default(false)
+  captureQueryString  Boolean  @default(false)
+  captureUrlHash      Boolean  @default(false)
+  allowScreenshots    Boolean  @default(false)
+  recordingSampleRate Float    @default(0.1)
+  domainAllowlist     Json
+  sensitiveSelectors  Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property AnalyticsProperty? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId])
+  @@index([userId])
+  @@index([propertyId])
+}
+
+model EventDefinition {
+  id                 String   @id @default(uuid())
+  userId             String
+  propertyId         String?
+  eventName          String
+  displayName        String?
+  description        String?
+  category           String   @default("custom")
+  status             String   @default("active")
+  owner              String?
+  requiredProperties Json
+  optionalProperties Json
+  conversionEvent    Boolean  @default(false)
+  piiRisk            String   @default("low")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property AnalyticsProperty? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, propertyId, eventName])
+  @@index([userId, status])
+  @@index([propertyId, status])
+}
+
+model ExportDestination {
+  id              String    @id @default(uuid())
+  userId          String
+  name            String
+  destinationType String
+  cadence         String    @default("manual")
+  config          Json
+  isActive        Boolean   @default(true)
+  lastRunAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([destinationType])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([targetType, targetId])
 }
 
 model PerformanceMetric {

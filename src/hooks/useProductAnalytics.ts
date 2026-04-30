@@ -17,6 +17,14 @@ export interface ProductAnalyticsSummary {
     frictionScore: number;
     averagePageLoadMs: number | null;
     instrumentationCoverage: number;
+    collectionQuality?: {
+      eventIdCoverage: number;
+      timestampCoverage: number;
+      sdkEventCoverage: number;
+      duplicateProtectionReady: boolean;
+      schemaVersions: number[];
+      sdkVersions: string[];
+    };
   };
   topPages: Array<{
     pageUrl: string;

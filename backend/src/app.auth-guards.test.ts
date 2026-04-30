@@ -172,6 +172,42 @@ test("GET /properties requires auth", async () => {
   });
 });
 
+test("GET /collection/observability requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/collection/observability"
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("POST /event-definitions requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "POST",
+      url: "/event-definitions",
+      payload: {
+        eventName: "signup_started"
+      }
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
+test("GET /security/posture requires auth", async () => {
+  await withApp(async (app) => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/security/posture"
+    });
+
+    assert.equal(response.statusCode, 401);
+  });
+});
+
 test("GET /recordings/* requires auth", async () => {
   await withApp(async (app) => {
     const response = await app.inject({

@@ -232,6 +232,29 @@ export const ProductAnalyticsPulse = ({ analytics, isLoading }: ProductAnalytics
             </div>
           </div>
         )}
+
+        {analytics.summary.collectionQuality && (
+          <div className="grid gap-3 rounded-md border p-4 md:grid-cols-4">
+            <div>
+              <div className="text-xs text-muted-foreground">Event IDs</div>
+              <div className="mt-1 text-lg font-semibold">{analytics.summary.collectionQuality.eventIdCoverage}%</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">Timestamps</div>
+              <div className="mt-1 text-lg font-semibold">{analytics.summary.collectionQuality.timestampCoverage}%</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">SDK events</div>
+              <div className="mt-1 text-lg font-semibold">{analytics.summary.collectionQuality.sdkEventCoverage}%</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground">SDK versions</div>
+              <div className="mt-1 truncate text-sm font-medium">
+                {analytics.summary.collectionQuality.sdkVersions.join(', ') || 'none'}
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

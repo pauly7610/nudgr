@@ -8,12 +8,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { SessionReplayPlayer } from "./SessionReplayPlayer";
+import { useAnalyticsPropertyContext } from "@/contexts/AnalyticsPropertyContext";
+import { useRecordingInsights } from "@/hooks/useGovernance";
 
 export const RecordingsManager = () => {
   const { user } = useAuth();
   const { useRecordings } = useFileStorage();
   const { data: recordings, isLoading } = useRecordings(user?.id || '');
   const [selectedRecording, setSelectedRecording] = useState<RecordingSummary | null>(null);
+  const { selectedProperty } = useAnalyticsPropertyContext();
+  const { data: insights } = useRecordingInsights(selectedProperty?.id ?? null);
 
   const getRecordingDownloadUrl = (path: string) => {
     if (!path) return '';
@@ -42,6 +46,27 @@ export const RecordingsManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {insights && (
+            <div className="mb-5 grid gap-3 md:grid-cols-4">
+              <div className="rounded-md border p-3">
+                <div className="text-xs text-muted-foreground">Recordings</div>
+                <div className="mt-1 text-2xl font-semibold">{insights.summary.recordings}</div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="text-xs text-muted-foreground">With friction</div>
+                <div className="mt-1 text-2xl font-semibold">{insights.summary.frictionRecordings}</div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="text-xs text-muted-foreground">Avg duration</div>
+                <div className="mt-1 text-2xl font-semibold">{formatDuration(insights.summary.averageDurationSeconds)}</div>
+              </div>
+              <div className="rounded-md border p-3">
+                <div className="text-xs text-muted-foreground">Masking</div>
+                <div className="mt-1 text-sm font-medium">Enabled</div>
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="text-center py-12 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />

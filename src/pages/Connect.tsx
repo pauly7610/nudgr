@@ -8,6 +8,7 @@ import {
   KeyRound,
   Loader2,
   RefreshCw,
+  AlertTriangle,
   Signal,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/DashboardHeader';
@@ -32,8 +33,10 @@ import {
   type AnalyticsPropertyType,
 } from '@/hooks/useAnalyticsProperties';
 import { toast } from '@/hooks/use-toast';
-import { useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
+import { ALL_PROPERTIES_ID, useAnalyticsPropertyContext } from '@/contexts/AnalyticsPropertyContext';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { useSetupCheck } from '@/hooks/useGovernance';
 
 interface InstallState {
   propertyId: string;
@@ -190,6 +193,77 @@ const InstallSnippetPanel = ({
   );
 };
 
+const SetupCheckPanel = ({ propertyId }: { propertyId: string | null }) => {
+  const { data: setup, isLoading, refetch, isFetching } = useSetupCheck(propertyId);
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Signal className="h-5 w-5 text-primary" />
+              Live Setup Checker
+            </CardTitle>
+            <CardDescription>
+              Confirms the snippet, SDK version, traffic, privacy settings, and event taxonomy are ready.
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={!propertyId || isFetching}>
+            {isFetching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Check
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!propertyId ? (
+          <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+            Select a property to run a production readiness check.
+          </div>
+        ) : isLoading ? (
+          <div className="flex items-center gap-3 py-6 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Checking install...
+          </div>
+        ) : setup ? (
+          <>
+            <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
+              <div>
+                <div className="text-4xl font-semibold">{setup.score}%</div>
+                <Badge variant={setup.readyForProduction ? 'default' : 'secondary'}>
+                  {setup.readyForProduction ? 'Production ready' : 'Needs work'}
+                </Badge>
+              </div>
+              <div>
+                <Progress value={setup.score} className="h-2" />
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Last signal {setup.lastSignalAt ? new Date(setup.lastSignalAt).toLocaleString() : 'not seen yet'}
+                  {setup.sdkVersion ? ` - SDK ${setup.sdkVersion}` : ''}
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              {setup.checks.map((check) => (
+                <div key={check.id} className="rounded-md border p-3">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {check.status === 'pass' ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className={cn('h-4 w-4', check.status === 'fail' ? 'text-red-600' : 'text-amber-600')} />
+                    )}
+                    {check.label}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{check.detail}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+};
+
 const PropertyCard = ({
   property,
   isSelected,
@@ -270,6 +344,7 @@ const Connect = () => {
   const [propertyType, setPropertyType] = useState<AnalyticsPropertyType>('website');
   const [environment, setEnvironment] = useState<AnalyticsPropertyEnvironment>('production');
   const [installState, setInstallState] = useState<InstallState | null>(null);
+  const setupPropertyId = installState?.propertyId ?? (selectedPropertyId !== ALL_PROPERTIES_ID ? selectedPropertyId : null);
 
   const connectedCount = useMemo(
     () => properties.filter((property) => property.status === 'connected').length,
@@ -441,6 +516,8 @@ const Connect = () => {
             isVerifying={verifyProperty.isPending}
           />
         </div>
+
+        <SetupCheckPanel propertyId={setupPropertyId} />
 
         <Card>
           <CardHeader>
